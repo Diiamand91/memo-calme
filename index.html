@@ -390,14 +390,14 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function finish() {
     var n = LEVELS[level].pairs, ratio = errors / n, msg;
     nextLevel = level;
-    if (ratio <= 0.5 && level < Math.min(LEVELS.length - 1, CAPL)) {
-      nextLevel = level + 1; msg = "Très peu d'erreurs. On passe au niveau " + (nextLevel + 1) + ".";
-    } else if (ratio > 2 && level > 0) {
+    if (ratio <= 1 && level < Math.min(LEVELS.length - 1, CAPL)) {
+      nextLevel = level + 1; msg = "Bien joué. On passe au niveau " + (nextLevel + 1) + ".";
+    } else if (ratio >= 1.5 && level > 0) {
       nextLevel = level - 1; msg = "Ce niveau était costaud. On revient au niveau " + (nextLevel + 1) + " pour souffler.";
-    } else if (ratio <= 0.5) {
-      msg = "Tu as atteint le dernier niveau. Continue pour garder la forme.";
+    } else if (ratio <= 1) {
+      msg = "Tu as atteint le dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme.");
     } else {
-      msg = "Rythme parfait. On reste sur le niveau " + (level + 1) + ".";
+      msg = "On reste sur le niveau " + (level + 1) + ". Pour monter, fais au plus " + n + " erreurs.";
     }
     save(nextLevel);
     rec("memo", n, n + errors);
@@ -494,10 +494,10 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function cFinish() {
     var msg;
     cNext = cl;
-    if (good >= 7 && cl < MAXC) { cNext = cl + 1; msg = "Très bien joué. On passe au niveau " + (cNext + 1) + "."; }
+    if (good >= 6 && cl < MAXC) { cNext = cl + 1; msg = "Très bien joué. On passe au niveau " + (cNext + 1) + "."; }
     else if (good <= 3 && cl > 0) { cNext = cl - 1; msg = "Ce niveau était difficile. On revient au niveau " + (cNext + 1) + " pour souffler."; }
-    else if (good >= 7) { msg = "Tu es au dernier niveau. Continue pour garder la forme."; }
-    else { msg = "Bon rythme. On reste sur le niveau " + (cl + 1) + "."; }
+    else if (good >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (cl + 1) + ". Pour monter, il faut au moins 6 bonnes réponses sur 8."; }
     cSave(cNext);
     rec("calc", good, ROUND);
     cptitle.textContent = good + " bonnes réponses sur " + ROUND;
@@ -579,10 +579,10 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function nFinish() {
     var msg;
     nNext = nl;
-    if (ngood >= 7 && nl < MAXN) { nNext = nl + 1; msg = "Très bon regard. On passe au niveau " + (nNext + 1) + "."; }
+    if (ngood >= 6 && nl < MAXN) { nNext = nl + 1; msg = "Très bon regard. On passe au niveau " + (nNext + 1) + "."; }
     else if (ngood <= 3 && nl > 0) { nNext = nl - 1; msg = "Ce niveau était difficile. On revient au niveau " + (nNext + 1) + " pour souffler."; }
-    else if (ngood >= 7) { msg = "Tu es au dernier niveau. Continue pour garder la forme."; }
-    else { msg = "Bon rythme. On reste sur le niveau " + (nl + 1) + "."; }
+    else if (ngood >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (nl + 1) + ". Pour monter, il faut au moins 6 bonnes réponses sur 8."; }
     nSave(nNext);
     rec("conc", ngood, NR);
     nptitle.textContent = ngood + " bonnes réponses sur " + NR;
@@ -711,10 +711,10 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function mFinish() {
     var msg;
     mNext = ml;
-    if (mgood >= 7 && ml < MAXM) { mNext = ml + 1; msg = "Très bien joué. On passe au niveau " + (mNext + 1) + "."; }
+    if (mgood >= 6 && ml < MAXM) { mNext = ml + 1; msg = "Très bien joué. On passe au niveau " + (mNext + 1) + "."; }
     else if (mgood <= 3 && ml > 0) { mNext = ml - 1; msg = "Ce niveau était difficile. On revient au niveau " + (mNext + 1) + " pour souffler."; }
-    else if (mgood >= 7) { msg = "Tu es au dernier niveau. Continue pour garder la forme."; }
-    else { msg = "Bon rythme. On reste sur le niveau " + (ml + 1) + "."; }
+    else if (mgood >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (ml + 1) + ". Pour monter, il faut au moins 6 bonnes réponses sur 8."; }
     mSave(mNext);
     rec("monnaie", mgood, ROUND);
     mptitle.textContent = mgood + " bonnes réponses sur " + ROUND;
@@ -809,10 +809,10 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function wFinish() {
     var msg;
     wNext = wl;
-    if (wgood >= 7 && wl < MAXW) { wNext = wl + 1; msg = "Très bien joué. On passe au niveau " + (wNext + 1) + "."; }
+    if (wgood >= 6 && wl < MAXW) { wNext = wl + 1; msg = "Très bien joué. On passe au niveau " + (wNext + 1) + "."; }
     else if (wgood <= 3 && wl > 0) { wNext = wl - 1; msg = "Ce niveau était difficile. On revient au niveau " + (wNext + 1) + " pour souffler."; }
-    else if (wgood >= 7) { msg = "Tu es au dernier niveau. Continue pour garder la forme."; }
-    else { msg = "Bon rythme. On reste sur le niveau " + (wl + 1) + "."; }
+    else if (wgood >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (wl + 1) + ". Pour monter, il faut au moins 6 bonnes réponses sur 8."; }
     wSave(wNext);
     rec("mots", wgood, ROUND);
     wptitle.textContent = wgood + " bonnes réponses sur " + ROUND;
