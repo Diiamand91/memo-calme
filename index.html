@@ -114,6 +114,9 @@ button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; 
 .ptitle { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
 .question.small { font-size: 1.2rem; line-height: 1.4; padding: 22px 16px; font-weight: 600; font-family: var(--font-body); }
 .question.mid { font-size: 2rem; }
+.soutien { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.soutien p { margin: 0; color: var(--muted); }
+a.btn.don { align-self: flex-start; background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 .profil { display: inline-flex; margin-top: 10px; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; }
 .pbtn { appearance: none; border: 0; background: transparent; color: var(--fg); font: inherit; font-weight: 600; min-height: 40px; padding: 0 16px; cursor: pointer; }
 .pbtn.on { background: var(--accent); color: var(--accent-fg); }
@@ -269,6 +272,11 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <div id="prog" class="game"></div>
   </div>
 
+  <section class="soutien" aria-labelledby="soutien-titre">
+    <h2 id="soutien-titre" class="ptitle">Soutenir ce projet</h2>
+    <p>Mémo Calme est gratuit et sans publicité. Si l'application te plaît, tu peux aider à la faire grandir avec un petit don par Wave.</p>
+    <a class="btn don" href="https://pay.wave.com/m/M_A7tP9kY5HLXh/c/sn/" target="_blank" rel="noopener">Faire un don avec Wave</a>
+  </section>
   <p class="foot">Gratuit, sans abonnement. Ta progression reste sur cet appareil.</p>
 </main>
 
