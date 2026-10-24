@@ -120,6 +120,8 @@ button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; 
 .pad.lit { opacity: 1; transform: scale(1.04); border-color: var(--fg); }
 .pad.bad { opacity: 1; border-color: #D1344A; }
 .pad:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.ptxt { font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; line-height: 1.15; text-align: center; padding: 4px; overflow-wrap: anywhere; color: var(--fg); }
+.front.w { border-color: var(--gold); }
 .xans { min-height: 72px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px; overflow-wrap: anywhere; }
 .xans.ok { border-color: var(--accent); }
 .xans.bad { border-color: #D1344A; }
@@ -147,7 +149,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 <main>
   <header>
     <h1>Mémo Calme</h1>
-    <p class="sub">Huit jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
+    <p class="sub">Neuf jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
     <p id="streak" class="streak"></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
       <button id="p-adulte" class="pbtn" type="button">Adulte</button>
@@ -165,6 +167,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <button id="tab-seq" class="tab" type="button" role="tab" aria-selected="false">Séquence</button>
     <button id="tab-suite" class="tab" type="button" role="tab" aria-selected="false">Suite logique</button>
     <button id="tab-mix" class="tab" type="button" role="tab" aria-selected="false">Mots mélangés</button>
+    <button id="tab-pw" class="tab" type="button" role="tab" aria-selected="false">Paires wolof</button>
     <button id="tab-defi" class="tab" type="button" role="tab" aria-selected="false">Défi du jour</button>
     <button id="tab-prog" class="tab" type="button" role="tab" aria-selected="false">Progrès</button>
   </div>
@@ -317,6 +320,24 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <div class="row">
         <button id="xnext" class="btn" type="button">Continuer</button>
         <button id="xagain" class="btn ghost" type="button">Rejouer ce niveau</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="g-pw" class="game" hidden>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><span>Niveau</span><b id="pwlvl">1</b></div>
+      <div class="stat"><span>Paires</span><b id="pwpairs">0/3</b></div>
+      <div class="stat"><span>Erreurs</span><b id="pwerrs">0</b></div>
+    </div>
+    <p class="hint">Associe chaque mot wolof (bord doré) à sa traduction en français.</p>
+    <div id="pwgrid" class="grid" role="group" aria-label="Cartes"></div>
+    <section id="pwpanel" class="panel" hidden>
+      <h2 id="pwptitle"></h2>
+      <p id="pwptext"></p>
+      <div class="row">
+        <button id="pwnext" class="btn" type="button">Continuer</button>
+        <button id="pwagain" class="btn ghost" type="button">Rejouer ce niveau</button>
       </div>
     </section>
   </div>
@@ -669,7 +690,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   document.getElementById("nagain").addEventListener("click", function () { nStart(nl); });
 
   /* ---------- Onglets ---------- */
-  var TABS = ["memo", "calc", "conc", "monn", "mots", "seq", "suite", "mix", "defi", "prog"];
+  var TABS = ["memo", "calc", "conc", "monn", "mots", "seq", "suite", "mix", "pw", "defi", "prog"];
   function show(which) {
     TABS.forEach(function (t) {
       var on = t === which;
@@ -1194,6 +1215,96 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   document.getElementById("xnext").addEventListener("click", function () { xStart(xNext); });
   document.getElementById("xagain").addEventListener("click", function () { xStart(xl); });
 
+  /* ---------- Paires wolof : mot wolof et traduction ---------- */
+  var WPKEY = P + "memo-calme-paires-wolof", MAXP = Math.min(5, CAPL);
+  var WPCFG = [{ pairs: 3, cols: 3 }, { pairs: 4, cols: 4 }, { pairs: 4, cols: 4 }, { pairs: 6, cols: 4 }, { pairs: 6, cols: 4 }, { pairs: 8, cols: 4 }];
+  var wpl = 0, wpMatched = 0, wpErr = 0, wpFirst = null, wpLock = false, wpCards = [], wpNext = 0;
+  var pwgrid = document.getElementById("pwgrid");
+  var pwpanel = document.getElementById("pwpanel");
+
+  function wpPool(l) {
+    var pool = l < WLEVELS.length ? WLEVELS[l] : ALLW, seen = {}, out = [];
+    pool.forEach(function (w) {
+      if (w[0] === "bon") return;
+      if (seen[w[0]]) return;
+      seen[w[0]] = true; out.push(w);
+    });
+    return out;
+  }
+  function wpLoad() {
+    try { var v = parseInt(localStorage.getItem(WPKEY), 10); if (v >= 0 && v <= MAXP) return v; } catch (e) {}
+    return 0;
+  }
+  function wpSave(v) { try { localStorage.setItem(WPKEY, String(v)); } catch (e) {} }
+  function wpUpdate() {
+    document.getElementById("pwlvl").textContent = wpl + 1;
+    document.getElementById("pwpairs").textContent = wpMatched + "/" + WPCFG[wpl].pairs;
+    document.getElementById("pwerrs").textContent = wpErr;
+  }
+  function wpStart(lv) {
+    wpl = lv; wpFirst = null; wpLock = false; wpMatched = 0; wpErr = 0;
+    pwpanel.hidden = true;
+    var cfg = WPCFG[lv], chosen = shuffle(wpPool(lv).slice()).slice(0, cfg.pairs);
+    wpCards = [];
+    chosen.forEach(function (w, i) {
+      wpCards.push({ id: i, text: w[0], wolof: true });
+      wpCards.push({ id: i, text: w[1], wolof: false });
+    });
+    wpCards = shuffle(wpCards);
+    pwgrid.style.setProperty("--cols", cfg.cols);
+    pwgrid.innerHTML = "";
+    wpCards.forEach(function (c, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "card"; b.id = "pw" + i;
+      b.setAttribute("aria-label", "Carte " + (i + 1) + ", face cachée");
+      var t = document.createElement("span"); t.className = "ptxt"; t.textContent = c.text;
+      var front = document.createElement("span"); front.className = "face front" + (c.wolof ? " w" : ""); front.appendChild(t);
+      var back = document.createElement("span"); back.className = "face back";
+      var inner = document.createElement("span"); inner.className = "inner"; inner.appendChild(back); inner.appendChild(front);
+      b.appendChild(inner);
+      b.addEventListener("click", function () { wpFlip(i, b); });
+      pwgrid.appendChild(b);
+    });
+    wpUpdate();
+  }
+  function wpLabel(i, s) { document.getElementById("pw" + i).setAttribute("aria-label", "Carte " + (i + 1) + ", " + s); }
+  function wpFlip(i, b) {
+    if (wpLock || b.classList.contains("open") || b.classList.contains("done")) return;
+    b.classList.add("open"); wpLabel(i, wpCards[i].text);
+    if (wpFirst === null) { wpFirst = i; return; }
+    var a = wpFirst; wpFirst = null;
+    if (wpCards[a].id === wpCards[i].id) {
+      [a, i].forEach(function (k) {
+        var c = document.getElementById("pw" + k);
+        c.classList.remove("open"); c.classList.add("done"); wpLabel(k, wpCards[k].text + ", trouvée");
+      });
+      wpMatched++; wpUpdate();
+      if (wpMatched === WPCFG[wpl].pairs) setTimeout(wpFinish, 500);
+    } else {
+      wpErr++; wpLock = true; wpUpdate();
+      setTimeout(function () {
+        [a, i].forEach(function (k) { document.getElementById("pw" + k).classList.remove("open"); wpLabel(k, "face cachée"); });
+        wpLock = false;
+      }, 1000);
+    }
+  }
+  function wpFinish() {
+    var n = WPCFG[wpl].pairs, ratio = wpErr / n, msg;
+    wpNext = wpl;
+    if (ratio <= 1 && wpl < MAXP) { wpNext = wpl + 1; msg = "Bien joué. On passe au niveau " + (wpNext + 1) + "."; }
+    else if (ratio >= 1.5 && wpl > 0) { wpNext = wpl - 1; msg = "Ce niveau était costaud. On revient au niveau " + (wpNext + 1) + " pour souffler."; }
+    else if (ratio <= 1) { msg = "Tu as atteint le dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (wpl + 1) + ". Pour monter, fais au plus " + n + " erreurs."; }
+    wpSave(wpNext);
+    rec("pw", n, n + wpErr);
+    document.getElementById("pwptitle").textContent = n + " paires trouvées";
+    document.getElementById("pwptext").textContent = wpErr + (wpErr > 1 ? " erreurs. " : " erreur. ") + msg;
+    pwpanel.hidden = false;
+    pwpanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  document.getElementById("pwnext").addEventListener("click", function () { wpStart(wpNext); });
+  document.getElementById("pwagain").addEventListener("click", function () { wpStart(wpl); });
+
   /* ---------- Défi du jour (mêmes questions pour tous) ---------- */
   var DKEY = P + "memo-calme-defi";
   var POOLW = CHILD ? [].concat(WLEVELS[0], WLEVELS[1], WLEVELS[2]) : ALLW;
@@ -1367,7 +1478,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       html += '<div class="wd' + (o.days[dayKey(d)] ? " on" : "") + '"><i></i><span>' + L[d.getDay()] + "</span></div>";
     }
     html += '</div><h2 class="ptitle">Par jeu</h2><div class="games">';
-    [["memo", "Mémoire", level + 1], ["calc", "Calcul mental", cl + 1], ["conc", "Concentration", nl + 1], ["monnaie", "Monnaie FCFA", ml + 1], ["mots", "Mots wolof", wl + 1], ["seq", "Séquence", ql + 1], ["suite", "Suite logique", sl + 1], ["mix", "Mots mélangés", xl + 1], ["defi", "Défi du jour", "—"]].forEach(function (g) {
+    [["memo", "Mémoire", level + 1], ["calc", "Calcul mental", cl + 1], ["conc", "Concentration", nl + 1], ["monnaie", "Monnaie FCFA", ml + 1], ["mots", "Mots wolof", wl + 1], ["seq", "Séquence", ql + 1], ["suite", "Suite logique", sl + 1], ["mix", "Mots mélangés", xl + 1], ["pw", "Paires wolof", wpl + 1], ["defi", "Défi du jour", "—"]].forEach(function (g) {
       var n = 0, s = 0, m = 0;
       Object.keys(o.days).forEach(function (k) {
         var x = o.days[k][g[0]]; if (x) { n += x.n; s += x.s; m += x.m; }
@@ -1386,6 +1497,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   qStart(qLoad());
   sStart(sLoad2());
   xStart(xLoad());
+  wpStart(wpLoad());
   dInit();
   refreshStreak();
 
