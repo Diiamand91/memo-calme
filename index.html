@@ -122,6 +122,18 @@ button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; 
 .pad:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .ptxt { font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; line-height: 1.15; text-align: center; padding: 4px; overflow-wrap: anywhere; color: var(--fg); }
 .front.w { border-color: var(--gold); }
+.flash { margin: 8px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--gold); color: #14231D; font-weight: 600; }
+.bd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.bdg { background: var(--surface); border: 2px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.bdg b { display: block; }
+.bdg small { color: var(--muted); }
+.bdg.on { border-color: var(--gold); }
+.bdg.off b { color: var(--muted); }
+.tools { display: flex; flex-direction: column; gap: 8px; }
+.code { width: 100%; font: inherit; font-size: 0.8rem; background: var(--surface); color: var(--fg); border: 2px solid var(--line); border-radius: 10px; padding: 8px; resize: vertical; }
+.code:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.partage { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.partage p { margin: 0; }
 .xans { min-height: 72px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px; overflow-wrap: anywhere; }
 .xans.ok { border-color: var(--accent); }
 .xans.bad { border-color: #D1344A; }
@@ -151,6 +163,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <h1>Mémo Calme</h1>
     <p class="sub">Neuf jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
     <p id="streak" class="streak"></p>
+    <p id="flash" class="flash" role="status" hidden></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
       <button id="p-adulte" class="pbtn" type="button">Adulte</button>
       <button id="p-enfant" class="pbtn" type="button">Enfant</button>
@@ -371,6 +384,17 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <h2 id="soutien-titre" class="ptitle">Soutenir ce projet</h2>
     <p>Mémo Calme est gratuit et sans publicité. Si l'application te plaît, tu peux aider à la faire grandir avec un petit don par Wave.</p>
     <a class="btn don" href="https://pay.wave.com/m/M_A7tP9kY5HLXh/c/sn/" target="_blank" rel="noopener">Faire un don avec Wave</a>
+  </section>
+  <section class="partage" aria-labelledby="partage-titre">
+    <h2 id="partage-titre" class="ptitle">Partager l'app</h2>
+    <p>Fais découvrir Mémo Calme à tes proches.</p>
+    <div class="row">
+      <button id="sh-native" class="btn" type="button" hidden>Partager</button>
+      <a id="sh-wa" class="btn" target="_blank" rel="noopener">WhatsApp</a>
+      <a id="sh-tg" class="btn" target="_blank" rel="noopener">Telegram</a>
+      <button id="sh-copy" class="btn ghost" type="button">Copier le lien</button>
+    </div>
+    <p id="sh-msg" class="foot" aria-live="polite"></p>
   </section>
   <p class="foot">Gratuit, sans abonnement. Ta progression reste sur cet appareil.</p>
 </main>
@@ -1428,6 +1452,123 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     } catch (e) { manual(); }
   });
 
+  /* ---------- Badges, sauvegarde et partage ---------- */
+  var GAMEKEYS = ["memo", "calc", "conc", "monnaie", "mots", "seq", "suite", "mix", "pw"];
+  var BADGES = [
+    { id: "b1", t: "Premier pas", d: "Joue une partie.", ok: function (s) { return s.total >= 1; } },
+    { id: "b10", t: "10 parties", d: "Joue 10 parties.", ok: function (s) { return s.total >= 10; } },
+    { id: "b50", t: "50 parties", d: "Joue 50 parties.", ok: function (s) { return s.total >= 50; } },
+    { id: "s3", t: "3 jours de suite", d: "Joue 3 jours de suite.", ok: function (s) { return s.best >= 3; } },
+    { id: "s7", t: "7 jours de suite", d: "Joue 7 jours de suite.", ok: function (s) { return s.best >= 7; } },
+    { id: "s30", t: "30 jours de suite", d: "Joue 30 jours de suite.", ok: function (s) { return s.best >= 30; } },
+    { id: "all", t: "Touche-à-tout", d: "Essaie les 9 jeux.", ok: function (s) { return s.kinds >= GAMEKEYS.length; } },
+    { id: "d1", t: "Défi relevé", d: "Termine un défi du jour.", ok: function (s) { return s.defi >= 1; } },
+    { id: "d5", t: "5 défis", d: "Termine 5 défis du jour.", ok: function (s) { return s.defi >= 5; } },
+    { id: "p1", t: "Sans faute", d: "Réussis une partie sans erreur.", ok: function (s) { return s.perfect >= 1; } }
+  ];
+  function badgeStats(o) {
+    var total = 0, defi = 0, perfect = 0, kinds = {};
+    Object.keys(o.days).forEach(function (k) {
+      var d = o.days[k];
+      Object.keys(d).forEach(function (g) {
+        total += d[g].n; perfect += d[g].p || 0;
+        if (g === "defi") defi += d[g].n; else if (GAMEKEYS.indexOf(g) !== -1) kinds[g] = 1;
+      });
+    });
+    return { total: total, defi: defi, perfect: perfect, kinds: Object.keys(kinds).length, best: streaks(o).best };
+  }
+  function awardBadges(o) {
+    var st = badgeStats(o), fresh = [];
+    if (!o.badges) o.badges = {};
+    BADGES.forEach(function (b) {
+      if (!o.badges[b.id] && b.ok(st)) { o.badges[b.id] = 1; fresh.push(b.t); }
+    });
+    return fresh;
+  }
+  var flashTimer = null;
+  function showFlash(names) {
+    var el = document.getElementById("flash"), shown = names.slice(0, 3).join(", ");
+    el.textContent = (names.length > 1 ? "Nouveaux badges : " : "Nouveau badge : ") + shown + (names.length > 3 ? " et " + (names.length - 3) + " autres" : "");
+    el.hidden = false;
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function () { el.hidden = true; }, 9000);
+  }
+  function badgesHtml(o) {
+    var st = badgeStats(o), got = 0, h = "";
+    BADGES.forEach(function (b) {
+      var on = b.ok(st); if (on) got++;
+      h += '<div class="bdg ' + (on ? "on" : "off") + '"><b>' + b.t + "</b><small>" + (on ? "Obtenu" : b.d) + "</small></div>";
+    });
+    return '<h2 class="ptitle">Badges (' + got + "/" + BADGES.length + ')</h2><div class="bd">' + h + "</div>";
+  }
+
+  var KEYRE = /^(enfant-)?memo-calme-[a-z0-9-]+$/;
+  function backupCode() {
+    var o = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (KEYRE.test(k)) o[k] = localStorage.getItem(k);
+      }
+    } catch (e) {}
+    return "MC1:" + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  }
+  function restoreCode(txt) {
+    txt = txt.trim();
+    if (txt.indexOf("MC1:") !== 0) return "Ce code n'est pas valide.";
+    var data, n = 0;
+    try { data = JSON.parse(decodeURIComponent(escape(atob(txt.slice(4))))); } catch (e) { return "Ce code n'est pas valide."; }
+    if (!data || typeof data !== "object") return "Ce code n'est pas valide.";
+    try {
+      Object.keys(data).forEach(function (k) {
+        if (KEYRE.test(k) && typeof data[k] === "string" && data[k].length < 200000) { localStorage.setItem(k, data[k]); n++; }
+      });
+    } catch (e) { return "Impossible d'écrire sur cet appareil."; }
+    return n ? "ok" : "Ce code ne contient aucune donnée.";
+  }
+  function toolsNode() {
+    var box = document.createElement("section"); box.className = "tools";
+    box.innerHTML = '<h2 class="ptitle">Sauvegarder ma progression</h2>' +
+      '<p class="foot">Ta progression reste sur ce téléphone. Copie ton code pour la retrouver sur un autre appareil ou après un nettoyage du navigateur.</p>' +
+      '<label for="codebox" class="foot">Code de sauvegarde</label>' +
+      '<textarea id="codebox" class="code" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>' +
+      '<div class="row"><button id="bk-copy" class="btn" type="button">Copier mon code</button>' +
+      '<button id="bk-restore" class="btn ghost" type="button">Restaurer</button></div>' +
+      '<p id="bk-msg" class="foot" aria-live="polite"></p>';
+    var ta = box.querySelector("#codebox"), msg = box.querySelector("#bk-msg"), pending = false;
+    ta.addEventListener("input", function () { pending = false; });
+    box.querySelector("#bk-copy").addEventListener("click", function () {
+      pending = false; ta.value = backupCode(); ta.focus(); ta.select();
+      function manual() { msg.textContent = "Copie impossible ici. Sélectionne le code ci-dessus et copie-le à la main."; }
+      try { navigator.clipboard.writeText(ta.value).then(function () { msg.textContent = "Code copié. Garde-le dans tes notes."; }, manual); } catch (e) { manual(); }
+    });
+    box.querySelector("#bk-restore").addEventListener("click", function () {
+      if (!ta.value.trim()) { msg.textContent = "Colle d'abord ton code dans la zone ci-dessus."; return; }
+      if (!pending) { pending = true; msg.textContent = "Cela remplace ta progression actuelle. Touche encore Restaurer pour confirmer."; return; }
+      var r = restoreCode(ta.value); pending = false;
+      if (r === "ok") { msg.textContent = "Progression restaurée."; setTimeout(function () { location.reload(); }, 700); }
+      else msg.textContent = r;
+    });
+    return box;
+  }
+
+  function pageLink() { try { return location.origin + location.pathname; } catch (e) { return ""; } }
+  (function initShare() {
+    var intro = "Je m'entraîne avec Mémo Calme : jeux gratuits, sans pub, pour garder l'esprit vif.";
+    var link = pageLink(), full = intro + " Essaie : " + link;
+    document.getElementById("sh-wa").href = "https://wa.me/?text=" + encodeURIComponent(full);
+    document.getElementById("sh-tg").href = "https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(intro);
+    var nat = document.getElementById("sh-native"), msg = document.getElementById("sh-msg");
+    if (navigator.share) {
+      nat.hidden = false;
+      nat.addEventListener("click", function () { try { navigator.share({ title: "Mémo Calme", text: intro, url: link }).catch(function () {}); } catch (e) {} });
+    }
+    document.getElementById("sh-copy").addEventListener("click", function () {
+      function manual() { msg.textContent = "Copie impossible ici. Voici le lien : " + link; }
+      try { navigator.clipboard.writeText(link).then(function () { msg.textContent = "Lien copié."; }, manual); } catch (e) { manual(); }
+    });
+  })();
+
   /* ---------- Série et statistiques ---------- */
   var SKEY = P + "memo-calme-stats";
   function dayKey(d) {
@@ -1445,7 +1586,10 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     var day = o.days[k] || (o.days[k] = {});
     var g = day[game] || (day[game] = { n: 0, s: 0, m: 0 });
     g.n++; g.s += s; g.m += m;
+    if (s === m) g.p = (g.p || 0) + 1;
+    var fresh = awardBadges(o);
     sSave(o); refreshStreak();
+    if (fresh.length) showFlash(fresh);
   }
   function streaks(o) {
     var cur = 0, i = o.days[dayKey(daysAgo(0))] ? 0 : 1;
@@ -1487,7 +1631,9 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       html += '<div class="grow"><b>' + g[1] + "</b><em>" + (g[2] === "—" ? "" : "Niveau " + g[2]) + "</em><small>" + line + "</small></div>";
     });
     html += "</div>";
-    document.getElementById("prog").innerHTML = html;
+    var box = document.getElementById("prog");
+    box.innerHTML = html + badgesHtml(o);
+    box.appendChild(toolsNode());
   }
 
   cStart(cLoad());
