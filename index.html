@@ -114,6 +114,19 @@ button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; 
 .ptitle { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
 .question.small { font-size: 1.2rem; line-height: 1.4; padding: 22px 16px; font-weight: 600; font-family: var(--font-body); }
 .question.mid { font-size: 2rem; }
+.pads { display: grid; grid-template-columns: repeat(var(--pcols, 2), minmax(0, 1fr)); gap: 10px; }
+.pad { appearance: none; aspect-ratio: 1; border: 3px solid transparent; border-radius: 12px; cursor: pointer; opacity: 0.5; transition: opacity 0.15s, transform 0.15s; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.pad span { background: rgba(0, 0, 0, 0.4); color: #FFFFFF; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; border-radius: 50%; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; }
+.pad.lit { opacity: 1; transform: scale(1.04); border-color: var(--fg); }
+.pad.bad { opacity: 1; border-color: #D1344A; }
+.pad:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.xans { min-height: 72px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.8rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px; overflow-wrap: anywhere; }
+.xans.ok { border-color: var(--accent); }
+.xans.bad { border-color: #D1344A; }
+.tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.tile { appearance: none; min-width: 48px; min-height: 52px; padding: 0 12px; flex: 1 1 48px; max-width: 72px; font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; text-transform: uppercase; background: var(--surface); color: var(--fg); border: 2px solid var(--line); border-radius: 10px; cursor: pointer; }
+.tile:disabled { opacity: 0.3; cursor: default; }
+.tile:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .soutien { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .soutien p { margin: 0; color: var(--muted); }
 a.btn.don { align-self: flex-start; background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
@@ -134,7 +147,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 <main>
   <header>
     <h1>Mémo Calme</h1>
-    <p class="sub">Cinq jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
+    <p class="sub">Huit jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
     <p id="streak" class="streak"></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
       <button id="p-adulte" class="pbtn" type="button">Adulte</button>
@@ -149,6 +162,9 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <button id="tab-conc" class="tab" type="button" role="tab" aria-selected="false">Concentration</button>
     <button id="tab-monn" class="tab" type="button" role="tab" aria-selected="false">Monnaie FCFA</button>
     <button id="tab-mots" class="tab" type="button" role="tab" aria-selected="false">Mots wolof</button>
+    <button id="tab-seq" class="tab" type="button" role="tab" aria-selected="false">Séquence</button>
+    <button id="tab-suite" class="tab" type="button" role="tab" aria-selected="false">Suite logique</button>
+    <button id="tab-mix" class="tab" type="button" role="tab" aria-selected="false">Mots mélangés</button>
     <button id="tab-defi" class="tab" type="button" role="tab" aria-selected="false">Défi du jour</button>
     <button id="tab-prog" class="tab" type="button" role="tab" aria-selected="false">Progrès</button>
   </div>
@@ -245,6 +261,64 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       </div>
     </section>
     <p class="foot">Vocabulaire de base. L'orthographe wolof peut varier, à faire relire par un locuteur.</p>
+  </div>
+
+  <div id="g-seq" class="game" hidden>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><span>Niveau</span><b id="qlvl">1</b></div>
+      <div class="stat"><span>Manche</span><b id="qrn">1/6</b></div>
+      <div class="stat"><span>Justes</span><b id="qgood">0</b></div>
+    </div>
+    <p id="qhint" class="hint" aria-live="polite"></p>
+    <div id="qpads" class="pads" role="group" aria-label="Cases"></div>
+    <div class="row"><button id="qgo" class="btn" type="button">Commencer</button></div>
+    <section id="qpanel" class="panel" hidden>
+      <h2 id="qptitle"></h2>
+      <p id="qptext"></p>
+      <div class="row">
+        <button id="qnext" class="btn" type="button">Continuer</button>
+        <button id="qagain" class="btn ghost" type="button">Rejouer ce niveau</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="g-suite" class="game" hidden>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><span>Niveau</span><b id="slvl">1</b></div>
+      <div class="stat"><span>Question</span><b id="sqn">1/8</b></div>
+      <div class="stat"><span>Justes</span><b id="sgood">0</b></div>
+    </div>
+    <p class="hint">Trouve le nombre qui continue la suite.</p>
+    <div id="squestion" class="question mid" aria-live="polite"></div>
+    <div id="sopts" class="opts" role="group" aria-label="Réponses"></div>
+    <section id="spanel" class="panel" hidden>
+      <h2 id="sptitle"></h2>
+      <p id="sptext"></p>
+      <div class="row">
+        <button id="snext" class="btn" type="button">Continuer</button>
+        <button id="sagain" class="btn ghost" type="button">Rejouer ce niveau</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="g-mix" class="game" hidden>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><span>Niveau</span><b id="xlvl">1</b></div>
+      <div class="stat"><span>Mot</span><b id="xqn">1/8</b></div>
+      <div class="stat"><span>Justes</span><b id="xgood">0</b></div>
+    </div>
+    <p id="xhint" class="hint">Touche les lettres dans l'ordre pour former un mot français.</p>
+    <div id="xanswer" class="xans" aria-live="polite"></div>
+    <div id="xtiles" class="tiles" role="group" aria-label="Lettres"></div>
+    <div class="row"><button id="xerase" class="btn ghost" type="button">Retirer la dernière lettre</button></div>
+    <section id="xpanel" class="panel" hidden>
+      <h2 id="xptitle"></h2>
+      <p id="xptext"></p>
+      <div class="row">
+        <button id="xnext" class="btn" type="button">Continuer</button>
+        <button id="xagain" class="btn ghost" type="button">Rejouer ce niveau</button>
+      </div>
+    </section>
   </div>
 
   <div id="g-defi" class="game" hidden>
@@ -595,7 +669,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   document.getElementById("nagain").addEventListener("click", function () { nStart(nl); });
 
   /* ---------- Onglets ---------- */
-  var TABS = ["memo", "calc", "conc", "monn", "mots", "defi", "prog"];
+  var TABS = ["memo", "calc", "conc", "monn", "mots", "seq", "suite", "mix", "defi", "prog"];
   function show(which) {
     TABS.forEach(function (t) {
       var on = t === which;
@@ -824,6 +898,302 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   document.getElementById("wnext").addEventListener("click", function () { wStart(wNext); });
   document.getElementById("wagain").addEventListener("click", function () { wStart(wl); });
 
+  /* ---------- Séquence : répéter l'ordre des cases ---------- */
+  var QKEY = P + "memo-calme-sequence", MAXQ = Math.min(5, CAPL), QR = 6;
+  var QLEV = [{ pads: 4, len: 3 }, { pads: 4, len: 4 }, { pads: 6, len: 4 }, { pads: 6, len: 5 }, { pads: 9, len: 5 }, { pads: 9, len: 6 }];
+  var ql = 0, qrn = 0, qgood = 0, qseq = [], qpos = 0, qLock = true, qNext = 0, qRun = 0;
+  var qpadsEl = document.getElementById("qpads");
+  var qhint = document.getElementById("qhint");
+  var qgo = document.getElementById("qgo");
+  var qpanel = document.getElementById("qpanel");
+
+  function qLoad() {
+    try { var v = parseInt(localStorage.getItem(QKEY), 10); if (v >= 0 && v <= MAXQ) return v; } catch (e) {}
+    return 0;
+  }
+  function qSave(v) { try { localStorage.setItem(QKEY, String(v)); } catch (e) {} }
+  function qUpdate() {
+    document.getElementById("qlvl").textContent = ql + 1;
+    document.getElementById("qrn").textContent = Math.min(qrn + 1, QR) + "/" + QR;
+    document.getElementById("qgood").textContent = qgood;
+  }
+  function qStart(lv) {
+    ql = lv; qrn = 0; qgood = 0; qRun++; qLock = true;
+    qpanel.hidden = true; qgo.hidden = false;
+    var cfg = QLEV[ql];
+    qpadsEl.style.setProperty("--pcols", cfg.pads === 4 ? 2 : 3);
+    qpadsEl.innerHTML = "";
+    for (var i = 0; i < cfg.pads; i++) {
+      (function (idx) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "pad"; b.style.background = COLORS[idx % COLORS.length];
+        b.setAttribute("aria-label", "Case " + (idx + 1));
+        b.innerHTML = "<span>" + (idx + 1) + "</span>";
+        b.addEventListener("click", function () { qTap(idx, b); });
+        qpadsEl.appendChild(b);
+      })(i);
+    }
+    qhint.textContent = "Regarde l'ordre des cases qui s'allument, puis répète-le. Touche Commencer quand tu es prêt.";
+    qUpdate();
+  }
+  function qRound() {
+    var run = ++qRun, cfg = QLEV[ql];
+    qLock = true; qpos = 0; qseq = [];
+    for (var i = 0; i < cfg.len; i++) qseq.push(rnd(0, cfg.pads - 1));
+    qhint.textContent = "Regarde bien la séquence.";
+    qUpdate();
+    function play(k) {
+      if (run !== qRun) return;
+      if (k >= qseq.length) { qLock = false; qhint.textContent = "À toi : répète la séquence."; return; }
+      var pad = qpadsEl.children[qseq[k]];
+      pad.classList.add("lit");
+      setTimeout(function () { pad.classList.remove("lit"); }, 600);
+      setTimeout(function () { play(k + 1); }, 900);
+    }
+    setTimeout(function () { play(0); }, 700);
+  }
+  function qAdvance(run, delay) {
+    setTimeout(function () {
+      if (run !== qRun) return;
+      Array.prototype.forEach.call(qpadsEl.children, function (c) { c.classList.remove("bad"); });
+      qrn++;
+      if (qrn >= QR) qFinish(); else qRound();
+    }, delay);
+  }
+  function qTap(idx, pad) {
+    if (qLock) return;
+    var run = qRun;
+    pad.classList.add("lit"); setTimeout(function () { pad.classList.remove("lit"); }, 200);
+    if (idx === qseq[qpos]) {
+      qpos++;
+      if (qpos === qseq.length) {
+        qLock = true; qgood++; qhint.textContent = "Bravo, séquence réussie."; qUpdate(); qAdvance(run, 1000);
+      }
+    } else {
+      qLock = true; pad.classList.add("bad");
+      qhint.textContent = "Raté. La séquence était : " + qseq.map(function (n) { return n + 1; }).join(", ") + ".";
+      qAdvance(run, 2400);
+    }
+  }
+  function qFinish() {
+    var msg;
+    qNext = ql;
+    if (qgood >= 5 && ql < MAXQ) { qNext = ql + 1; msg = "Très bonne mémoire. On passe au niveau " + (qNext + 1) + "."; }
+    else if (qgood <= 2 && ql > 0) { qNext = ql - 1; msg = "Ce niveau était difficile. On revient au niveau " + (qNext + 1) + " pour souffler."; }
+    else if (qgood >= 5) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (ql + 1) + ". Pour monter, il faut au moins 5 séquences réussies sur 6."; }
+    qSave(qNext);
+    rec("seq", qgood, QR);
+    document.getElementById("qptitle").textContent = qgood + " séquences réussies sur " + QR;
+    document.getElementById("qptext").textContent = msg;
+    qgo.hidden = true;
+    qpanel.hidden = false;
+    qpanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  qgo.addEventListener("click", function () { qgo.hidden = true; qRound(); });
+  document.getElementById("qnext").addEventListener("click", function () { qStart(qNext); });
+  document.getElementById("qagain").addEventListener("click", function () { qStart(ql); });
+
+  /* ---------- Suite logique ---------- */
+  var SKEY2 = P + "memo-calme-suite", MAXS = Math.min(5, CAPL);
+  var sl = 0, sqn = 0, sgood = 0, sans = 0, sLock = false, sNext = 0;
+  var sqEl = document.getElementById("squestion");
+  var sopts = document.getElementById("sopts");
+  var spanel = document.getElementById("spanel");
+
+  /* gen-start */
+  function makeS(l) {
+    var a, d, r, k, seq = [], ans, i, t;
+    if (l === 0) {
+      a = rnd(1, 10); d = rnd(1, 5);
+      for (i = 0; i < 4; i++) seq.push(a + i * d);
+      ans = a + 4 * d;
+    } else if (l === 1) {
+      if (Math.random() < 0.5) { a = rnd(1, 20); d = rnd(2, 9); for (i = 0; i < 4; i++) seq.push(a + i * d); ans = a + 4 * d; }
+      else { d = rnd(2, 6); a = rnd(30, 60); for (i = 0; i < 4; i++) seq.push(a - i * d); ans = a - 4 * d; }
+    } else if (l === 2) {
+      r = rnd(2, 3); a = rnd(1, 3);
+      for (i = 0; i < 4; i++) seq.push(a * Math.pow(r, i));
+      ans = a * Math.pow(r, 4);
+    } else if (l === 3) {
+      a = rnd(1, 5); d = rnd(1, 5); while (d === a) d = rnd(1, 5);
+      t = rnd(1, 10); seq.push(t);
+      for (i = 0; i < 4; i++) { t += (i % 2 === 0 ? a : d); seq.push(t); }
+      ans = t + (4 % 2 === 0 ? a : d);
+    } else if (l === 4) {
+      if (Math.random() < 0.5) {
+        k = rnd(1, 5); for (i = 0; i < 4; i++) seq.push((k + i) * (k + i)); ans = (k + 4) * (k + 4);
+      } else {
+        a = rnd(1, 10); d = rnd(1, 3); t = a; seq.push(t);
+        for (i = 0; i < 4; i++) { t += d + i; seq.push(t); }
+        ans = t + d + 4;
+      }
+    } else {
+      if (Math.random() < 0.5) {
+        a = rnd(1, 4); d = rnd(a + 1, 6); seq.push(a, d);
+        for (i = 2; i < 5; i++) seq.push(seq[i - 1] + seq[i - 2]);
+        ans = seq[4] + seq[3];
+      } else {
+        a = rnd(1, 3); seq.push(a);
+        for (i = 1; i < 4; i++) seq.push(seq[i - 1] * 2 + 1);
+        ans = seq[3] * 2 + 1;
+      }
+    }
+    return { seq: seq, ans: ans };
+  }
+  /* gen-end */
+
+  function makeSQ(l) {
+    var g = makeS(l), step = g.ans >= 100 ? 5 : 1;
+    var set = [g.ans], offs = shuffle([1, 2, 3, 4, 5, 6, -1, -2, -3, -4, -5, -6]);
+    for (var i = 0; i < offs.length && set.length < 4; i++) {
+      var v = g.ans + offs[i] * step;
+      if (v > 0 && set.indexOf(v) === -1) set.push(v);
+    }
+    return { text: g.seq.join(", ") + ", ?", ans: g.ans, opts: shuffle(set) };
+  }
+  function sLoad2() {
+    try { var v = parseInt(localStorage.getItem(SKEY2), 10); if (v >= 0 && v <= MAXS) return v; } catch (e) {}
+    return 0;
+  }
+  function sSave2(v) { try { localStorage.setItem(SKEY2, String(v)); } catch (e) {} }
+  function sUpdate() {
+    document.getElementById("slvl").textContent = sl + 1;
+    document.getElementById("sqn").textContent = Math.min(sqn + 1, ROUND) + "/" + ROUND;
+    document.getElementById("sgood").textContent = sgood;
+  }
+  function sStart(lv) { sl = lv; sqn = 0; sgood = 0; spanel.hidden = true; sShow(); }
+  function sShow() {
+    var q = makeSQ(sl);
+    sans = q.ans; sLock = false;
+    sqEl.textContent = q.text;
+    sopts.innerHTML = "";
+    q.opts.forEach(function (v) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "opt"; b.textContent = v; b.dataset.v = v;
+      b.addEventListener("click", function () { sPick(b, v); });
+      sopts.appendChild(b);
+    });
+    sUpdate();
+  }
+  function sPick(btn, v) {
+    if (sLock) return;
+    sLock = true;
+    if (v === sans) { sgood++; btn.classList.add("ok"); }
+    else {
+      btn.classList.add("bad");
+      Array.prototype.forEach.call(sopts.children, function (c) {
+        if (parseInt(c.dataset.v, 10) === sans) c.classList.add("ok");
+      });
+    }
+    sUpdate();
+    setTimeout(function () { sqn++; if (sqn >= ROUND) sFinish(); else sShow(); }, 1000);
+  }
+  function sFinish() {
+    var msg;
+    sNext = sl;
+    if (sgood >= 6 && sl < MAXS) { sNext = sl + 1; msg = "Très bien joué. On passe au niveau " + (sNext + 1) + "."; }
+    else if (sgood <= 3 && sl > 0) { sNext = sl - 1; msg = "Ce niveau était difficile. On revient au niveau " + (sNext + 1) + " pour souffler."; }
+    else if (sgood >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (sl + 1) + ". Pour monter, il faut au moins 6 bonnes réponses sur 8."; }
+    sSave2(sNext);
+    rec("suite", sgood, ROUND);
+    document.getElementById("sptitle").textContent = sgood + " bonnes réponses sur " + ROUND;
+    document.getElementById("sptext").textContent = msg;
+    spanel.hidden = false;
+    spanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  document.getElementById("snext").addEventListener("click", function () { sStart(sNext); });
+  document.getElementById("sagain").addEventListener("click", function () { sStart(sl); });
+
+  /* ---------- Mots mélangés ---------- */
+  var XKEY = P + "memo-calme-melanges", MAXX = Math.min(5, CAPL);
+  var XW = [
+    ["pain", "lait", "miel", "nuit", "jour", "lune", "vent", "pied", "main", "chat", "bleu", "rire"],
+    ["pomme", "table", "plage", "arbre", "livre", "jaune", "rouge", "ville", "tigre", "fleur", "nuage", "savon"],
+    ["maison", "soleil", "jardin", "voyage", "cheval", "poulet", "mangue", "banane", "bateau", "crayon"],
+    ["voiture", "cuisine", "village", "tableau", "journal", "couleur", "marteau", "poisson", "enfants", "balance"],
+    ["montagne", "arachide", "chocolat", "vacances", "triangle", "sandales", "boutique"],
+    ["parapluie", "calendrier", "ordinateur", "telephone", "restaurant", "grenouille", "boulangerie"]
+  ];
+  var XALL = [].concat.apply([], XW);
+  var xl = 0, xqn = 0, xgood = 0, xword = "", xdeck = [], xstack = [], xLock = false, xNext = 0;
+  var xans = document.getElementById("xanswer");
+  var xtiles = document.getElementById("xtiles");
+  var xpanel = document.getElementById("xpanel");
+
+  function xLoad() {
+    try { var v = parseInt(localStorage.getItem(XKEY), 10); if (v >= 0 && v <= MAXX) return v; } catch (e) {}
+    return 0;
+  }
+  function xSave(v) { try { localStorage.setItem(XKEY, String(v)); } catch (e) {} }
+  function sortedL(w) { return w.split("").sort().join(""); }
+  function xUpdate() {
+    document.getElementById("xlvl").textContent = xl + 1;
+    document.getElementById("xqn").textContent = Math.min(xqn + 1, ROUND) + "/" + ROUND;
+    document.getElementById("xgood").textContent = xgood;
+  }
+  function xStart(lv) {
+    xl = lv; xqn = 0; xgood = 0; xpanel.hidden = true;
+    xdeck = shuffle(XW[lv].slice()).slice(0, ROUND);
+    var extra = shuffle((XW[lv - 1] || XW[lv + 1]).slice());
+    while (xdeck.length < ROUND) { var w = extra.pop(); if (xdeck.indexOf(w) === -1) xdeck.push(w); }
+    xShow();
+  }
+  function xShow() {
+    xword = xdeck[xqn]; xstack = []; xLock = false;
+    var letters = xword.split(""), mixed = letters.slice(), tries = 0;
+    do { mixed = shuffle(mixed.slice()); tries++; } while (mixed.join("") === xword && tries < 20);
+    xtiles.innerHTML = "";
+    mixed.forEach(function (ch, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "tile"; b.textContent = ch; b.dataset.i = i;
+      b.setAttribute("aria-label", "Lettre " + ch);
+      b.addEventListener("click", function () { xTap(b, ch); });
+      xtiles.appendChild(b);
+    });
+    xans.className = "xans"; xRender();
+    xUpdate();
+  }
+  function xRender() {
+    var s = xstack.map(function (e) { return e.ch; }).join("");
+    xans.textContent = s || "…";
+  }
+  function xTap(btn, ch) {
+    if (xLock) return;
+    btn.disabled = true; xstack.push({ btn: btn, ch: ch }); xRender();
+    if (xstack.length === xword.length) xCheck();
+  }
+  document.getElementById("xerase").addEventListener("click", function () {
+    if (xLock || !xstack.length) return;
+    var e = xstack.pop(); e.btn.disabled = false; xRender();
+  });
+  function xCheck() {
+    xLock = true;
+    var guess = xstack.map(function (e) { return e.ch; }).join("");
+    var ok = guess === xword || (XALL.indexOf(guess) !== -1 && sortedL(guess) === sortedL(xword));
+    if (ok) { xgood++; xans.classList.add("ok"); }
+    else { xans.classList.add("bad"); xans.textContent = guess + " → " + xword; }
+    xUpdate();
+    setTimeout(function () { xqn++; if (xqn >= ROUND) xFinish(); else xShow(); }, ok ? 900 : 1800);
+  }
+  function xFinish() {
+    var msg;
+    xNext = xl;
+    if (xgood >= 6 && xl < MAXX) { xNext = xl + 1; msg = "Très bien joué. On passe au niveau " + (xNext + 1) + "."; }
+    else if (xgood <= 3 && xl > 0) { xNext = xl - 1; msg = "Ce niveau était difficile. On revient au niveau " + (xNext + 1) + " pour souffler."; }
+    else if (xgood >= 6) { msg = "Tu es au dernier niveau" + (CHILD ? " du profil Enfant. Passe au profil Adulte pour des niveaux plus difficiles." : ". Continue pour garder la forme."); }
+    else { msg = "On reste sur le niveau " + (xl + 1) + ". Pour monter, il faut au moins 6 mots trouvés sur 8."; }
+    xSave(xNext);
+    rec("mix", xgood, ROUND);
+    document.getElementById("xptitle").textContent = xgood + " mots trouvés sur " + ROUND;
+    document.getElementById("xptext").textContent = msg;
+    xpanel.hidden = false;
+    xpanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  document.getElementById("xnext").addEventListener("click", function () { xStart(xNext); });
+  document.getElementById("xagain").addEventListener("click", function () { xStart(xl); });
+
   /* ---------- Défi du jour (mêmes questions pour tous) ---------- */
   var DKEY = P + "memo-calme-defi";
   var POOLW = CHILD ? [].concat(WLEVELS[0], WLEVELS[1], WLEVELS[2]) : ALLW;
@@ -997,7 +1367,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       html += '<div class="wd' + (o.days[dayKey(d)] ? " on" : "") + '"><i></i><span>' + L[d.getDay()] + "</span></div>";
     }
     html += '</div><h2 class="ptitle">Par jeu</h2><div class="games">';
-    [["memo", "Mémoire", level + 1], ["calc", "Calcul mental", cl + 1], ["conc", "Concentration", nl + 1], ["monnaie", "Monnaie FCFA", ml + 1], ["mots", "Mots wolof", wl + 1], ["defi", "Défi du jour", "—"]].forEach(function (g) {
+    [["memo", "Mémoire", level + 1], ["calc", "Calcul mental", cl + 1], ["conc", "Concentration", nl + 1], ["monnaie", "Monnaie FCFA", ml + 1], ["mots", "Mots wolof", wl + 1], ["seq", "Séquence", ql + 1], ["suite", "Suite logique", sl + 1], ["mix", "Mots mélangés", xl + 1], ["defi", "Défi du jour", "—"]].forEach(function (g) {
       var n = 0, s = 0, m = 0;
       Object.keys(o.days).forEach(function (k) {
         var x = o.days[k][g[0]]; if (x) { n += x.n; s += x.s; m += x.m; }
@@ -1013,6 +1383,9 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   nStart(nLoad());
   mStart(mLoad());
   wStart(wLoad());
+  qStart(qLoad());
+  sStart(sLoad2());
+  xStart(xLoad());
   dInit();
   refreshStreak();
 
