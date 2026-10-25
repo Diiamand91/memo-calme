@@ -158,6 +158,9 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .rc4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .rc4 .btn { min-height: 56px; padding: 0 4px; font-size: 0.95rem; touch-action: manipulation; }
 .gcv { display: block; width: 100%; aspect-ratio: 360 / 240; border-radius: 12px; background: #FBD58B; touch-action: none; border: 1px solid var(--line); -webkit-user-select: none; user-select: none; }
+.picks { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick { appearance: none; min-height: 44px; padding: 0 14px; font: inherit; font-weight: 600; border-radius: 22px; border: 2px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.pick[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .rc4.two { grid-template-columns: 1fr 1fr; }
 </style>
 
@@ -369,6 +372,8 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <div class="stat"><span>Record</span><b id="rbest">0</b></div>
     </div>
     <canvas id="rcv" class="rcv" role="img" aria-label="Course dans la savane sur trois voies : un coureur esquive des troncs, des rochers, des branches et des termitières, ramasse des pièces et fuit un lion"></canvas>
+    <div id="rpicks" class="picks" role="group" aria-label="Choisir ton personnage"></div>
+    <p id="rpdesc" class="hint"></p>
     <p id="rhint" class="hint">Glisse le doigt : à gauche ou à droite pour changer de voie, vers le haut pour sauter, vers le bas pour te baisser. Au premier choc, le lion se rapproche. Au second, il t'attrape.</p>
     <div class="row"><button id="rplay" class="btn" type="button">Jouer</button></div>
     <div class="rc4">
@@ -1616,31 +1621,63 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     rctx.fillStyle = "#FFE08A"; ell(0, 0, 4 * sx, 4);
     rctx.restore();
   }
+  var CHARS = [
+    { name: "Der Boy", desc: "Le plaisantin de la bande", sc: 1, skin: "#7B4A2F", top: "#1E9E4A", stripe: "#F2C230", legs: "#1F2A44", hat: "capback", hc: "#D8392B" },
+    { name: "Alou", desc: "Le cadet, le plus petit", sc: 0.84, skin: "#6A3D26", top: "#2F7FD8", stripe: "#FFFFFF", legs: "#4A3B2A", hat: "hair", hc: "#1A1210" },
+    { name: "Birame Jr", desc: "Le fou de la bande", sc: 1.04, skin: "#8A5434", top: "#8E3FC4", stripe: "#F2B632", legs: "#D8392B", hat: "afro", hc: "#1A1210" },
+    { name: "Boy Sérère", desc: "Le charretier", sc: 1.08, skin: "#5E3520", top: "#B88A4A", stripe: "#7A4A24", legs: "#3B3A2E", hat: "straw", hc: "#E6C26A" },
+    { name: "Natou", desc: "La fille au style de garçon", sc: 0.97, skin: "#7B4A2F", top: "#E8517A", stripe: "#FFFFFF", legs: "#2A3A5C", hat: "capside", hc: "#2FB5A8" }
+  ];
+  var chI = 0;
+  try { chI = Math.max(0, Math.min(CHARS.length - 1, parseInt(localStorage.getItem(P + "memo-calme-perso"), 10) || 0)); } catch (e) {}
+  function drawHat(ch, y, big) {
+    var r = rctx;
+    r.fillStyle = ch.hc;
+    if (ch.hat === "capback") { r.beginPath(); r.arc(0, y - 2, 12.5, Math.PI, 0); r.fill(); r.fillStyle = "#222"; r.fillRect(-5, y - 3, 10, 3); }
+    else if (ch.hat === "hair") { r.beginPath(); r.arc(0, y - 1, 12, Math.PI * 0.95, Math.PI * 0.05 + Math.PI * 2 - 0.0); r.fill(); ell(0, y + 4, 11, 7); }
+    else if (ch.hat === "afro") { ell(0, y - 5, 18, 16); ell(-14, y - 10, 6, 6); ell(14, y - 10, 6, 6); ell(0, y - 20, 7, 6); }
+    else if (ch.hat === "straw") { r.beginPath(); r.arc(0, y - 3, 11, Math.PI, 0); r.fill(); ell(0, y - 2, 22, 5); r.fillStyle = "#B8391F"; r.fillRect(-11, y - 6, 22, 3); }
+    else { r.beginPath(); r.arc(0, y - 2, 12.5, Math.PI, 0); r.fill(); ell(11, y - 1, 8, 3, 0.2); r.fillStyle = "#1A1210"; ell(-9, y + 4, 4, 5); ell(9, y + 3, 4, 5); }
+  }
   function drawRunner() {
-    var c = core, x = RW / 2 + c.lx * LW, ph = c.t * 17, air = c.pz > 0, sl = c.slideT > 0;
+    var c = core, ch = CHARS[chI], x = RW / 2 + c.lx * LW, ph = c.t * 17, air = c.pz > 0, sl = c.slideT > 0;
     if (c.inv > 0 && Math.floor(c.t * 14) % 2 === 0) return;
-    rctx.save(); rctx.translate(x, FOOT - c.pz);
+    rctx.save(); rctx.translate(x, FOOT - c.pz); rctx.scale(ch.sc, ch.sc);
     rctx.fillStyle = "rgba(0,0,0,0.25)"; ell(0, c.pz, Math.max(8, 20 - c.pz * 0.08), 5);
     rctx.lineCap = "round";
     if (sl) {
-      rctx.fillStyle = "#E8742A"; ell(0, -13, 20, 11);
-      rctx.fillStyle = "#1F5FBF"; rctx.fillRect(-18, -16, 36, 4);
-      rctx.fillStyle = SKINC; ell(-18, -14, 8, 7);
-      rctx.fillStyle = "#F2B632"; rctx.beginPath(); rctx.arc(-18, -17, 8, Math.PI, 0); rctx.fill();
-      rctx.strokeStyle = "#3B2A20"; rctx.lineWidth = 6; rctx.beginPath(); rctx.moveTo(12, -8); rctx.lineTo(26, -4); rctx.stroke();
+      rctx.fillStyle = ch.top; ell(0, -13, 20, 11);
+      rctx.fillStyle = ch.stripe; rctx.fillRect(-18, -16, 36, 4);
+      rctx.fillStyle = ch.skin; ell(-18, -14, 8, 7);
+      rctx.save(); rctx.translate(-18, -9); rctx.scale(0.7, 0.7); drawHat(ch, -8); rctx.restore();
+      rctx.strokeStyle = ch.legs; rctx.lineWidth = 6; rctx.beginPath(); rctx.moveTo(12, -8); rctx.lineTo(26, -4); rctx.stroke();
     } else {
       var a1 = air ? 0.7 : Math.sin(ph) * 0.8, a2 = air ? -0.7 : -Math.sin(ph) * 0.8;
-      rctx.strokeStyle = "#3B2A20"; rctx.lineWidth = 7;
+      rctx.strokeStyle = ch.legs; rctx.lineWidth = 7;
       [a1, a2].forEach(function (a, i) { rctx.beginPath(); rctx.moveTo(i ? 5 : -5, -26); rctx.lineTo((i ? 5 : -5) + Math.sin(a) * 5, -26 + (air ? Math.cos(a) * 14 : 26 - Math.max(0, Math.sin(ph + i * 3.14)) * 12)); rctx.stroke(); });
-      rctx.fillStyle = "#E8742A"; rctx.fillRect(-12, -60, 24, 36);
-      rctx.fillStyle = "#1F5FBF"; rctx.fillRect(-12, -52, 24, 5); rctx.fillRect(-12, -40, 24, 5);
-      rctx.strokeStyle = SKINC; rctx.lineWidth = 6;
+      rctx.fillStyle = ch.top; rctx.fillRect(-12, -60, 24, 36);
+      rctx.fillStyle = ch.stripe; rctx.fillRect(-12, -52, 24, 5); rctx.fillRect(-12, -40, 24, 5);
+      rctx.strokeStyle = ch.skin; rctx.lineWidth = 6;
       [a1, a2].forEach(function (a, i) { rctx.beginPath(); rctx.moveTo(i ? 13 : -13, -56); rctx.lineTo((i ? 13 : -13) + (air ? (i ? 9 : -9) : Math.sin(a) * 4), -56 + (air ? -6 : 18 + Math.cos(a) * 4)); rctx.stroke(); });
-      rctx.fillStyle = SKINC; ell(0, -72, 11, 12);
-      rctx.fillStyle = "#F2B632"; rctx.beginPath(); rctx.arc(0, -75, 12, Math.PI, 0); rctx.fill();
-      rctx.fillStyle = "#C98E1A"; rctx.fillRect(-12, -76, 24, 3);
+      if (ch.hat === "straw") { rctx.strokeStyle = "#5C3517"; rctx.lineWidth = 2; rctx.beginPath(); rctx.moveTo(15, -38); rctx.lineTo(24, -58); rctx.stroke(); }
+      rctx.fillStyle = ch.skin; ell(0, -72, 11, 12);
+      drawHat(ch, -75);
     }
     rctx.restore();
+  }
+  function renderPicks() {
+    var box = document.getElementById("rpicks"); box.innerHTML = "";
+    CHARS.forEach(function (ch, i) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "pick"; b.textContent = ch.name;
+      b.setAttribute("aria-pressed", String(i === chI));
+      b.addEventListener("click", function () {
+        if (rState === "run") return;
+        chI = i; try { localStorage.setItem(P + "memo-calme-perso", String(i)); } catch (e) {}
+        renderPicks(); if (rState === "over") rReady(); else { rResize(); drawScene(); }
+      });
+      box.appendChild(b);
+    });
+    document.getElementById("rpdesc").textContent = CHARS[chI].name + " : " + CHARS[chI].desc + ".";
   }
   function drawLion() {
     var c = core, a = Math.min(1, c.lion), x = RW / 2 + c.lx * LW, b = Math.sin(c.t * 14) * 3;
@@ -1722,7 +1759,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   });
   document.addEventListener("visibilitychange", function () { if (document.hidden && rState === "run") rReady(); });
   window.addEventListener("resize", function () { if (!document.getElementById("g-run").hidden && rState !== "run") { rResize(); drawScene(); } });
-  function runEnter() { rReady(); }
+  function runEnter() { renderPicks(); rReady(); }
   function runLeave() { if (rState === "run") rReady(); }
   function runRowInner(o) {
     var n = 0;
