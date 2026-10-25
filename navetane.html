@@ -110,13 +110,14 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="logo">NAVETANE</div>
   <div class="tag">Le football des quartiers de Dakar</div>
   <div class="card row" id="hSel" style="cursor:pointer"></div>
+  <div class="lab" style="margin-top:2px">Équipes adverses en tournoi</div><div class="chips" id="hPool" style="margin-bottom:6px"></div>
   <button class="btn pri" id="bQuick">⚽ Match rapide<small>Choisis ton ASC et ton adversaire</small></button>
   <button class="btn gold" id="bCoupe">🏆 Coupe NAVETANE<small>8 équipes · élimination directe · tirs au but</small></button>
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
   <button class="btn" id="bRec">📊 Palmarès &amp; statistiques</button>
   <button class="btn" id="bBack" style="text-align:center">← Retour à Mémo Calme</button>
-  <div class="note">Les 24 ASC portent le nom de quartiers de Dakar et de sa banlieue. Ce sont des équipes imaginaires : leurs joueurs, couleurs et niveaux sont inventés. Crée « Mon équipe » pour jouer avec ton vrai ASC.</div>
+  <div class="note">Les ASC de la Zone 5A (Keur Massar Nord) et les quartiers de Dakar sont dans le jeu, mais leurs joueurs, couleurs et niveaux sont inventés. Crée « Mon équipe » pour jouer avec ton vrai ASC.</div>
 </div>
 <!-- CHOIX EQUIPE -->
 <div class="scr" id="pick"><div class="top"><button class="bk" data-back="1">←</button><h2 id="pkT">Choisis une équipe</h2></div><div id="pkL"></div></div>
@@ -633,14 +634,25 @@ var TEAMS = [
   ["Colobane", "COL", "#3a86ff", "#ffd60a", 2, 3, 3, 4], ["Gueule Tapée", "GTA", "#8338ec", "#ffd60a", 1, 3, 4, 2], ["Hann", "HAN", "#1a936f", "#f5f5f5", 0, 2, 3, 3],
   ["Mermoz", "MER", "#ef476f", "#ffffff", 3, 3, 2, 3], ["Patte d'Oie", "PDO", "#ff6b35", "#004e89", 2, 3, 3, 2], ["Pikine", "PIK", "#0b6e4f", "#ffd166", 1, 4, 4, 4],
   ["Thiaroye", "THI", "#b5179e", "#ffffff", 0, 3, 3, 3], ["Guédiawaye", "GUE", "#2b2d42", "#ef233c", 3, 4, 3, 3], ["Rufisque", "RUF", "#0077b6", "#caf0f8", 2, 3, 4, 3],
-  ["Yarakh", "YAR", "#e63946", "#1d3557", 1, 2, 3, 4], ["Biscuiterie", "BIS", "#bc6c25", "#fefae0", 0, 3, 2, 3], ["Camberène", "CAM", "#5f0f40", "#fb8b24", 3, 3, 3, 4]
-].map(function (a, i) { return { id: i, q: a[0], n: "ASC " + a[0], s: a[1], c1: a[2], c2: a[3], pat: a[4], a: a[5], d: a[6], v: a[7], bd: i % 4, seed: i + 1, style: i % 3 === 0 ? 1 : i % 5 === 0 ? 2 : 0 }; });
+  ["Yarakh", "YAR", "#e63946", "#1d3557", 1, 2, 3, 4], ["Biscuiterie", "BIS", "#bc6c25", "#fefae0", 0, 3, 2, 3], ["Camberène", "CAM", "#5f0f40", "#fb8b24", 3, 3, 3, 4],
+  ["Entente 2345", "ENT", "#1b5e20", "#fdd835", 2, 4, 4, 4, 1],
+  ["Jappo 1", "JAP", "#c62828", "#ffffff", 1, 3, 3, 4, 1],
+  ["Deukeundo", "DEU", "#1565c0", "#fdd835", 0, 3, 3, 3, 1],
+  ["Teranga", "TER", "#f9a825", "#1b5e20", 3, 3, 4, 3, 1],
+  ["Deggo", "DEG", "#6a1b9a", "#ffffff", 2, 3, 3, 3, 1],
+  ["Bokk Jeuf", "BOK", "#00838f", "#fdd835", 1, 4, 3, 3, 1],
+  ["Mboolo", "MBO", "#d84315", "#ffffff", 0, 3, 2, 4, 1],
+  ["Fass Darou", "FDA", "#2e7d32", "#ffffff", 3, 2, 4, 3, 1],
+  ["Boune", "BOU", "#37474f", "#ff9800", 2, 3, 3, 2, 1],
+  ["Arafat KM", "ARA", "#0d47a1", "#ffffff", 1, 3, 3, 3, 1],
+  ["Happo", "HAP", "#ad1457", "#fdd835", 0, 2, 3, 3, 1]
+].map(function (a, i) { return { id: i, q: a[0], n: "ASC " + a[0], s: a[1], c1: a[2], c2: a[3], pat: a[4], a: a[5], d: a[6], v: a[7], bd: i % 4, seed: i + 1, style: i % 3 === 0 ? 1 : i % 5 === 0 ? 2 : 0, z: a[8] ? 1 : 0 }; });
 var PAL = ["#00a651", "#fdd835", "#e53935", "#1e88e5", "#ffffff", "#111111", "#ff9800", "#8e24aa", "#00bcd4", "#6d4c41", "#ec407a", "#9ccc65"];
 var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson", "Losange", "Carré"], STY = ["Équilibré", "Offensif", "Défensif"], DIFFN = ["Moyen", "Difficile", "Légende"];
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
 var POSN = ["Gardien", "Défenseur gauche", "Défenseur droit", "Milieu", "Attaquant"];
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(SV)); } catch (e) { } }
@@ -667,6 +679,8 @@ function selId() { return SV.sel === -1 || TEAMS[SV.sel] ? SV.sel : -1; }
 function renderHome() {
   var T = teamById(selId());
   $("hSel").innerHTML = badge(T, 52) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Ton équipe · touche pour changer</div></div>" + rate3(T);
+  $("hPool").innerHTML = ["Toutes les équipes", "Zone 5A Keur Massar", "Dakar"].map(function (n, i) { return "<button class='chip" + (i === SV.pool ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("hPool").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.pool = +b.getAttribute("data-v"); save(); renderHome(); }; });
   var t = SV.tour; $("bCoupe").querySelector("small").textContent = t && t.type === "coupe" && !t.done ? "Tournoi en cours · touche pour continuer" : "8 équipes · élimination directe · tirs au but";
   $("bLigue").querySelector("small").textContent = t && t.type === "ligue" && !t.done ? "Championnat en cours · touche pour continuer" : "6 équipes · 5 journées · le meilleur gagne";
 }
@@ -676,7 +690,7 @@ function pickTeam(title, back, cb, cur, allowRand) {
   var h = "";
   if (allowRand) h += "<button class='tm' data-id='-9'><span style='font-size:30px;width:44px;text-align:center'>🎲</span><span class='nm'>Au hasard</span></button>";
   var ids = [-1]; for (var i = 0; i < TEAMS.length; i++) ids.push(i);
-  ids.forEach(function (id) { var T = teamById(id); h += "<button class='tm" + (id === cur ? " on" : "") + "' data-id='" + id + "'>" + badge(T, 44) + "<span class='nm'>" + esc(T.n) + "<small>" + (id === -1 ? "Ton équipe personnalisée" : "Quartier de " + esc(T.q) + " · " + STY[T.style]) + "</small></span>" + rate3(T) + "</button>"; });
+  ids.forEach(function (id) { var T = teamById(id); h += "<button class='tm" + (id === cur ? " on" : "") + "' data-id='" + id + "'>" + badge(T, 44) + "<span class='nm'>" + esc(T.n) + "<small>" + (id === -1 ? "Ton équipe personnalisée" : (T.z ? "Zone 5A · Keur Massar Nord" : "Quartier de " + esc(T.q)) + " · " + STY[T.style]) + "</small></span>" + rate3(T) + "</button>"; });
   $("pkL").innerHTML = h; $("pkL").parentNode.scrollTop = 0;
   $("pkL").querySelectorAll(".tm").forEach(function (b) { b.onclick = function () { var id = +b.getAttribute("data-id"); pickCb(id); }; });
   show("pick");
@@ -1179,7 +1193,7 @@ function prevKit() {
 }
 /* ===== NAVETANE : tournois ===== */
 function shuf(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function pool(me, n) { var p = []; for (var i = 0; i < TEAMS.length; i++) if (i !== me) p.push(i); return shuf(p).slice(0, n); }
+function pool(me, n) { var p = [], q = []; for (var i = 0; i < TEAMS.length; i++) if (i !== me) { q.push(i); if (SV.pool === 0 || (SV.pool === 1 && TEAMS[i].z) || (SV.pool === 2 && !TEAMS[i].z)) p.push(i); } if (p.length < n) p = q; return shuf(p).slice(0, n); }
 function miniB(id) { return badge(teamById(id), 26); }
 function nm(id) { return esc(teamById(id).n); }
 function roundName(n) { return n === 8 ? "Quarts de finale" : n === 4 ? "Demi-finales" : "Finale"; }
