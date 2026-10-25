@@ -86,6 +86,7 @@ button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; 
 .game { display: flex; flex-direction: column; gap: 18px; }
 .tabs { display: flex; gap: 8px; }
 .tab { appearance: none; flex: 1 1 0; min-height: 44px; font: inherit; font-weight: 600; border-radius: 10px; border: 2px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.tab.nvl { display: flex; align-items: center; justify-content: center; text-decoration: none; background: #fdd835; border-color: #f9a825; color: #2a1d00; font-weight: 800; }
 .tab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 .tab:focus-visible, .opt:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .question { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; text-align: center; padding: 28px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -205,6 +206,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   </header>
 
   <div class="tabs" role="tablist" aria-label="Choix du jeu">
+    <a class="tab nvl" href="./navetane.html">⚽ NAVETANE – Football</a>
     <button id="tab-memo" class="tab on" type="button" role="tab" aria-selected="true">Mémoire</button>
     <button id="tab-calc" class="tab" type="button" role="tab" aria-selected="false">Calcul mental</button>
     <button id="tab-conc" class="tab" type="button" role="tab" aria-selected="false">Concentration</button>
