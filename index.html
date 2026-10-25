@@ -1528,7 +1528,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   /* ---------- Course africaine : dessin et commandes ---------- */
   var dcv = document.getElementById("rcv"), rctx = dcv.getContext("2d");
   var core = null, rState = "menu", rRaf = 0, rLast = 0, rBest = 0, rShown = "", PARTS = [], sKey = 0, shk = 0;
-  var UNLOCK_ALL = false;
+  var UNLOCK_ALL = true;
   function hh(n) { var x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }
   function setLayout(rh) { RH = rh; HY = Math.round(rh * 0.29); FOOT = Math.round(rh * 0.79); }
   function ell(x, y, rx, ry, rot) { rctx.beginPath(); rctx.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot || 0, 0, 6.2832); rctx.fill(); }
