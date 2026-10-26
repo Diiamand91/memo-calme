@@ -147,6 +147,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="card vs" id="suVs"></div>
   <div class="row"><button class="chip" id="suMe" style="flex:1">Changer mon équipe</button><button class="chip" id="suOpp" style="flex:1">Changer l'adversaire</button></div>
   <div class="lab">Difficulté</div><div class="chips" id="suDiff"></div>
+  <div class="lab">Tactique</div><div id="suTac"></div>
   <div class="lab">Terrain</div><div class="chips" id="suVen"></div>
   <div class="lab">Caméra</div><div class="chips" id="suCam"></div>
   <div class="lab">Météo</div><div class="chips" id="suWx"></div>
@@ -205,6 +206,13 @@ var PW = 260, PL = 420, GW = 34, GDEP = 16, GH = 26, BR = 4.5, GRAV = 520;
 var SLOTS = [
   { r: "GK", u: 0.045, v: 0 }, { r: "DEF", u: 0.25, v: -0.58 }, { r: "DEF", u: 0.25, v: 0.58 }, { r: "MID", u: 0.47, v: 0 }, { r: "ATT", u: 0.68, v: 0 }
 ];
+var FORMS = [
+  { n: "2-1-1", d: "Équilibré : 2 défenseurs, 1 milieu, 1 attaquant", s: [{ r: "DEF", u: 0.25, v: -0.58 }, { r: "DEF", u: 0.25, v: 0.58 }, { r: "MID", u: 0.47, v: 0 }, { r: "ATT", u: 0.68, v: 0 }] },
+  { n: "1-2-1 Losange", d: "Un libéro, 2 milieux larges, 1 attaquant : beaucoup de passes", s: [{ r: "DEF", u: 0.24, v: 0 }, { r: "MID", u: 0.46, v: -0.62 }, { r: "MID", u: 0.46, v: 0.62 }, { r: "ATT", u: 0.68, v: 0 }] },
+  { n: "2-2", d: "2 défenseurs et 2 attaquants : jeu direct et ouvert", s: [{ r: "DEF", u: 0.25, v: -0.55 }, { r: "DEF", u: 0.25, v: 0.55 }, { r: "ATT", u: 0.64, v: -0.5 }, { r: "ATT", u: 0.64, v: 0.5 }] },
+  { n: "1-1-2", d: "Offensif : 1 défenseur, 1 milieu, 2 attaquants", s: [{ r: "DEF", u: 0.24, v: 0 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.67, v: -0.5 }, { r: "ATT", u: 0.67, v: 0.5 }] },
+  { n: "3-1 Mur", d: "Défensif : 3 défenseurs, 1 attaquant seul devant", s: [{ r: "DEF", u: 0.22, v: -0.72 }, { r: "DEF", u: 0.22, v: 0.72 }, { r: "DEF", u: 0.3, v: 0 }, { r: "ATT", u: 0.66, v: 0 }] }
+];
 var DIFF = [
   { n: "Moyen", spd: 1.0, tkl: 1.15, gk: 1.0, pas: 0.92, thk: 0.3, shot: 0.95 },
   { n: "Difficile", spd: 1.06, tkl: 1.4, gk: 1.18, pas: 1.0, thk: 0.22, shot: 1.08 },
@@ -224,9 +232,10 @@ function slotPos(t, s, att, kick) {
   return { x: s.v * (PW / 2 - 28) * (t.dir < 0 ? 1 : -1), y: ownY(t) + t.dir * u * PL };
 }
 function mkTeam(T, idx, dir, human) {
-  var t = { idx: idx, T: T, dir: dir, players: [], ctrl: -1, human: human, style: T.style || 0, hold: 0 };
-  for (var i = 0; i < SLOTS.length; i++) {
-    var s = SLOTS[i], seed = (T.seed || 7) * 31 + i * 13 + 5;
+  var t = { idx: idx, T: T, dir: dir, players: [], ctrl: -1, human: human, style: T.style || 0, hold: 0, press: T.press | 0 };
+  var fm = FORMS[T.form !== undefined ? T.form : Math.floor(hsh((T.seed || 7) * 3 + 1) * FORMS.length)] || FORMS[0]; t.form = fm; t.slots = [SLOTS[0]].concat(fm.s);
+  for (var i = 0; i < t.slots.length; i++) {
+    var s = t.slots[i], seed = (T.seed || 7) * 31 + i * 13 + 5;
     var nm = T.names && T.names[i] ? T.names[i] : FIRST[Math.floor(hsh(seed) * FIRST.length)] + " " + LAST[Math.floor(hsh(seed + 3) * LAST.length)];
     var a = T.a, d = T.d, v = T.v, r = s.r;
     var p = { team: idx, ix: i, r: r, name: nm, num: [1, 4, 5, 8, 9][i], x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: -dir, ph: Math.random() * 6, stun: 0, slide: 0, tcd: 0, pcd: 0, shield: 0, sprint: 0, stam: 1, think: Math.random() * 0.3, boost: 0,
@@ -254,7 +263,7 @@ function newMatch(T0, T1, o) {
 function setKickoff(m, team) {
   m.state = "kickoff"; m.st = 1.5; m.kickTeam = team;
   m.teams.forEach(function (t) {
-    t.players.forEach(function (p, i) { var q = slotPos(t, SLOTS[i], false, true); p.x = q.x; p.y = q.y; p.vx = p.vy = 0; p.stun = p.slide = 0; p.fx = 0; p.fy = -t.dir; });
+    t.players.forEach(function (p, i) { var q = slotPos(t, t.slots[i], false, true); p.x = q.x; p.y = q.y; p.vx = p.vy = 0; p.stun = p.slide = 0; p.fx = 0; p.fy = -t.dir; });
   });
   m.offP = null; var t = m.teams[team], tk = firstOn(t, [4, 3, 2, 1]);
   tk.x = 0; tk.y = -t.dir * 9; tk.fy = -t.dir;
@@ -429,12 +438,12 @@ function aiTeam(m, t, dt) {
     if (p.r === "GK") { gkAI(m, t, p, dt); return; }
     if (m.penT > 0 && b.own !== p) { steer(p, p.x, p.y, 0, dt); return; }
     if (b.own === p) { carrierAI(m, p, dt); return; }
-    var s = SLOTS[p.ix], sp = slotPos(t, s, attPhase), bx = clamp(b.x * 0.4, -60, 60), tx = sp.x * 0.75 + bx * 0.5, ty = sp.y;
+    var s = t.slots[p.ix], sp = slotPos(t, s, attPhase), bx = clamp(b.x * 0.4, -60, 60), tx = sp.x * 0.75 + bx * 0.5, ty = sp.y;
     if (attPhase && p.r === "ATT") { var ahead = b.y + t.dir * 55; ty = t.dir < 0 ? Math.min(ty, ahead) : Math.max(ty, ahead); ty = clamp(ty, -PL / 2 + 24, PL / 2 - 24); }
     if (!attPhase) { var guard = ownY(t) + t.dir * 70; if (p.r === "DEF") ty = t.dir < 0 ? Math.max(ty, b.y - t.dir * 0) : Math.min(ty, b.y); }
     var f = 0.9, act = false;
     if (m.passT === p && !b.own && b.lastTeam === t.idx) { tx = b.x + b.vx * 0.25; ty = b.y + b.vy * 0.25; f = 1; act = true; }
-    else if (carrier && (p === presser || (p === presser2 && hlen(p.x - carrier.x, p.y - carrier.y) < 70 && k.tkl > 0.9))) {
+    else if (carrier && (p === presser || (p === presser2 && hlen(p.x - carrier.x, p.y - carrier.y) < (t.press === 1 ? 115 : t.press === 2 ? 45 : 70) && (k.tkl > 0.9 || t.press === 1)))) {
       var gx = carrier.x * 0.85, gyy = carrier.y + (carrier.team === 0 ? -1 : 1) * 0 + (-t.dir * 6);
       tx = carrier.x + carrier.vx * 0.15; ty = carrier.y + carrier.vy * 0.15 + (p === presser2 ? 14 * -t.dir : 0); f = 1; act = true;
       var dd = hlen(p.x - carrier.x, p.y - carrier.y);
@@ -759,9 +768,10 @@ function inZone(T, k) { var f = ZF[k] || ZF[0]; return f.z === -1 || T.z === f.z
 var PAL = ["#00a651", "#fdd835", "#e53935", "#1e88e5", "#ffffff", "#111111", "#ff9800", "#8e24aa", "#00bcd4", "#6d4c41", "#ec407a", "#9ccc65"];
 var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson", "Losange", "Carré"], STY = ["Équilibré", "Offensif", "Défensif"], DIFFN = ["Moyen", "Difficile", "Légende"];
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
+var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Défenseur gauche", "Défenseur droit", "Milieu", "Attaquant"];
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
@@ -822,6 +832,9 @@ function renderSetup() {
   $("suLen").innerHTML = LENS.map(function (n, i) { return "<button class='chip" + (i === SV.len ? " on" : "") + "' data-v='" + i + "'>" + n.n + " · " + n.sub + "</button>"; }).join("");
   $("suWx").innerHTML = ["Auto", "☀️ Soleil", "🌧 Pluie", "🌙 Nuit", "🌧🌙 Nuit + pluie"].map(function (n, i) { return "<button class='chip" + (i === SV.wx ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suWx").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.wx = +b.getAttribute("data-v"); save(); renderSetup(); }; });
+  $("suTac").innerHTML = "<div class='chips'>" + FORMS.map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-f='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:4px 0 6px'>" + FORMS[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-p='" + i + "'>" + n + "</button>"; }).join("") + "</div>";
+  $("suTac").querySelectorAll("[data-f]").forEach(function (b) { b.onclick = function () { SV.form = +b.getAttribute("data-f"); save(); renderSetup(); }; });
+  $("suTac").querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-p"); save(); renderSetup(); }; });
   $("suVen").innerHTML = ["🎲 Auto"].concat(VENUES.map(function (v) { return v.n; })).map(function (n, i) { return "<button class='chip" + (i === SV.ven ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = ["📺 TV Large", "📺 TV Proche", "⬇️ Vue d'en haut"].map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
@@ -1606,7 +1619,7 @@ function readJoy() {
 var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null, cmtT: 0, m: null, cfg: null, run: false, paused: false, last: 0, acc: 0, over: 0, lastState: "", hintT: 0, lastScore: "" };
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
-  var T0 = cfg.t0, T1 = cfg.t1; audioInit();
+  cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0 }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
   var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout });
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
@@ -1868,7 +1881,7 @@ function renderCar() {
   h += "<div class='card row' style='align-items:center'>" + badge(T, 54) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Saison " + c.season + " · " + DIVN[c.div] + " · " + c.titles + " 🏆</div></div></div>";
   h += "<div class='card'><div class='rd' style='margin:0 0 6px'>Entraînement · <b style='color:var(--y)'>" + c.xp + " pts</b></div>";
   ["a", "d", "v"].forEach(function (k) { var lv = c.st[k], cost = lv, can = c.xp >= cost && lv < 6; h += "<div class='row' style='align-items:center;justify-content:space-between;margin:5px 0'><span style='width:78px'>" + UPN[k] + "</span><span class='pips'>" + pips(lv, 6) + "</span><button class='chip" + (can ? " on" : "") + "' data-up='" + k + "' " + (can ? "" : "disabled style='opacity:.45'") + ">" + (lv >= 6 ? "MAX" : "+1 · " + cost + " pts") + "</button></div>"; });
-  h += "<div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
+  h += "<div class='lab' style='margin-top:8px'>Formation</div><div class='chips'>" + FORMS.map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-fm='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:3px 0'>" + FORMS[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-pr='" + i + "'>" + n + "</button>"; }).join("") + "</div><div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
   h += "<div class='card'><table><tr><th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Diff</th><th>Pts</th></tr>";
   order.forEach(function (id, i) { var s = c.tab[id], cl = i < 2 && c.div > 0 ? "color:#8be28b" : i > 5 && c.div < 3 ? "color:#ff8a80" : ""; h += "<tr class='" + (id === c.base ? "me" : "") + "'><td style='" + cl + "'>" + (i + 1) + "</td><td>" + (id === c.base ? esc(T.n) : nm(id)) + "</td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + (s.gf - s.ga > 0 ? "+" : "") + (s.gf - s.ga) + "</td><td><b>" + s.pts + "</b></td></tr>"; });
   h += "</table><div class='note' style='margin-top:6px'>" + (c.div > 0 ? "🟢 2 premiers : montée · " : "") + (c.div < 3 ? "🔴 2 derniers : descente" : "") + "</div></div>";
@@ -1884,6 +1897,8 @@ function renderCar() {
   h += "<button class='btn red' id='caReset' style='text-align:center;margin-top:10px'>Abandonner la carrière</button>";
   $("caB").innerHTML = h; $("caB").parentNode.scrollTop = 0;
   $("caB").querySelectorAll("[data-up]").forEach(function (b) { b.onclick = function () { var k = b.getAttribute("data-up"), cost = c.st[k]; if (c.xp >= cost && c.st[k] < 6) { c.xp -= cost; c.st[k]++; save(); renderCar(); } }; });
+  $("caB").querySelectorAll("[data-fm]").forEach(function (b) { b.onclick = function () { SV.form = +b.getAttribute("data-fm"); save(); renderCar(); }; });
+  $("caB").querySelectorAll("[data-pr]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-pr"); save(); renderCar(); }; });
   $("caB").querySelectorAll("[data-sty]").forEach(function (b) { b.onclick = function () { c.style = +b.getAttribute("data-sty"); save(); renderCar(); }; });
   if ($("caPlay")) $("caPlay").onclick = playCar;
   if ($("caNext")) $("caNext").onclick = carNext;

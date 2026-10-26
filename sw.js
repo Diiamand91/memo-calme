@@ -1,5 +1,5 @@
 // Change ce numéro à chaque mise à jour du site pour que les téléphones rechargent les fichiers.
-var CACHE = "memo-calme-v21";
+var CACHE = "memo-calme-v22";
 var FILES = ["./", "./index.html", "./navetane.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
