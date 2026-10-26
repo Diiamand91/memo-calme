@@ -124,6 +124,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="card row" id="hSel" style="cursor:pointer"></div>
   <div class="lab" style="margin-top:2px">Équipes adverses en tournoi</div><div class="chips" id="hPool" style="margin-bottom:6px"></div>
   <button class="btn pri" id="bQuick">⚽ Match rapide<small>Choisis ton ASC et ton adversaire</small></button>
+  <button class="btn pri" id="bCar">🌟 Carrière<small>Fais grandir ton ASC saison après saison</small></button>
   <button class="btn gold" id="bCoupe">🏆 Coupe NAVETANE<small>8 équipes · élimination directe · tirs au but</small></button>
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
@@ -148,6 +149,8 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 </div>
 <!-- TOURNOI -->
 <div class="scr" id="tour"><div class="top"><button class="bk" data-back="home">←</button><h2 id="toT">Tournoi</h2></div><div id="toB"></div></div>
+<!-- CARRIERE -->
+<div class="scr" id="car"><div class="top"><button class="bk" data-back="home">←</button><h2>Carrière · Master NAVETANE</h2></div><div id="caB"></div></div>
 <!-- EDITEUR -->
 <div class="scr" id="edit">
   <div class="top"><button class="bk" data-back="home">←</button><h2>Mon équipe</h2></div>
@@ -734,7 +737,7 @@ var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson",
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
 var POSN = ["Gardien", "Défenseur gauche", "Défenseur droit", "Milieu", "Attaquant"];
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
@@ -765,6 +768,7 @@ function renderHome() {
   $("hSel").innerHTML = badge(T, 52) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Ton équipe · touche pour changer</div></div>" + rate3(T);
   $("hPool").innerHTML = ZF.map(function (f, i) { return "<button class='chip" + (i === SV.pool ? " on" : "") + "' data-v='" + i + "'>" + f.n + "</button>"; }).join("");
   $("hPool").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.pool = +b.getAttribute("data-v"); save(); renderHome(); }; });
+  if (typeof carHome === "function") carHome();
   var t = SV.tour; $("bCoupe").querySelector("small").textContent = t && t.type === "coupe" && !t.done ? "Tournoi en cours · touche pour continuer" : "8 équipes · élimination directe · tirs au but";
   $("bLigue").querySelector("small").textContent = t && t.type === "ligue" && !t.done ? "Championnat en cours · touche pour continuer" : "6 équipes · 5 journées · le meilleur gagne";
 }
@@ -1813,5 +1817,86 @@ function tourResult(r, oppId) {
 }
 $("bCoupe").onclick = function () { tourEntry("coupe"); };
 $("bLigue").onclick = function () { tourEntry("ligue"); };
+/* ===== NAVETANE : mode carrière (Master NAVETANE) ===== */
+var DIVN = ["Super Ligue NAVETANE", "Division 1", "Division 2", "Division 3 · Quartiers"];
+function carRank() { var h = function (i) { return Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1; }; var ix = []; for (var i = 0; i < TEAMS.length; i++) ix.push(i); return ix.sort(function (a, b) { var A = TEAMS[a], B = TEAMS[b]; return (B.a + B.d + B.v + h(b) * .8) - (A.a + A.d + A.v + h(a) * .8); }); }
+function carOpp(base, div) {
+  var rk = carRank().filter(function (i) { return i !== base; }), sz = Math.ceil(rk.length / 4), p = rk.slice(div * sz, (div + 1) * sz);
+  if (p.length < 7) p = p.concat(rk.slice(Math.max(0, div * sz - 7), div * sz)); return shuf(p).slice(0, 7);
+}
+function carSeason(c) {
+  var ids = [c.base].concat(carOpp(c.base, c.div)), t = ids.slice(), rounds = [];
+  for (var r = 0; r < 7; r++) { var fx = []; for (var i = 0; i < 4; i++) fx.push([t[i], t[7 - i]]); rounds.push(fx); t = [t[0], t[7]].concat(t.slice(1, 7)); }
+  c.ids = ids; c.fx = rounds; c.round = 0; c.tab = {}; c.hist2 = []; c.out = null; ids.forEach(function (id) { c.tab[id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
+}
+function carTeam() { var c = SV.car, T = Object.assign({}, teamById(c.base)); T.a = c.st.a; T.d = c.st.d; T.v = c.st.v; T.style = c.style; return T; }
+function carHome() { var c = SV.car; $("bCar").querySelector("small").textContent = c ? "Saison " + c.season + " · " + DIVN[c.div] + (c.xp ? " · " + c.xp + " pts à dépenser" : "") : "Fais grandir ton ASC saison après saison"; }
+function carStart() {
+  var b = selId(), T = teamById(b);
+  SV.car = { base: b, st: { a: T.a, d: T.d, v: T.v }, style: T.style || 0, xp: 3, season: 1, div: 3, titles: 0, hist: [], pm: 0 }; carSeason(SV.car); save();
+}
+function carSort(c) { return c.ids.slice().sort(function (a, b) { var x = c.tab[a], y = c.tab[b]; return y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf; }); }
+var UPN = { a: "Attaque", d: "Défense", v: "Vitesse" };
+function renderCar() {
+  var c = SV.car; if (!c) { carEntry(); return; }
+  var T = carTeam(), h = "", order = carSort(c);
+  h += "<div class='card row' style='align-items:center'>" + badge(T, 54) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Saison " + c.season + " · " + DIVN[c.div] + " · " + c.titles + " 🏆</div></div></div>";
+  h += "<div class='card'><div class='rd' style='margin:0 0 6px'>Entraînement · <b style='color:var(--y)'>" + c.xp + " pts</b></div>";
+  ["a", "d", "v"].forEach(function (k) { var lv = c.st[k], cost = lv, can = c.xp >= cost && lv < 6; h += "<div class='row' style='align-items:center;justify-content:space-between;margin:5px 0'><span style='width:78px'>" + UPN[k] + "</span><span class='pips'>" + pips(lv, 6) + "</span><button class='chip" + (can ? " on" : "") + "' data-up='" + k + "' " + (can ? "" : "disabled style='opacity:.45'") + ">" + (lv >= 6 ? "MAX" : "+1 · " + cost + " pts") + "</button></div>"; });
+  h += "<div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
+  h += "<div class='card'><table><tr><th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Diff</th><th>Pts</th></tr>";
+  order.forEach(function (id, i) { var s = c.tab[id], cl = i < 2 && c.div > 0 ? "color:#8be28b" : i > 5 && c.div < 3 ? "color:#ff8a80" : ""; h += "<tr class='" + (id === c.base ? "me" : "") + "'><td style='" + cl + "'>" + (i + 1) + "</td><td>" + (id === c.base ? esc(T.n) : nm(id)) + "</td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + (s.gf - s.ga > 0 ? "+" : "") + (s.gf - s.ga) + "</td><td><b>" + s.pts + "</b></td></tr>"; });
+  h += "</table><div class='note' style='margin-top:6px'>" + (c.div > 0 ? "🟢 2 premiers : montée · " : "") + (c.div < 3 ? "🔴 2 derniers : descente" : "") + "</div></div>";
+  if (c.hist2.length) { var lr = c.hist2[c.hist2.length - 1]; h += "<div class='rd'>Journée " + lr.n + " · résultats</div>"; lr.m.forEach(function (f) { h += "<div class='fx" + (f.a === c.base || f.b === c.base ? " me" : "") + "'><span class='a'>" + (f.a === c.base ? esc(T.n) : nm(f.a)) + "</span><span class='s'>" + f.ga + " - " + f.gb + "</span><span class='b'>" + (f.b === c.base ? esc(T.n) : nm(f.b)) + "</span></div>"; }); }
+  if (!c.out) {
+    h += "<div class='rd'>Journée " + (c.round + 1) + " / 7 · à jouer</div>"; c.fx[c.round].forEach(function (f) { h += "<div class='fx" + (f[0] === c.base || f[1] === c.base ? " me" : "") + "'><span class='a'>" + (f[0] === c.base ? esc(T.n) : nm(f[0])) + "</span><span class='s'>vs</span><span class='b'>" + (f[1] === c.base ? esc(T.n) : nm(f[1])) + "</span></div>"; });
+    h += "<button class='btn gold' id='caPlay' style='text-align:center;margin-top:12px'>⚽ Jouer la journée " + (c.round + 1) + "</button>";
+  } else {
+    var o = c.out, ico = o.res === "title" ? "🏆" : o.res === "promo" ? "🚀" : o.res === "releg" ? "📉" : "🏁", txt = o.res === "title" ? "CHAMPION DE LA SUPER LIGUE !" : o.res === "promo" ? "Montée en " + DIVN[c.div - 1] + " !" : o.res === "releg" ? "Descente en " + DIVN[c.div + 1] : "Maintien en " + DIVN[c.div];
+    h += "<div class='card' style='text-align:center;margin-top:12px'><div style='font-size:54px'>" + ico + "</div><div class='big' style='font-size:20px'>" + txt + "</div><div class='note'>Tu finis " + o.pos + "e · +" + o.bonus + " points d'entraînement</div></div><button class='btn gold' id='caNext' style='text-align:center'>➡️ Saison " + (c.season + 1) + "</button>";
+  }
+  if (c.hist.length) { h += "<div class='rd'>Historique</div><div class='card'>" + c.hist.slice().reverse().map(function (x) { return "<div class='lst'>Saison " + x.s + " · " + DIVN[x.div] + " · " + x.pos + "e " + (x.res === "title" ? "🏆" : x.res === "promo" ? "🚀" : x.res === "releg" ? "📉" : "") + "</div>"; }).join("") + "</div>"; }
+  h += "<button class='btn red' id='caReset' style='text-align:center;margin-top:10px'>Abandonner la carrière</button>";
+  $("caB").innerHTML = h; $("caB").parentNode.scrollTop = 0;
+  $("caB").querySelectorAll("[data-up]").forEach(function (b) { b.onclick = function () { var k = b.getAttribute("data-up"), cost = c.st[k]; if (c.xp >= cost && c.st[k] < 6) { c.xp -= cost; c.st[k]++; save(); renderCar(); } }; });
+  $("caB").querySelectorAll("[data-sty]").forEach(function (b) { b.onclick = function () { c.style = +b.getAttribute("data-sty"); save(); renderCar(); }; });
+  if ($("caPlay")) $("caPlay").onclick = playCar;
+  if ($("caNext")) $("caNext").onclick = carNext;
+  $("caReset").onclick = function () { if (confirm("Abandonner la carrière et tout perdre ?")) { SV.car = null; save(); show("home"); } };
+}
+function carEntry() {
+  if (!SV.car) { var T = teamById(selId()); if (!confirm("Commencer une carrière avec « " + T.n + " » en Division 3 ? (change d'ASC d'abord depuis l'accueil si besoin)")) return; carStart(); }
+  renderCar(); show("car");
+}
+function playCar() {
+  var c = SV.car, A = carTeam(), f = c.fx[c.round].filter(function (x) { return x[0] === c.base || x[1] === c.base; })[0], oppId = f[0] === c.base ? f[1] : f[0];
+  var B = Object.assign({}, teamById(oppId)), dif = Math.min(2, SV.diff + (c.div <= 1 ? 1 : 0));
+  startMatch({ t0: A, t1: B, diff: dif, halfLen: LENS[SV.len].h, knockout: false, title: "Journée " + (c.round + 1), onQuit: function () { renderCar(); show("car"); },
+    onEnd: function (r) { statsAdd(r); carResult(r); showResult(r, { btns: [{ t: "Continuer", cls: "gold", f: function () { renderCar(); show("car"); } }] }); } });
+}
+function carResult(r) {
+  var c = SV.car, fxs = c.fx[c.round], rd = { n: c.round + 1, m: [] };
+  fxs.forEach(function (f) {
+    var g; if (f[0] === c.base || f[1] === c.base) { var mine = f[0] === c.base; g = [mine ? r.sc[0] : r.sc[1], mine ? r.sc[1] : r.sc[0]]; } else g = simQuick(teamById(f[0]), teamById(f[1]), false).g;
+    rd.m.push({ a: f[0], b: f[1], ga: g[0], gb: g[1] });
+    var A = c.tab[f[0]], B = c.tab[f[1]]; A.p++; B.p++; A.gf += g[0]; A.ga += g[1]; B.gf += g[1]; B.ga += g[0];
+    if (g[0] > g[1]) { A.w++; B.l++; A.pts += 3; } else if (g[0] < g[1]) { B.w++; A.l++; B.pts += 3; } else { A.d++; B.d++; A.pts++; B.pts++; }
+  });
+  c.hist2.push(rd); c.round++;
+  c.xp += r.win === 0 ? 3 : r.win === 2 ? 1 : 0; if (r.sc[0] >= 3) c.xp += 1;
+  if (c.round >= 7) {
+    var pos = carSort(c).indexOf(c.base) + 1, res = "stay", bonus = 2;
+    if (c.div > 0 && pos <= 2) { res = "promo"; bonus = 6; } else if (c.div < 3 && pos >= 7) { res = "releg"; bonus = 1; }
+    if (c.div === 0 && pos === 1) { res = "title"; bonus = 10; c.titles++; }
+    c.xp += bonus; c.out = { pos: pos, res: res, bonus: bonus };
+  }
+  save();
+}
+function carNext() {
+  var c = SV.car, o = c.out; c.hist.push({ s: c.season, div: c.div, pos: o.pos, res: o.res });
+  if (o.res === "promo") c.div--; else if (o.res === "releg") c.div++;
+  c.season++; carSeason(c); save(); renderCar();
+}
+$("bCar").onclick = carEntry;
 show('home');
 </script></body></html>
