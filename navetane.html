@@ -156,6 +156,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="card vs" id="suVs"></div>
   <div class="row"><button class="chip" id="suMe" style="flex:1">Changer mon équipe</button><button class="chip" id="suOpp" style="flex:1">Changer l'adversaire</button></div>
   <div class="lab">Difficulté</div><div class="chips" id="suDiff"></div>
+  <div class="lab">Format</div><div class="chips" id="suFm"></div>
   <div class="lab">Vitesse du jeu</div><div class="chips" id="suGs"></div>
   <div class="lab">Commandes</div><div id="suCtl"></div>
   <div class="lab">Tactique</div><div id="suTac"></div>
@@ -217,13 +218,22 @@ var PW = 260, PL = 420, GW = 34, GDEP = 16, GH = 26, BR = 4.5, GRAV = 520;
 var SLOTS = [
   { r: "GK", u: 0.045, v: 0 }, { r: "DEF", u: 0.25, v: -0.58 }, { r: "DEF", u: 0.25, v: 0.58 }, { r: "MID", u: 0.47, v: 0 }, { r: "ATT", u: 0.68, v: 0 }
 ];
-var FORMS = [
+var FORMS5 = [
   { n: "2-1-1", d: "Équilibré : 2 défenseurs, 1 milieu, 1 attaquant", s: [{ r: "DEF", u: 0.25, v: -0.58 }, { r: "DEF", u: 0.25, v: 0.58 }, { r: "MID", u: 0.47, v: 0 }, { r: "ATT", u: 0.68, v: 0 }] },
   { n: "1-2-1 Losange", d: "Un libéro, 2 milieux larges, 1 attaquant : beaucoup de passes", s: [{ r: "DEF", u: 0.24, v: 0 }, { r: "MID", u: 0.46, v: -0.62 }, { r: "MID", u: 0.46, v: 0.62 }, { r: "ATT", u: 0.68, v: 0 }] },
   { n: "2-2", d: "2 défenseurs et 2 attaquants : jeu direct et ouvert", s: [{ r: "DEF", u: 0.25, v: -0.55 }, { r: "DEF", u: 0.25, v: 0.55 }, { r: "ATT", u: 0.64, v: -0.5 }, { r: "ATT", u: 0.64, v: 0.5 }] },
   { n: "1-1-2", d: "Offensif : 1 défenseur, 1 milieu, 2 attaquants", s: [{ r: "DEF", u: 0.24, v: 0 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.67, v: -0.5 }, { r: "ATT", u: 0.67, v: 0.5 }] },
   { n: "3-1 Mur", d: "Défensif : 3 défenseurs, 1 attaquant seul devant", s: [{ r: "DEF", u: 0.22, v: -0.72 }, { r: "DEF", u: 0.22, v: 0.72 }, { r: "DEF", u: 0.3, v: 0 }, { r: "ATT", u: 0.66, v: 0 }] }
 ];
+var FORMS7 = [
+  { n: "2-2-2", d: "Équilibré : 2 défenseurs, 2 milieux, 2 attaquants", s: [{ r: "DEF", u: 0.24, v: -0.58 }, { r: "DEF", u: 0.24, v: 0.58 }, { r: "MID", u: 0.45, v: -0.55 }, { r: "MID", u: 0.45, v: 0.55 }, { r: "ATT", u: 0.68, v: -0.4 }, { r: "ATT", u: 0.68, v: 0.4 }] },
+  { n: "3-2-1", d: "Solide : 3 défenseurs, 2 milieux, 1 attaquant", s: [{ r: "DEF", u: 0.22, v: -0.7 }, { r: "DEF", u: 0.22, v: 0 }, { r: "DEF", u: 0.22, v: 0.7 }, { r: "MID", u: 0.45, v: -0.45 }, { r: "MID", u: 0.45, v: 0.45 }, { r: "ATT", u: 0.68, v: 0 }] },
+  { n: "2-3-1", d: "Milieu fort : 2 défenseurs, 3 milieux, 1 attaquant", s: [{ r: "DEF", u: 0.24, v: -0.55 }, { r: "DEF", u: 0.24, v: 0.55 }, { r: "MID", u: 0.45, v: -0.72 }, { r: "MID", u: 0.45, v: 0 }, { r: "MID", u: 0.45, v: 0.72 }, { r: "ATT", u: 0.68, v: 0 }] },
+  { n: "3-1-2", d: "Contre-attaque : 3 défenseurs, 1 milieu, 2 attaquants", s: [{ r: "DEF", u: 0.22, v: -0.7 }, { r: "DEF", u: 0.22, v: 0 }, { r: "DEF", u: 0.22, v: 0.7 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.68, v: -0.45 }, { r: "ATT", u: 0.68, v: 0.45 }] },
+  { n: "2-1-3", d: "Offensif : 2 défenseurs, 1 milieu, 3 attaquants", s: [{ r: "DEF", u: 0.24, v: -0.55 }, { r: "DEF", u: 0.24, v: 0.55 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.68, v: -0.65 }, { r: "ATT", u: 0.7, v: 0 }, { r: "ATT", u: 0.68, v: 0.65 }] }
+];
+function formsOf(np) { return np === 7 ? FORMS7 : FORMS5; }
+var NUMS5 = [1, 4, 5, 8, 9], NUMS7 = [1, 2, 3, 6, 8, 9, 10];
 var DIFF = [
   { n: "Débutant", spd: 0.86, tkl: 0.8, gk: 0.82, pas: 0.78, thk: 0.5, shot: 0.8 },
   { n: "Moyen", spd: 1.0, tkl: 1.15, gk: 1.0, pas: 0.92, thk: 0.3, shot: 0.95 },
@@ -243,14 +253,15 @@ function slotPos(t, s, att, kick) {
   if (t.style === 1) u += s.r === "GK" ? 0 : 0.04; else if (t.style === 2) u -= s.r === "GK" ? 0 : 0.04;
   return { x: s.v * (PW / 2 - 28) * (t.dir < 0 ? 1 : -1), y: ownY(t) + t.dir * u * PL };
 }
-function mkTeam(T, idx, dir, human) {
+function mkTeam(T, idx, dir, human, np) {
+  np = np || 5; var FORMS = formsOf(np), NUMS = np === 7 ? NUMS7 : NUMS5;
   var t = { idx: idx, T: T, dir: dir, players: [], ctrl: -1, human: human, style: T.style || 0, hold: 0, press: T.press | 0 };
   var fm = FORMS[T.form !== undefined ? T.form : Math.floor(hsh((T.seed || 7) * 3 + 1) * FORMS.length)] || FORMS[0]; t.form = fm; t.slots = [SLOTS[0]].concat(fm.s);
   for (var i = 0; i < t.slots.length; i++) {
     var s = t.slots[i], seed = (T.seed || 7) * 31 + i * 13 + 5;
     var nm = T.names && T.names[i] ? T.names[i] : FIRST[Math.floor(hsh(seed) * FIRST.length)] + " " + LAST[Math.floor(hsh(seed + 3) * LAST.length)];
     var a = T.a, d = T.d, v = T.v, r = s.r;
-    var p = { team: idx, ix: i, r: r, name: nm, num: [1, 4, 5, 8, 9][i], x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: -dir, ph: Math.random() * 6, stun: 0, slide: 0, tcd: 0, pcd: 0, shield: 0, sprint: 0, stam: 1, think: Math.random() * 0.3, boost: 0,
+    var p = { team: idx, ix: i, r: r, name: nm, num: NUMS[i], x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: -dir, ph: Math.random() * 6, stun: 0, slide: 0, tcd: 0, pcd: 0, shield: 0, sprint: 0, stam: 1, think: Math.random() * 0.3, boost: 0,
       spd: 84 + 3.2 * v + (r === "ATT" ? 3 : r === "DEF" ? -1 : 0) + rnd(-2, 2),
       sht: clamp(0.42 + 0.07 * a + (r === "ATT" ? 0.09 : r === "MID" ? 0.03 : 0) + rnd(-0.04, 0.04), 0.3, 1),
       pas: clamp(0.5 + 0.06 * (a + d) / 2 + (r === "MID" ? 0.08 : 0) + rnd(-0.04, 0.04), 0.35, 1),
@@ -266,7 +277,7 @@ function newMatch(T0, T1, o) {
   o = o || {};
   var m = { wet: !!o.wet, fk: false, penT: 0, fouls: [0, 0], cards: [0, 0], o: o, k: DIFF[o.diff === undefined ? 2 : o.diff], halfLen: o.halfLen || 90, half: 1, clock: 0, state: "kickoff", st: 1.4, ev: [], score: [0, 0], teams: [], P: [],
     b: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, own: null, lastTeam: 0, lastP: null, spin: 0 }, passT: null, rs: null, time: 0, golden: !!o.golden, ended: false, shots: [0, 0], poss: [0, 0], on: [0, 0], goals: [], msg: "", extra: false, kickTeam: 0 };
-  m.teams[0] = mkTeam(T0, 0, -1, !o.demo); m.teams[1] = mkTeam(T1, 1, 1, false);
+  m.np = o.np || 5; m.teams[0] = mkTeam(T0, 0, -1, !o.demo, m.np); m.teams[1] = mkTeam(T1, 1, 1, false, m.np);
   m.teams.forEach(function (t) { t.players.forEach(function (p) { m.P.push(p); }); });
   m.ref = { x: 0, y: 40, vx: 0, vy: 0, fx: 0, fy: 1, ph: 0 };
   setKickoff(m, o.firstTeam === undefined ? 0 : o.firstTeam);
@@ -277,15 +288,18 @@ function setKickoff(m, team) {
   m.teams.forEach(function (t) {
     t.players.forEach(function (p, i) { var q = slotPos(t, t.slots[i], false, true); p.x = q.x; p.y = q.y; p.vx = p.vy = 0; p.stun = p.slide = 0; p.fx = 0; p.fy = -t.dir; });
   });
-  m.offP = null; var t = m.teams[team], tk = firstOn(t, [4, 3, 2, 1]);
+  m.offP = null; var t = m.teams[team], tk = kickTaker(t);
   tk.x = 0; tk.y = -t.dir * 9; tk.fy = -t.dir;
   var b = m.b; b.x = 0; b.y = 0; b.z = 0; b.vx = b.vy = b.vz = 0; b.own = tk; b.lastTeam = team; m.passT = null; m.rs = null;
-  m.teams.forEach(function (tt) { var f = firstOn(tt, [4, 3, 2, 1]), g = firstOn(tt, [3, 2, 1, 4]); tt.ctrl = tt.human ? f.ix : -1; if (tt.human && tt.idx === team) tt.ctrl = tk.ix; });
-  if (m.teams[0].human) m.teams[0].ctrl = team === 0 ? tk.ix : firstOn(m.teams[0], [3, 2, 1, 4]).ix;
+  m.teams.forEach(function (tt) { var f = kickTaker(tt); tt.ctrl = tt.human ? f.ix : -1; if (tt.human && tt.idx === team) tt.ctrl = tk.ix; });
+  if (m.teams[0].human) m.teams[0].ctrl = team === 0 ? tk.ix : altCtrl(m.teams[0]).ix;
 }
 /* ---------- utilitaires ---------- */
 function ballOwnerTeam(m) { return m.b.own ? m.b.own.team : -1; }
 function teamOf(m, p) { return m.teams[p.team]; }
+function ordDesc(t, skip) { var o = [], n = t.players.length; for (var i = n - 1 - (skip || 0); i >= 1; i--) o.push(i); for (var j = n - 1; j > n - 1 - (skip || 0) && j >= 1; j--) o.push(j); return o; }
+function kickTaker(t) { return firstOn(t, ordDesc(t, 0)); }
+function altCtrl(t) { return firstOn(t, ordDesc(t, 1)); }
 function firstOn(t, order) { for (var i = 0; i < order.length; i++) if (!t.players[order[i]].off) return t.players[order[i]]; return t.players[0]; }
 function isOffside(m, q, p) {
   var t = m.teams[p.team], d = t.dir, opp = m.teams[1 - p.team], ks = [];
@@ -370,7 +384,7 @@ function callFoul(m, p, o, slide) {
   var t = m.teams[p.team], q = m.teams[1 - p.team], gy = ownY(t), inBox = Math.abs(o.x) < 52 && Math.abs(o.y - gy) < 56;
   m.fouls[p.team]++; m.ev.push({ k: "foul", team: p.team, pen: inBox, by: p.name, on: o.name });
   var cp = (inBox ? 0.5 : 0.25) * (slide ? 1.4 : 0.7);
-  if (p.r !== "GK" && !p.off && ((p.cards === 1 && Math.random() < cp * 0.9) || (!p.cards && slide && Math.random() < 0.05))) { p.cards = 2; p.off = true; m.cards[p.team]++; m.reds = (m.reds || 0) + 1; m.ev.push({ k: "card", team: p.team, name: p.name, red: true }); var tt2 = m.teams[p.team]; if (tt2.human && tt2.ctrl === p.ix) tt2.ctrl = firstOn(tt2, [3, 2, 1, 4]).ix; }
+  if (p.r !== "GK" && !p.off && ((p.cards === 1 && Math.random() < cp * 0.9) || (!p.cards && slide && Math.random() < 0.05))) { p.cards = 2; p.off = true; m.cards[p.team]++; m.reds = (m.reds || 0) + 1; m.ev.push({ k: "card", team: p.team, name: p.name, red: true }); var tt2 = m.teams[p.team]; if (tt2.human && tt2.ctrl === p.ix) tt2.ctrl = altCtrl(tt2).ix; }
   else if (!p.cards && Math.random() < cp) { p.cards = 1; m.cards[p.team]++; m.ev.push({ k: "card", team: p.team, name: p.name }); }
   p.stun = 0.3; o.stun = 0.3;
   if (inBox) { var oy = oppY(q); setRestart(m, "penalty", q.idx, 0, oy - q.dir * 38); }
@@ -454,7 +468,7 @@ function aiTeam(m, t, dt) {
     tx += Math.sin(m.time * 0.7 + p.ph) * 11; ty += Math.cos(m.time * 0.5 + p.ph * 1.3) * 13 + (b.y - ty) * 0.17;
     var own = b.own && b.own.team === t.idx ? b.own : null;
     if (own && own !== p && m.state === "play") {
-      var sg = p.ix % 2 ? 1 : -1;
+      var sg = s.v > 0.1 ? 1 : s.v < -0.1 ? -1 : (p.ix % 2 ? 1 : -1);
       if (p.r === "MID") { tx = clamp(own.x + sg * 62, -PW / 2 + 22, PW / 2 - 22); ty = own.y + t.dir * 26; }
       else if (p.r === "DEF") { if (t.dir < 0) ty = Math.max(ty, own.y + 40); else ty = Math.min(ty, own.y - 40); tx = clamp(own.x * 0.5 + sg * 50, -PW / 2 + 22, PW / 2 - 22); }
     }
@@ -610,9 +624,9 @@ function setRestart(m, type, team, x, y) {
   var t = m.teams[team], tk = null, bd = 1e9;
   t.players.forEach(function (p) { if (p.off) return; if (type === "goalkick" ? p.r !== "GK" : p.r === "GK") return; var d = hlen(p.x - x, p.y - y); if (d < bd) { bd = d; tk = p; } });
   if (type === "penalty") {
-    tk = firstOn(t, [4, 3, 2, 1]); var q = m.teams[1 - team], oy = oppY(t), dd = t.dir;
-    t.players.forEach(function (p, i) { if (p === tk || p.r === "GK" || p.off) return; p.x = (i - 2.5) * 26; p.y = oy - dd * 76; p.vx = p.vy = 0; });
-    q.players.forEach(function (p, i) { if (p.off) return; if (p.r === "GK") { p.x = 0; p.y = oy - dd * 4; p.vx = p.vy = 0; return; } p.x = (i - 2.5) * 26; p.y = oy - dd * 84; p.vx = p.vy = 0; });
+    tk = kickTaker(t); var q = m.teams[1 - team], oy = oppY(t), dd = t.dir;
+    t.players.forEach(function (p, i) { if (p === tk || p.r === "GK" || p.off) return; p.x = (i - t.players.length / 2) * (t.players.length > 5 ? 19 : 26); p.y = oy - dd * 76; p.vx = p.vy = 0; });
+    q.players.forEach(function (p, i) { if (p.off) return; if (p.r === "GK") { p.x = 0; p.y = oy - dd * 4; p.vx = p.vy = 0; return; } p.x = (i - q.players.length / 2) * (q.players.length > 5 ? 19 : 26); p.y = oy - dd * 84; p.vx = p.vy = 0; });
     tk.x = x * 0 + 0; tk.y = y + dd * 0 - dd * 14; tk.fx = 0; tk.fy = dd;
   }
   m.rs.taker = tk; if (t.human) t.ctrl = tk.ix; if (type === "penalty" || type === "freekick") m.st = 1.8;
@@ -788,13 +802,15 @@ var PAL = ["#00a651", "#fdd835", "#e53935", "#1e88e5", "#ffffff", "#111111", "#f
 var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson", "Losange", "Carré"], STY = ["Équilibré", "Offensif", "Défensif"], DIFFN = ["Débutant", "Moyen", "Difficile", "Légende"], GSN = ["Lent", "Normal", "Rapide"], GSV = [0.62, 0.78, 1], CTLN = ["Joystick flottant", "Joystick fixe", "Croix"];
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
 var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
-var POSN = ["Gardien", "Défenseur gauche", "Défenseur droit", "Milieu", "Attaquant"];
+var POSN = ["Gardien", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6", "Joueur 7"];
+function FM() { return formsOf(SV.fmt ? 7 : 5); }
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
 if (!SV.ver) { if (SV.pool === 4) SV.pool = 6; SV.ver = 2; }
+while (SV.my.names.length < 7) SV.my.names.push(["Pape", "Modou"][SV.my.names.length - 5] || "Joueur");
 if (SV.ver < 3) { SV.diff = Math.min(3, (SV.diff | 0) + 1); if (SV.tour && typeof SV.tour.diff === "number") SV.tour.diff = Math.min(3, SV.tour.diff + 1); SV.ver = 3; save(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(SV)); } catch (e) { } }
 function teamById(id) {
@@ -857,13 +873,15 @@ function renderSetup() {
   $("suLen").innerHTML = LENS.map(function (n, i) { return "<button class='chip" + (i === SV.len ? " on" : "") + "' data-v='" + i + "'>" + n.n + " · " + n.sub + "</button>"; }).join("");
   $("suWx").innerHTML = ["Auto", "☀️ Soleil", "🌧 Pluie", "🌙 Nuit", "🌧🌙 Nuit + pluie"].map(function (n, i) { return "<button class='chip" + (i === SV.wx ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suWx").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.wx = +b.getAttribute("data-v"); save(); renderSetup(); }; });
-  $("suTac").innerHTML = "<div class='chips'>" + FORMS.map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-f='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:4px 0 6px'>" + FORMS[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-p='" + i + "'>" + n + "</button>"; }).join("") + "</div>";
+  $("suTac").innerHTML = "<div class='chips'>" + FM().map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-f='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:4px 0 6px'>" + FM()[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-p='" + i + "'>" + n + "</button>"; }).join("") + "</div>";
   $("suTac").querySelectorAll("[data-f]").forEach(function (b) { b.onclick = function () { SV.form = +b.getAttribute("data-f"); save(); renderSetup(); }; });
   $("suTac").querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-p"); save(); renderSetup(); }; });
   $("suVen").innerHTML = ["🎲 Auto"].concat(VENUES.map(function (v) { return v.n; })).map(function (n, i) { return "<button class='chip" + (i === SV.ven ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = ["📺 TV Large", "📺 TV Proche", "⬇️ Vue d'en haut"].map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suCam").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.cam = +b.getAttribute("data-v"); save(); renderSetup(); }; });
+  $("suFm").innerHTML = ["5 contre 5", "7 contre 7"].map(function (n, i) { return "<button class='chip" + (i === (SV.fmt | 0) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suFm").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.fmt = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suGs").innerHTML = GSN.map(function (n, i) { return "<button class='chip" + (i === SV.gs ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suGs").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.gs = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   ctlUI("suCtl", renderSetup);
@@ -1656,7 +1674,7 @@ var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
   cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0 }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
-  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0] }); applyCtl();
+  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: SV.fmt ? 7 : 5 }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
   FV = false; var vi = SV.ven > 0 ? SV.ven - 1 : Math.floor(Math.random() * VENUES.length); R.ven = vi; VN = VENUES[vi]; R.camMode = SV.cam; R.tv = false; R.bg = null; R.snap = true; R.replay = false; G.rb = []; G.rp = null; $("rpl").className = ""; $("ht").className = ""; $("cmt").className = "";
@@ -1708,9 +1726,10 @@ function showHT(m) {
   $("ht").innerHTML = "<div class='logo' style='font-size:26px;margin:0 0 8px'>MI-TEMPS</div><div class='vs' style='width:100%;max-width:340px'><div class='t'>" + badge(T[0], 54) + "<div>" + esc(T[0].n) + "</div></div><div class='sc2' style='font-size:44px'>" + m.score[0] + "-" + m.score[1] + "</div><div class='t'>" + badge(T[1], 54) + "<div>" + esc(T[1].n) + "</div></div></div>" + row("Tirs", m.shots[0], m.shots[1]) + row("Possession %", p0, 100 - p0) + row("Fautes", m.fouls[0], m.fouls[1]) + "<div class='note'>⇄ Les équipes changent de camp</div>";
   $("ht").className = "on";
 }
+function m7() { return G.m && G.m.np === 7; }
 function showIntro(T0, T1, wxs) {
-  var wl = ["", "☀️ Soleil", "🌧 Pluie", "🌙 Match de nuit", "🌙🌧 Nuit sous la pluie"][wxs], nums = [1, 4, 5, 8, 9];
-  var col = function (T) { var nm = (T.names || []); var L = []; for (var i = 0; i < 5; i++) { var n = nm[i] || (FIRST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5)) * FIRST.length)] + " " + LAST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5) + 3) * LAST.length)]); L.push(nums[i] + " · " + esc(n)); } return "<div class='tmc'>" + badge(T, 66) + "<b>" + esc(T.n) + "</b>" + L.join("<br>") + "</div>"; };
+  var wl = ["", "☀️ Soleil", "🌧 Pluie", "🌙 Match de nuit", "🌙🌧 Nuit sous la pluie"][wxs], nums = m7() ? NUMS7 : NUMS5, np = m7() ? 7 : 5;
+  var col = function (T) { var nm = (T.names || []); var L = []; for (var i = 0; i < np; i++) { var n = nm[i] || (FIRST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5)) * FIRST.length)] + " " + LAST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5) + 3) * LAST.length)]); L.push(nums[i] + " · " + esc(n)); } return "<div class='tmc'>" + badge(T, 66) + "<b>" + esc(T.n) + "</b>" + L.join("<br>") + "</div>"; };
   var z = T0.z ? ZN[T0.z] : T0.id === -1 ? "Ton quartier" : "Quartier de " + T0.q;
   $("intro").innerHTML = "<div class='tt'>NAVETANE</div><div style='color:var(--mu);font-size:13px'>📍 Terrain de " + esc(T0.q) + " · " + z + "<br>🏟 " + VN.n + " · " + wl + "</div><div class='tms'>" + col(T0) + "<div class='vsx'>VS</div>" + col(T1) + "</div><div class='tap'>Touche pour commencer</div>";
   $("intro").className = "on"; G.intro = true; var my = {}; G.introT = setTimeout(function () { endIntro(); }, 5200);
@@ -1918,7 +1937,7 @@ function renderCar() {
   h += "<div class='card row' style='align-items:center'>" + badge(T, 54) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Saison " + c.season + " · " + DIVN[c.div] + " · " + c.titles + " 🏆</div></div></div>";
   h += "<div class='card'><div class='rd' style='margin:0 0 6px'>Entraînement · <b style='color:var(--y)'>" + c.xp + " pts</b></div>";
   ["a", "d", "v"].forEach(function (k) { var lv = c.st[k], cost = lv, can = c.xp >= cost && lv < 6; h += "<div class='row' style='align-items:center;justify-content:space-between;margin:5px 0'><span style='width:78px'>" + UPN[k] + "</span><span class='pips'>" + pips(lv, 6) + "</span><button class='chip" + (can ? " on" : "") + "' data-up='" + k + "' " + (can ? "" : "disabled style='opacity:.45'") + ">" + (lv >= 6 ? "MAX" : "+1 · " + cost + " pts") + "</button></div>"; });
-  h += "<div class='lab' style='margin-top:8px'>Formation</div><div class='chips'>" + FORMS.map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-fm='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:3px 0'>" + FORMS[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-pr='" + i + "'>" + n + "</button>"; }).join("") + "</div><div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
+  h += "<div class='lab' style='margin-top:8px'>Formation</div><div class='chips'>" + FM().map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-fm='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:3px 0'>" + FM()[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-pr='" + i + "'>" + n + "</button>"; }).join("") + "</div><div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
   h += "<div class='card'><table><tr><th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Diff</th><th>Pts</th></tr>";
   order.forEach(function (id, i) { var s = c.tab[id], cl = i < 2 && c.div > 0 ? "color:#8be28b" : i > 5 && c.div < 3 ? "color:#ff8a80" : ""; h += "<tr class='" + (id === c.base ? "me" : "") + "'><td style='" + cl + "'>" + (i + 1) + "</td><td>" + (id === c.base ? esc(T.n) : nm(id)) + "</td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + (s.gf - s.ga > 0 ? "+" : "") + (s.gf - s.ga) + "</td><td><b>" + s.pts + "</b></td></tr>"; });
   h += "</table><div class='note' style='margin-top:6px'>" + (c.div > 0 ? "🟢 2 premiers : montée · " : "") + (c.div < 3 ? "🔴 2 derniers : descente" : "") + "</div></div>";
