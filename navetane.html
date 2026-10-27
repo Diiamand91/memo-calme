@@ -84,6 +84,15 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 .gb{position:absolute;border-radius:50%;border:0;color:#fff;font-weight:900;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;box-shadow:0 5px 0 rgba(0,0,0,.45);font-size:13px;letter-spacing:.5px}
 .gb i{font-style:normal;font-size:22px}
 .gb.on{transform:translateY(3px);filter:brightness(1.25)}
+#dpd{position:absolute;left:30px;top:50%;margin-top:-66px;width:132px;height:132px;display:none;pointer-events:none;border-radius:50%;background:rgba(255,255,255,.07);border:3px solid rgba(255,255,255,.25)}
+#dpd i{position:absolute;font-style:normal;color:rgba(255,255,255,.55);font-size:26px;width:44px;height:44px;line-height:44px;text-align:center}
+#dpd i[data-d=u]{left:44px;top:2px}#dpd i[data-d=d]{left:44px;bottom:2px}#dpd i[data-d=l]{left:2px;top:44px}#dpd i[data-d=r]{right:2px;top:44px}#dpd i.on{color:#fdd835;transform:scale(1.25)}
+#ctl.dp #dpd{display:block}#ctl.dp #jb{display:none}
+#ctl.fx #jb{left:48px;top:50%;margin-top:-59px}
+#ctl.lh #jz{left:auto;right:0}#ctl.lh #jb{left:auto;right:48px}#ctl.lh #dpd{left:auto;right:30px}#ctl.lh.fx #jb{left:auto;right:48px}
+#ctl.lh #bA{right:auto;left:104px}#ctl.lh #bB{right:auto;left:12px}#ctl.lh #bC{right:auto;left:96px}#ctl.lh #sp{right:auto;left:92px}
+#ctl.bg #bA{width:90px;height:90px;right:112px}#ctl.bg #bB{width:108px;height:108px}#ctl.bg #bC{width:78px;height:78px;right:100px;bottom:118px}
+#ctl.bg.lh #bA{right:auto;left:112px}#ctl.bg.lh #bC{right:auto;left:100px}
 #bA{width:76px;height:76px;right:104px;bottom:20px;background:#1976d2}
 #bB{width:92px;height:92px;right:12px;bottom:46px;background:#e53935;--p:0;background-image:conic-gradient(rgba(253,216,53,.95) calc(var(--p)*1%),transparent 0)}
 #bB .in{position:absolute;inset:7px;border-radius:50%;background:#e53935;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -147,6 +156,8 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="card vs" id="suVs"></div>
   <div class="row"><button class="chip" id="suMe" style="flex:1">Changer mon équipe</button><button class="chip" id="suOpp" style="flex:1">Changer l'adversaire</button></div>
   <div class="lab">Difficulté</div><div class="chips" id="suDiff"></div>
+  <div class="lab">Vitesse du jeu</div><div class="chips" id="suGs"></div>
+  <div class="lab">Commandes</div><div id="suCtl"></div>
   <div class="lab">Tactique</div><div id="suTac"></div>
   <div class="lab">Terrain</div><div class="chips" id="suVen"></div>
   <div class="lab">Caméra</div><div class="chips" id="suCam"></div>
@@ -187,14 +198,14 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <canvas id="rad" width="70" height="108"></canvas><div id="rpl">▶ REPLAY</div><div id="cmt"></div>
   <div id="ht"></div><div id="intro"></div>
   <div id="ctl">
-    <div id="jz"><div id="jb"><div id="jk"></div></div></div>
+    <div id="jz"><div id="jb"><div id="jk"></div></div><div id="dpd"><i data-d="u">▲</i><i data-d="l">◀</i><i data-d="r">▶</i><i data-d="d">▼</i></div></div>
     <button class="gb" id="bC"><i>⚡</i>SPRINT</button>
     <div id="sp"><i></i></div>
     <button class="gb" id="bA"><i>↗</i><span id="lA">PASSE</span></button>
     <button class="gb" id="bB"><div class="in"><i>⚽</i><span id="lB">TIR</span></div></button>
   </div>
 </div>
-<div id="pz"><div class="box"><div class="big">PAUSE</div><button class="btn pri" id="pzR" style="text-align:center">Reprendre</button><button class="btn red" id="pzQ" style="text-align:center">Quitter le match</button></div></div>
+<div id="pz"><div class="box"><div class="big">PAUSE</div><div id="pzCtl" style="text-align:left;margin-bottom:8px"></div><button class="btn pri" id="pzR" style="text-align:center">Reprendre</button><button class="btn red" id="pzQ" style="text-align:center">Quitter le match</button></div></div>
 <script>
 /* ===== NAVETANE : moteur de jeu (sans écran) ===== */
 var TAU = Math.PI * 2;
@@ -214,6 +225,7 @@ var FORMS = [
   { n: "3-1 Mur", d: "Défensif : 3 défenseurs, 1 attaquant seul devant", s: [{ r: "DEF", u: 0.22, v: -0.72 }, { r: "DEF", u: 0.22, v: 0.72 }, { r: "DEF", u: 0.3, v: 0 }, { r: "ATT", u: 0.66, v: 0 }] }
 ];
 var DIFF = [
+  { n: "Débutant", spd: 0.86, tkl: 0.8, gk: 0.82, pas: 0.78, thk: 0.5, shot: 0.8 },
   { n: "Moyen", spd: 1.0, tkl: 1.15, gk: 1.0, pas: 0.92, thk: 0.3, shot: 0.95 },
   { n: "Difficile", spd: 1.06, tkl: 1.4, gk: 1.18, pas: 1.0, thk: 0.22, shot: 1.08 },
   { n: "Légende", spd: 1.12, tkl: 1.7, gk: 1.3, pas: 1.05, thk: 0.16, shot: 1.2 }
@@ -252,7 +264,7 @@ function mkTeam(T, idx, dir, human) {
 }
 function newMatch(T0, T1, o) {
   o = o || {};
-  var m = { wet: !!o.wet, fk: false, penT: 0, fouls: [0, 0], cards: [0, 0], o: o, k: DIFF[o.diff === undefined ? 1 : o.diff], halfLen: o.halfLen || 90, half: 1, clock: 0, state: "kickoff", st: 1.4, ev: [], score: [0, 0], teams: [], P: [],
+  var m = { wet: !!o.wet, fk: false, penT: 0, fouls: [0, 0], cards: [0, 0], o: o, k: DIFF[o.diff === undefined ? 2 : o.diff], halfLen: o.halfLen || 90, half: 1, clock: 0, state: "kickoff", st: 1.4, ev: [], score: [0, 0], teams: [], P: [],
     b: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, own: null, lastTeam: 0, lastP: null, spin: 0 }, passT: null, rs: null, time: 0, golden: !!o.golden, ended: false, shots: [0, 0], poss: [0, 0], on: [0, 0], goals: [], msg: "", extra: false, kickTeam: 0 };
   m.teams[0] = mkTeam(T0, 0, -1, !o.demo); m.teams[1] = mkTeam(T1, 1, 1, false);
   m.teams.forEach(function (t) { t.players.forEach(function (p) { m.P.push(p); }); });
@@ -439,6 +451,13 @@ function aiTeam(m, t, dt) {
     if (m.penT > 0 && b.own !== p) { steer(p, p.x, p.y, 0, dt); return; }
     if (b.own === p) { carrierAI(m, p, dt); return; }
     var s = t.slots[p.ix], sp = slotPos(t, s, attPhase), bx = clamp(b.x * 0.4, -60, 60), tx = sp.x * 0.75 + bx * 0.5, ty = sp.y;
+    tx += Math.sin(m.time * 0.7 + p.ph) * 11; ty += Math.cos(m.time * 0.5 + p.ph * 1.3) * 13 + (b.y - ty) * 0.17;
+    var own = b.own && b.own.team === t.idx ? b.own : null;
+    if (own && own !== p && m.state === "play") {
+      var sg = p.ix % 2 ? 1 : -1;
+      if (p.r === "MID") { tx = clamp(own.x + sg * 62, -PW / 2 + 22, PW / 2 - 22); ty = own.y + t.dir * 26; }
+      else if (p.r === "DEF") { if (t.dir < 0) ty = Math.max(ty, own.y + 40); else ty = Math.min(ty, own.y - 40); tx = clamp(own.x * 0.5 + sg * 50, -PW / 2 + 22, PW / 2 - 22); }
+    }
     if (attPhase && p.r === "ATT") { var ahead = b.y + t.dir * 55; ty = t.dir < 0 ? Math.min(ty, ahead) : Math.max(ty, ahead); ty = clamp(ty, -PL / 2 + 24, PL / 2 - 24); }
     if (!attPhase) { var guard = ownY(t) + t.dir * 70; if (p.r === "DEF") ty = t.dir < 0 ? Math.max(ty, b.y - t.dir * 0) : Math.min(ty, b.y); }
     var f = 0.9, act = false;
@@ -667,7 +686,7 @@ function update(m, dt, inp) {
     updateRef(m, dt); return;
   }
   /* jeu */
-  m.clock += dt;
+  m.clock += dt * (m.o.cs || 1);
   if (!b.own) { m.fk = false; if (m.penT > 0) m.penT = Math.min(m.penT, 0.5); } if (m.penT > 0) m.penT -= dt;
   if (b.own) m.poss[b.own.team] += dt;
   if (m.offP) { m.offT -= dt; if (m.offT <= 0) m.offP = null; }
@@ -766,16 +785,17 @@ var ZF = [{ n: "Toutes", z: -1 }, { n: "Zone 5A K. Massar Nord", z: 1 }, { n: "Z
 var ZN = ["Dakar", "Zone 5A · Keur Massar Nord", "Zone 1 · Yeumbeul Sud", "Zone 4 · Malika", "Zone 6 · Keur Massar Sud", "Zone 7 · Jaxaay-Parcelles"];
 function inZone(T, k) { var f = ZF[k] || ZF[0]; return f.z === -1 || T.z === f.z; }
 var PAL = ["#00a651", "#fdd835", "#e53935", "#1e88e5", "#ffffff", "#111111", "#ff9800", "#8e24aa", "#00bcd4", "#6d4c41", "#ec407a", "#9ccc65"];
-var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson", "Losange", "Carré"], STY = ["Équilibré", "Offensif", "Défensif"], DIFFN = ["Moyen", "Difficile", "Légende"];
+var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson", "Losange", "Carré"], STY = ["Équilibré", "Offensif", "Défensif"], DIFFN = ["Débutant", "Moyen", "Difficile", "Légende"], GSN = ["Lent", "Normal", "Rapide"], GSV = [0.62, 0.78, 1], CTLN = ["Joystick flottant", "Joystick fixe", "Croix"];
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
 var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Défenseur gauche", "Défenseur droit", "Milieu", "Attaquant"];
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy"] }, sel: -1, opp: -2, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
 if (!SV.ver) { if (SV.pool === 4) SV.pool = 6; SV.ver = 2; }
+if (SV.ver < 3) { SV.diff = Math.min(3, (SV.diff | 0) + 1); if (SV.tour && typeof SV.tour.diff === "number") SV.tour.diff = Math.min(3, SV.tour.diff + 1); SV.ver = 3; save(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(SV)); } catch (e) { } }
 function teamById(id) {
   if (id === -1) { var m = SV.my; return { id: -1, q: m.n, n: m.n, s: (m.s || "MOI").toUpperCase(), c1: m.c1, c2: m.c2, pat: m.pat, a: m.a, d: m.d, v: m.v, bd: m.bd, seed: 777, style: m.style, names: m.names.slice() }; }
@@ -825,6 +845,11 @@ $("hSel").onclick = function () { pickTeam("Ton équipe", "home", function (id) 
 $("bBack").onclick = function () { location.href = "./index.html"; };
 /* ---- match rapide ---- */
 function oppId() { if (SV.opp === -2 || SV.opp === selId()) { var c = []; for (var i = 0; i < TEAMS.length; i++) if (i !== selId()) c.push(i); SV.opp = c[Math.floor(Math.random() * c.length)]; } return SV.opp; }
+function ctlUI(id, again) {
+  var chip = function (arr, key, att) { return "<div class='chips' style='margin-bottom:6px'>" + arr.map(function (n, i) { return "<button class='chip" + (i === (SV[key] | 0) ? " on" : "") + "' data-k='" + key + "' data-v='" + i + "'>" + n + "</button>"; }).join("") + "</div>"; };
+  $(id).innerHTML = chip(CTLN, "ctl") + chip(["Droitier", "Gaucher"], "hand") + chip(["Boutons normaux", "Gros boutons"], "bsz");
+  $(id).querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV[b.getAttribute("data-k")] = +b.getAttribute("data-v"); save(); if (typeof applyCtl === "function") applyCtl(); again(); }; });
+}
 function renderSetup() {
   var A = teamById(selId()), B = teamById(oppId());
   $("suVs").innerHTML = "<div class='t'>" + badge(A, 64) + "<div>" + esc(A.n) + "</div><small>" + rate3(A) + "</small></div><div class='x'>VS</div><div class='t'>" + badge(B, 64) + "<div>" + esc(B.n) + "</div><small>" + rate3(B) + "</small></div>";
@@ -839,6 +864,9 @@ function renderSetup() {
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = ["📺 TV Large", "📺 TV Proche", "⬇️ Vue d'en haut"].map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suCam").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.cam = +b.getAttribute("data-v"); save(); renderSetup(); }; });
+  $("suGs").innerHTML = GSN.map(function (n, i) { return "<button class='chip" + (i === SV.gs ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suGs").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.gs = +b.getAttribute("data-v"); save(); renderSetup(); }; });
+  ctlUI("suCtl", renderSetup);
   $("suDiff").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.diff = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suLen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.len = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suTer").innerHTML = "<b>📍 Terrain de " + esc(A.q) + "</b><div class='note' style='margin:4px 0 0'>Tu joues à domicile, devant les supporters du quartier. Ton équipe attaque vers le haut.</div>";
@@ -1590,18 +1618,26 @@ btnBind($("bA"), "A"); btnBind($("bB"), "B"); btnBind($("bC"), "C");
 var JS = { id: -1, ox: 0, oy: 0 };
 (function () {
   var jz = $("jz"), jb = $("jb"), jk = $("jk");
+  var dpdSet = function (jx, jy) { var q = $("dpd").children; for (var i = 0; i < q.length; i++) { var d = q[i].getAttribute("data-d"); q[i].classList.toggle("on", (d === "u" && jy < -.3) || (d === "d" && jy > .3) || (d === "l" && jx < -.3) || (d === "r" && jx > .3)); } };
   jz.addEventListener("pointerdown", function (e) {
     e.preventDefault(); audioInit(); if (JS.id >= 0) return; JS.id = e.pointerId; try { jz.setPointerCapture(e.pointerId); } catch (x) { }
-    var r = $("ctl").getBoundingClientRect(); JS.ox = e.clientX; JS.oy = e.clientY; jb.style.left = (e.clientX - r.left - 59) + "px"; jb.style.top = (e.clientY - r.top - 59) + "px"; jb.style.marginTop = "0"; jk.style.transform = "translate(0,0)";
+    var r = $("ctl").getBoundingClientRect(), md = SV.ctl | 0;
+    if (md === 0) { JS.ox = e.clientX; JS.oy = e.clientY; jb.style.left = (SV.hand ? "auto" : (e.clientX - r.left - 59) + "px"); jb.style.right = SV.hand ? (r.right - e.clientX - 59) + "px" : "auto"; jb.style.top = (e.clientY - r.top - 59) + "px"; jb.style.marginTop = "0"; }
+    else { var br = (md === 2 ? $("dpd") : jb).getBoundingClientRect(); JS.ox = br.left + br.width / 2; JS.oy = br.top + br.height / 2; }
+    jk.style.transform = "translate(0,0)"; if (md === 2) jsMove(e);
   });
-  jz.addEventListener("pointermove", function (e) {
-    if (e.pointerId !== JS.id) return; e.preventDefault(); var dx = e.clientX - JS.ox, dy = e.clientY - JS.oy, d = Math.sqrt(dx * dx + dy * dy), mx = 46;
-    if (d > mx) { JS.ox += dx / d * (d - mx); JS.oy += dy / d * (d - mx); dx = dx / d * mx; dy = dy / d * mx; var r = $("ctl").getBoundingClientRect(); jb.style.left = (JS.ox - r.left - 59) + "px"; jb.style.top = (JS.oy - r.top - 59) + "px"; }
+  var jsMove = function (e) {
+    var dx = e.clientX - JS.ox, dy = e.clientY - JS.oy, d = Math.sqrt(dx * dx + dy * dy), mx = 46;
+    if ((SV.ctl | 0) === 2) { var jx = 0, jy = 0; if (d > 16) { var a = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)); jx = Math.round(Math.cos(a * Math.PI / 4)); jy = Math.round(Math.sin(a * Math.PI / 4)); if (jx && jy) { jx *= .7071; jy *= .7071; } } IN.jx = jx; IN.jy = jy; dpdSet(jx, jy); return; }
+    if (d > mx && (SV.ctl | 0) === 0) { JS.ox += dx / d * (d - mx); JS.oy += dy / d * (d - mx); dx = dx / d * mx; dy = dy / d * mx; var r = $("ctl").getBoundingClientRect(); if (SV.hand) jb.style.right = (r.right - JS.ox - 59) + "px"; else jb.style.left = (JS.ox - r.left - 59) + "px"; jb.style.top = (JS.oy - r.top - 59) + "px"; }
+    else if (d > mx) { dx = dx / d * mx; dy = dy / d * mx; }
     IN.jx = dx / mx; IN.jy = dy / mx; jk.style.transform = "translate(" + dx + "px," + dy + "px)";
-  });
-  var end = function (e) { if (e.pointerId !== JS.id) return; JS.id = -1; IN.jx = IN.jy = 0; jb.style.left = "48px"; jb.style.top = "50%"; jb.style.marginTop = "-59px"; jk.style.transform = "translate(0,0)"; };
+  };
+  jz.addEventListener("pointermove", function (e) { if (e.pointerId !== JS.id) return; e.preventDefault(); jsMove(e); });
+  var end = function (e) { if (e.pointerId !== JS.id) return; JS.id = -1; IN.jx = IN.jy = 0; dpdSet(0, 0); jb.style.left = SV.hand ? "auto" : "48px"; jb.style.right = SV.hand ? "48px" : "auto"; jb.style.top = "50%"; jb.style.marginTop = "-59px"; jk.style.transform = "translate(0,0)"; };
   jz.addEventListener("pointerup", end); jz.addEventListener("pointercancel", end); jz.addEventListener("lostpointercapture", end);
 })();
+function applyCtl() { var c = $("ctl"); c.classList.toggle("dp", (SV.ctl | 0) === 2); c.classList.toggle("fx", (SV.ctl | 0) === 1); c.classList.toggle("lh", !!SV.hand); c.classList.toggle("bg", !!SV.bsz); var jb = $("jb"); jb.style.left = SV.hand ? "auto" : "48px"; jb.style.right = SV.hand ? "48px" : "auto"; jb.style.top = "50%"; jb.style.marginTop = "-59px"; jb.style.opacity = (SV.ctl | 0) === 1 ? ".95" : ""; }
 var KMAP = { z: "A", j: "A", x: "B", k: "B", " ": "B", c: "C", l: "C", shift: "C" };
 window.addEventListener("keydown", function (e) {
   var k = e.key.toLowerCase(); if (!G.run) return; if (e.key.indexOf("Arrow") === 0 || k === " ") e.preventDefault(); KEYS[k] = 1; audioInit();
@@ -1620,7 +1656,7 @@ var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
   cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0 }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
-  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout });
+  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0] }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
   FV = false; var vi = SV.ven > 0 ? SV.ven - 1 : Math.floor(Math.random() * VENUES.length); R.ven = vi; VN = VENUES[vi]; R.camMode = SV.cam; R.tv = false; R.bg = null; R.snap = true; R.replay = false; G.rb = []; G.rp = null; $("rpl").className = ""; $("ht").className = ""; $("cmt").className = "";
@@ -1641,7 +1677,7 @@ function loop(ts) {
   if (G.paused) return;
   if (G.intro) { render(m, dt, { jx: 0, jy: 0 }); return; }
   var jy = readJoy(), inp = { jx: jy[0], jy: jy[1], sprint: !!BT.C.h, pass: null, shoot: null, drib: null };
-  G.acc += dt; var n = 0;
+  G.acc += dt * GSV[SV.gs | 0]; var n = 0;
   while (G.acc >= 1 / 60 && n < 4) {
     ["A", "B", "C"].forEach(function (k) { if (BT[k].h) BT[k].t += 1 / 60; });
     inp.pass = { down: !!BT.A.dn, up: !!BT.A.un, t: BT.A.t }; inp.shoot = { down: !!BT.B.dn, up: !!BT.B.un, t: Math.max(BT.B.t, 0.34) }; inp.drib = { down: !!BT.C.dn, up: !!BT.C.un, t: BT.C.t };
@@ -1722,7 +1758,8 @@ function hud(m, inp) {
   if (infT > 0) { infT -= 1 / 60; if (infT <= 0) $("inf").className = ""; }
   if (G.hintT > 0) { G.hintT -= 1 / 60; if (G.hintT <= 0) { $("hint").style.opacity = 0; } }
 }
-function togglePause() { if (!G.run) return; G.paused = !G.paused; $("pz").classList.toggle("on", G.paused); if (!G.paused) { G.last = performance.now(); G.acc = 0; } }
+function pzCtlDraw() { ctlUI("pzCtl", pzCtlDraw); }
+function togglePause() { if (!G.run) return; G.paused = !G.paused; if (G.paused) pzCtlDraw(); $("pz").classList.toggle("on", G.paused); if (!G.paused) { G.last = performance.now(); G.acc = 0; } }
 $("bPz").onclick = togglePause; $("pzR").onclick = togglePause;
 $("pzQ").onclick = function () { G.run = false; assikoStop(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { } G.paused = false; $("pz").classList.remove("on"); var cf = G.cfg; if (cf && cf.onQuit) cf.onQuit(); else show("home"); };
 $("bMu").onclick = function () { audioInit(); setSnd(!SV.snd); };
@@ -1791,7 +1828,7 @@ function renderTour() {
     if (!t.done) {
       h += "<div class='rd'>" + roundName(t.cur.length) + " · à jouer</div>";
       for (var i = 0; i < t.cur.length; i += 2) { var a = t.cur[i], b = t.cur[i + 1]; h += "<div class='fx" + (a === t.me || b === t.me ? " me" : "") + "'><span class='a'>" + nm(a) + "</span>" + miniB(a) + "<span class='s'>vs</span>" + miniB(b) + "<span class='b'>" + nm(b) + "</span></div>"; }
-      var dif = Math.min(2, t.diff + (t.cur.length === 2 ? 1 : 0));
+      var dif = Math.min(3, t.diff + (t.cur.length === 2 ? 1 : 0));
       h += "<div class='note'>Difficulté : " + DIFFN[dif] + (t.cur.length === 2 ? " (la finale est plus dure)" : "") + " · égalité = prolongation (but en or) puis tirs au but.</div>";
       h += "<button class='btn gold' id='toPlay' style='text-align:center'>⚽ Jouer : " + roundName(t.cur.length) + "</button>";
     } else {
@@ -1816,7 +1853,7 @@ function renderTour() {
 function tourBtns() { return [{ t: "Continuer", cls: "gold", f: function () { renderTour(); show("tour"); } }]; }
 function playTour() {
   var t = SV.tour, A = teamById(t.me), oppId, dif, title;
-  if (t.type === "coupe") { var i = t.cur.indexOf(t.me); oppId = t.cur[i ^ 1]; dif = Math.min(2, t.diff + (t.cur.length === 2 ? 1 : 0)); title = roundName(t.cur.length); }
+  if (t.type === "coupe") { var i = t.cur.indexOf(t.me); oppId = t.cur[i ^ 1]; dif = Math.min(3, t.diff + (t.cur.length === 2 ? 1 : 0)); title = roundName(t.cur.length); }
   else { var f = t.fx[t.round].filter(function (x) { return x[0] === t.me || x[1] === t.me; })[0]; oppId = f[0] === t.me ? f[1] : f[0]; dif = t.diff; title = "Journée " + (t.round + 1); }
   var B = Object.assign({}, teamById(oppId));
   startMatch({ t0: A, t1: B, diff: dif, halfLen: LENS[t.len].h, knockout: t.type === "coupe", title: title, onQuit: function () { renderTour(); show("tour"); },
@@ -1910,7 +1947,7 @@ function carEntry() {
 }
 function playCar() {
   var c = SV.car, A = carTeam(), f = c.fx[c.round].filter(function (x) { return x[0] === c.base || x[1] === c.base; })[0], oppId = f[0] === c.base ? f[1] : f[0];
-  var B = Object.assign({}, teamById(oppId)), dif = Math.min(2, SV.diff + (c.div <= 1 ? 1 : 0));
+  var B = Object.assign({}, teamById(oppId)), dif = Math.min(3, SV.diff + (c.div <= 1 ? 1 : 0));
   startMatch({ t0: A, t1: B, diff: dif, halfLen: LENS[SV.len].h, knockout: false, title: "Journée " + (c.round + 1), onQuit: function () { renderCar(); show("car"); },
     onEnd: function (r) { statsAdd(r); carResult(r); showResult(r, { btns: [{ t: "Continuer", cls: "gold", f: function () { renderCar(); show("car"); } }] }); } });
 }
