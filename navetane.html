@@ -145,6 +145,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
   <button class="btn" id="bRec">📊 Palmarès &amp; statistiques</button>
+  <a class="btn gold" href="navetane3d.html" style="display:block;text-align:center;text-decoration:none">🎮 Essayer la version 3D (nouveau)<small>Vue derrière le but, joueurs en 3D</small></a>
   <button class="btn" id="bBack" style="text-align:center">← Retour à Mémo Calme</button>
   <div class="note">Les ASC des zones 5A, 1, 4, 6 et 7 de la banlieue et les quartiers de Dakar sont dans le jeu, mais leurs joueurs, couleurs et niveaux sont inventés. Crée « Mon équipe » pour jouer avec ton vrai ASC.<br><br>📱 Plein écran sur iPhone : dans Safari, touche Partager puis « Sur l'écran d'accueil », et ouvre le jeu depuis l'icône.<br><br>📱 Plein écran sur iPhone : dans Safari, touche Partager puis « Sur l'écran d'accueil », et ouvre le jeu depuis l'icône.</div>
 </div>
@@ -243,6 +244,7 @@ var DIFF = [
 var FIRST = ["Moussa", "Ibrahima", "Cheikh", "Ousmane", "Abdoulaye", "Mamadou", "Modou", "Pape", "Assane", "Lamine", "Babacar", "Saliou", "Omar", "Boubacar", "Mbaye", "Alioune", "Samba", "Demba", "Idrissa", "Malick", "Souleymane", "Birame", "Aliou", "Ismaïla"];
 var LAST = ["Diop", "Ndiaye", "Fall", "Sow", "Ba", "Diallo", "Gueye", "Sarr", "Faye", "Mbaye", "Seck", "Thiam", "Cissé", "Niang", "Sy", "Diouf", "Ndoye", "Kane", "Mendy", "Badji"];
 var SKINS = ["#5A3320", "#6A3D26", "#7B4A2F", "#8A5434", "#4A2A18", "#9A6540"];
+function setPitch(w, l) { PW = w; PL = l; }
 function ownY(t) { return -t.dir * PL / 2; }
 function oppY(t) { return t.dir * PL / 2; }
 function slotPos(t, s, att, kick) {
@@ -743,6 +745,7 @@ function simQuick(T0, T1, knock) {
   if (knock && g0 === g1) { var w0 = Math.random() < 0.5 + 0.06 * (s0 - s1); pen = w0 ? [4 + (Math.random() < 0.4 ? 1 : 0), 3] : [3, 4 + (Math.random() < 0.4 ? 1 : 0)]; }
   return { g: [g0, g1], pen: pen };
 }
+var CAMN = ["📺 TV Large", "📺 TV Proche", "⬇️ Vue d'en haut"];
 /* ===== NAVETANE : données, écrans ===== */
 var $ = function (i) { return document.getElementById(i); };
 var KEY = "memo-calme-navetane";
@@ -884,7 +887,7 @@ function renderSetup() {
   $("suTac").querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-p"); save(); renderSetup(); }; });
   $("suVen").innerHTML = ["🎲 Auto"].concat(VENUES.map(function (v) { return v.n; })).map(function (n, i) { return "<button class='chip" + (i === SV.ven ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
-  $("suCam").innerHTML = ["📺 TV Large", "📺 TV Proche", "⬇️ Vue d'en haut"].map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suCam").innerHTML = CAMN.map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suCam").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.cam = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suFm").innerHTML = ["5 contre 5", "7 contre 7"].map(function (n, i) { return "<button class='chip" + (i === (SV.fmt | 0) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suFm").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.fmt = +b.getAttribute("data-v"); save(); renderSetup(); }; });
