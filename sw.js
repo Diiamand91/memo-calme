@@ -1,6 +1,6 @@
 // Change ce numéro à chaque mise à jour du site pour que les téléphones rechargent les fichiers.
-var CACHE = "memo-calme-v27";
-var FILES = ["./", "./index.html", "./navetane.html", "./navetane3d.html", "./puzzle.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+var CACHE = "memo-calme-v28";
+var FILES = ["./", "./index.html", "./navetane.html", "./navetane3d.html", "./puzzle.html", "./belote.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
