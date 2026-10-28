@@ -84,6 +84,7 @@ button.btn.ghost { background: transparent; color: var(--fg); border-color: var(
 button.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .foot { color: var(--muted); font-size: 0.875rem; margin: 0; }
 .game { display: flex; flex-direction: column; gap: 18px; }
+.salle{margin:6px 0 14px}.sh{font-size:1.15rem;margin:0 0 8px}.cat{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}.cat>span{flex:1 0 100%;font-weight:700;opacity:.85;font-size:.9rem}.gcard{flex:1 1 140px;display:block;text-decoration:none;color:inherit;border:2px solid #e0b43c;border-radius:12px;padding:10px 12px;background:rgba(224,180,60,.08)}.gcard b{display:block}.gcard small,.gnote{opacity:.75;font-size:.8rem}.gcard.soon{border-color:var(--line);border-style:dashed;opacity:.55}
 .tabs { display: flex; gap: 8px; }
 .tab { appearance: none; flex: 1 1 0; min-height: 44px; font: inherit; font-weight: 600; border-radius: 10px; border: 2px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
 .tab.nvl { display: flex; align-items: center; justify-content: center; text-decoration: none; background: #fdd835; border-color: #f9a825; color: #2a1d00; font-weight: 800; }
@@ -205,9 +206,18 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <p id="pnote" class="pnote"></p>
   </header>
 
+  <section class="salle" aria-label="Salle de jeux">
+    <h2 class="sh">🎮 Salle de jeux</h2>
+    <div class="cat"><span>⚽ Sport</span><a class="gcard" href="./navetane.html"><b>NAVETANE</b><small>Football 2D</small></a><a class="gcard" href="./navetane3d.html"><b>NAVETANE 3D</b><small>Football en 3D</small></a></div>
+    <div class="cat"><span>🧩 Puzzle</span><a class="gcard" href="./puzzle.html"><b>Fruits de Dakar</b><small>Aligne les fruits · 45 niveaux</small></a></div>
+    <div class="cat"><span>🏎️ Arcade</span><div class="gcard soon"><b>Turbo Dakar</b><small>Course · bientôt</small></div></div>
+    <div class="cat"><span>🃏 Cartes</span><div class="gcard soon"><b>Belote &amp; Coinche</b><small>bientôt</small></div></div>
+    <div class="cat"><span>💼 Gestion</span><div class="gcard soon"><b>Petit Commerce</b><small>bientôt</small></div></div>
+    <div class="cat"><span>🧠 Esprit</span><small class="gnote">Les jeux d'entraînement mental sont juste en dessous ⬇️</small></div>
+  </section>
+
   <div class="tabs" role="tablist" aria-label="Choix du jeu">
-    <a class="tab nvl" href="./navetane.html">⚽ NAVETANE – Football</a>
-    <button id="tab-memo" class="tab on" type="button" role="tab" aria-selected="true">Mémoire</button>
+        <button id="tab-memo" class="tab on" type="button" role="tab" aria-selected="true">Mémoire</button>
     <button id="tab-calc" class="tab" type="button" role="tab" aria-selected="false">Calcul mental</button>
     <button id="tab-conc" class="tab" type="button" role="tab" aria-selected="false">Concentration</button>
     <button id="tab-monn" class="tab" type="button" role="tab" aria-selected="false">Monnaie FCFA</button>
