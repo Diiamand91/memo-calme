@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f1720">
+<title>Petit Commerce</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0f1720;color:#f4f1e8;font-family:-apple-system,system-ui,Arial,sans-serif;overscroll-behavior:none;touch-action:manipulation}
+button,input{font:inherit}
+a{color:#e0b43c;text-decoration:none;font-weight:700}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#intro{position:absolute;inset:0;z-index:30;background:radial-gradient(circle at 50% 0%,#2a3a52,#0f1720 70%);padding:max(14px,env(safe-area-inset-top)) 16px 24px;overflow:auto;display:none}
+#intro.on{display:block}
+h1{margin:6px 0 4px;text-align:center;color:#e0b43c;font-size:27px}
+.sub{text-align:center;opacity:.8;font-size:14px;margin-bottom:14px}
+.lab{font-size:12px;letter-spacing:1px;opacity:.7;margin:12px 0 6px;font-weight:700}
+.inp{width:100%;background:#1b2838;border:2px solid #34465e;color:#f4f1e8;border-radius:12px;padding:12px;font-size:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{appearance:none;border:2px solid #34465e;background:#1b2838;color:#f4f1e8;border-radius:12px;padding:10px 12px;font-weight:700;font-size:15px;flex:1 1 auto}
+.chip.on{background:#e0b43c;border-color:#e0b43c;color:#2a1d00}
+.sw{width:40px;height:40px;border-radius:50%;border:3px solid transparent;flex:none}
+.sw.on{border-color:#fff}
+.btn{appearance:none;border:0;border-radius:14px;padding:14px 18px;font-weight:800;font-size:17px;background:#e0b43c;color:#2a1d00;width:100%}
+.btn.sec{background:#243245;color:#f4f1e8}.btn.red{background:#b33a3a;color:#fff}.btn.sm{padding:8px 12px;font-size:14px;width:auto;border-radius:10px}
+.btn:disabled{opacity:.4}.btn:active{transform:scale(.98)}
+#top{flex:none;padding:max(6px,env(safe-area-inset-top)) 10px 6px;background:#16212f;display:flex;align-items:center;gap:8px;border-bottom:1px solid #26364b}
+#top .day{font-size:12px;line-height:1.2;opacity:.9}#top .day b{display:block;font-size:15px;color:#e0b43c}
+#cash{flex:1;text-align:center;font-weight:900;font-size:20px;color:#7be39a}
+#cash small{display:block;font-size:10px;color:#f4f1e8;opacity:.6;font-weight:600;letter-spacing:.6px}
+.pill{background:#243245;border-radius:10px;padding:4px 8px;font-size:12px;text-align:center;line-height:1.2}
+.ib{appearance:none;border:0;background:#243245;color:#fff;border-radius:10px;width:36px;height:36px;font-size:16px}
+#main{flex:1;overflow:auto;padding:10px 10px 14px;-webkit-overflow-scrolling:touch}
+#tabs{flex:none;display:flex;background:#16212f;border-top:1px solid #26364b;padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{flex:1;appearance:none;border:0;background:none;color:#9fb0c6;padding:8px 0 6px;font-size:11px;font-weight:700}
+#tabs button b{display:block;font-size:20px;margin-bottom:1px}
+#tabs button.on{color:#e0b43c}
+.card{background:#1b2838;border-radius:16px;padding:12px;margin-bottom:10px}
+.card h3{margin:0 0 8px;font-size:15px;color:#e0b43c}
+.row{display:flex;align-items:center;gap:8px}
+.sp{flex:1}
+.mut{opacity:.65;font-size:12px}
+canvas#sc{width:100%;border-radius:16px;display:block;background:#2a3a52}
+.prod{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #26364b}
+.prod:last-child{border:0}
+.prod .e{font-size:26px;width:34px;text-align:center}
+.prod .n{flex:1;min-width:0}.prod .n b{display:block;font-size:14px}.prod .n span{font-size:11px;opacity:.7}
+.qb{display:flex;gap:4px}.qb button,.pm{appearance:none;border:0;background:#2e4562;color:#fff;border-radius:8px;padding:8px 9px;font-weight:800;font-size:13px;min-width:38px}
+.qb button:active,.pm:active{background:#e0b43c;color:#2a1d00}
+.up{color:#ff8a80}.dn{color:#7be39a}
+.bar{height:7px;background:#0f1720;border-radius:5px;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:#34465e;margin-left:4px}
+.tag.w{background:#8a5a1a}.tag.r{background:#8a2a2a}
+.news{font-size:13px;line-height:1.35;padding:6px 8px;border-left:3px solid #e0b43c;background:rgba(224,180,60,.08);border-radius:0 8px 8px 0;margin-bottom:6px}
+#feed{font-size:12px;height:92px;overflow:hidden;opacity:.9;display:flex;flex-direction:column;justify-content:flex-end}
+#feed div{padding:1px 0}
+.ov{position:fixed;inset:0;background:rgba(5,10,16,.8);display:none;align-items:center;justify-content:center;z-index:40;padding:16px}
+.ov.on{display:flex}
+.md{background:#1b2838;border:2px solid #e0b43c;border-radius:20px;padding:16px;max-width:380px;width:100%;max-height:90vh;overflow:auto;font-size:14px;line-height:1.4}
+.md h2{margin:0 0 8px;color:#e0b43c;text-align:center;font-size:20px}
+.md table{width:100%;border-collapse:collapse;margin:6px 0}.md td{padding:4px 2px;border-bottom:1px solid #26364b}.md td:last-child{text-align:right;font-weight:800}
+.gn{color:#7be39a}.rd{color:#ff8a80}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#e0b43c;color:#2a1d00;font-weight:800;padding:8px 14px;border-radius:18px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:90%;text-align:center}
+.tip{background:#2a3a1a;border:2px solid #7be39a;border-radius:14px;padding:10px;margin-bottom:10px;font-size:14px}
+.sel{display:flex;gap:6px;overflow:auto;margin-bottom:8px}
+.sel .chip{flex:none;padding:8px 10px;font-size:13px}
+.ups{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.upc{background:#243245;border-radius:12px;padding:8px;font-size:12px;border:2px solid transparent}
+.upc.own{border-color:#7be39a}.upc b{display:block;font-size:13px}
+.upc button{margin-top:4px;width:100%;appearance:none;border:0;background:#e0b43c;color:#2a1d00;border-radius:8px;padding:6px;font-weight:800;font-size:12px}
+.upc button:disabled{opacity:.35}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><a href="./index.html" class="ib" style="display:flex;align-items:center;justify-content:center;text-decoration:none">←</a>
+    <div class="day"><b id="dDay">Jour 1</b><span id="dDow">Lundi</span></div>
+    <div id="cash"><span id="cashV">0 F</span><small>EN CAISSE</small></div>
+    <div class="pill"><span id="rep">⭐ 30</span><br><span id="lvl">Niv. 1</span></div>
+    <button class="ib" id="bSet">⚙️</button></div>
+  <div id="main"></div>
+  <div id="tabs"></div>
+</div>
+<div id="intro"></div>
+<div class="ov" id="ov"><div class="md" id="md"></div></div>
+<div id="toast"></div>
+<script>
+
+var RND = Math.random;
+function rr(a, b) { return a + RND() * (b - a); }
+function ri(a, b) { return Math.floor(rr(a, b + 1)); }
+function pick(a) { return a[Math.floor(RND() * a.length)]; }
+function mkRng(seed) { var s = seed >>> 0 || 1; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+var PRODS = [
+  { id: "riz", n: "Riz", e: "🍚", u: "kg", cost: 360, price: 450, w: 10, per: 0, lv: 1, q: [1, 4], cat: "base" },
+  { id: "sucre", n: "Sucre", e: "🍬", u: "kg", cost: 540, price: 700, w: 8, per: 0, lv: 1, q: [1, 3], cat: "base" },
+  { id: "huile", n: "Huile", e: "🛢️", u: "L", cost: 1000, price: 1300, w: 7, per: 0, lv: 1, q: [1, 2], cat: "base" },
+  { id: "oignon", n: "Oignons", e: "🧅", u: "kg", cost: 420, price: 600, w: 9, per: 6, lv: 1, q: [1, 3], cat: "frais" },
+  { id: "tomate", n: "Tomates", e: "🍅", u: "kg", cost: 560, price: 800, w: 6, per: 3, lv: 1, q: [1, 3], cat: "frais" },
+  { id: "pain", n: "Pain", e: "🥖", u: "pièce", cost: 105, price: 150, w: 12, per: 1, lv: 1, q: [2, 6], cat: "frais" },
+  { id: "lait", n: "Lait", e: "🥛", u: "L", cost: 740, price: 980, w: 5, per: 5, lv: 2, q: [1, 2], cat: "frais" },
+  { id: "the", n: "Thé", e: "🍵", u: "paquet", cost: 310, price: 450, w: 6, per: 0, lv: 2, q: [1, 3], cat: "base" },
+  { id: "savon", n: "Savon", e: "🧼", u: "pièce", cost: 240, price: 380, w: 6, per: 0, lv: 2, q: [1, 3], cat: "base" },
+  { id: "credit", n: "Crédit tél.", e: "📱", u: "recharge", cost: 960, price: 1000, w: 10, per: 0, lv: 3, q: [1, 3], cat: "base" },
+  { id: "habit", n: "Vêtements", e: "👕", u: "pièce", cost: 3600, price: 5500, w: 4, per: 0, lv: 4, q: [1, 2], cat: "mode" },
+  { id: "tel", n: "Téléphone", e: "📲", u: "pièce", cost: 26000, price: 33000, w: 2, per: 0, lv: 5, q: [1, 1], cat: "tech" },
+  { id: "tele", n: "Télévision", e: "📺", u: "pièce", cost: 118000, price: 150000, w: .8, per: 0, lv: 7, q: [1, 1], cat: "tech" },
+  { id: "moto", n: "Moto", e: "🏍️", u: "pièce", cost: 640000, price: 790000, w: .2, per: 0, lv: 9, q: [1, 1], cat: "tech" }
+];
+var PID = {}; PRODS.forEach(function (p) { PID[p.id] = p; });
+var QUART = [
+  { id: "sandaga", n: "Marché Sandaga", tr: 1.0, wealth: 0, rent: 2500, cost: 0, lv: 1 },
+  { id: "medina", n: "Médina", tr: .95, wealth: -.04, rent: 2500, cost: 350000, lv: 2 },
+  { id: "parcelles", n: "Parcelles Assainies", tr: 1.25, wealth: -.07, rent: 3200, cost: 700000, lv: 3 },
+  { id: "thies", n: "Thiès", tr: .85, wealth: 0, rent: 2200, cost: 1100000, lv: 4 },
+  { id: "stlouis", n: "Saint-Louis", tr: .8, wealth: .04, rent: 2400, cost: 1800000, lv: 5 },
+  { id: "almadies", n: "Almadies", tr: .95, wealth: .2, rent: 9000, cost: 3200000, lv: 6 },
+  { id: "rufisque", n: "Rufisque", tr: 1.1, wealth: -.03, rent: 2800, cost: 4500000, lv: 7 },
+  { id: "touba", n: "Touba", tr: 1.5, wealth: -.02, rent: 5000, cost: 6000000, lv: 8 }
+];
+var TIERS = [{ n: "Étal", tr: 70, cap: 44, rent: 1, up: 0, sym: "🛖" }, { n: "Boutique", tr: 150, cap: 80, rent: 2, up: 260000, sym: "🏪" }, { n: "Supermarché", tr: 360, cap: 165, rent: 5, up: 2600000, sym: "🏬" }];
+var UPS = [
+  { id: "shelf", n: "Étagères", e: "🗄️", cost: 60000, d: "+12 % de clients, plus de choix", lv: 1 },
+  { id: "fridge", n: "Réfrigérateur", e: "🧊", cost: 120000, d: "Produits frais : +3 jours de fraîcheur", lv: 2 },
+  { id: "gen", n: "Groupe électrogène", e: "⚡", cost: 180000, d: "Plus de pertes pendant les coupures", lv: 2 },
+  { id: "reg", n: "Caisse enregistreuse", e: "🧾", cost: 90000, d: "Sert +8 clients par jour", lv: 2 },
+  { id: "sign", n: "Grande enseigne", e: "🪧", cost: 80000, d: "+15 % de clients", lv: 1 },
+  { id: "moto", n: "Moto de livraison", e: "🛵", cost: 260000, d: "+14 % de clients (livraisons)", lv: 4 },
+  { id: "momo", n: "Kiosque mobile money", e: "💳", cost: 300000, d: "+ commissions chaque jour", lv: 3 },
+  { id: "decor", n: "Décoration soignée", e: "🎨", cost: 150000, d: "+5 de réputation, +5 % de clients", lv: 3 }
+];
+var NWT = [0, 200000, 450000, 1000000, 2600000, 4800000, 8000000, 12500000, 17000000, 22000000]; // niveaux 1..10 selon la fortune
+var DIFF = [{ n: "Facile", cash: 220000, dem: 1.15, cost: .9, ev: .6 }, { n: "Normal", cash: 150000, dem: 1, cost: 1, ev: 1 }, { n: "Difficile", cash: 100000, dem: .88, cost: 1.08, ev: 1.35 }];
+var SUPS = [
+  { id: "A", n: "Grossiste de Sandaga", e: "🏬", mult: 1.0, min: 5, lv: 1, q: 0, d: "Tout le monde, petits lots" },
+  { id: "B", n: "Importateur du Port", e: "🚢", mult: .9, min: 40, lv: 3, q: 1, d: "Prix bas, gros lots, qualité premium (non frais)" },
+  { id: "C", n: "Producteurs des Niayes", e: "🌾", mult: .84, min: 10, lv: 1, q: 0, d: "Frais moins chers et plus frais (stock limité)" }
+];
+var CALEV = [{ k: "magal", from: 19, len: 3 }, { k: "tabaski", from: 34, len: 5 }, { k: "korite", from: 58, len: 4 }, { k: "pluie", from: 42, len: 28 }, { k: "gamou", from: 74, len: 3 }];
+var EVN = { magal: ["🕌 Magal de Touba", "Touba déborde de monde : thé et eau très demandés, grande affluence à Touba."], tabaski: ["🐑 Tabaski approche", "Riz, huile, oignons et vêtements très demandés. Plus de clients partout."], korite: ["🌙 Korité", "Sucre, vêtements et pain très demandés."], pluie: ["🌧️ Hivernage", "Moins de clients les jours de pluie, tomates plus chères."], gamou: ["✨ Gamou", "Beaucoup de visiteurs : thé, lait et sucre en demande."], greve: ["🚛 Grève des transporteurs", "Le Grossiste de Sandaga ne livre pas aujourd'hui."], delest: ["🔌 Délestage", "Coupure de courant : les produits frais risquent de se perdre sans groupe électrogène."], rizhaus: ["📈 Le riz flambe", "Le prix du riz augmente de 25 % pendant quelques jours."], vol: ["🦹 Voleur au marché", "Des voleurs rôdent : prudence."], controle: ["📋 Contrôle des prix", "Si tes prix sont trop élevés, amende !"], promo: ["🎁 Promotion fournisseur", "Un fournisseur casse les prix sur une catégorie."] };
+function newGame(diff, shopName, owner) {
+  var d = DIFF[diff]; var S = { v: 1, diff: diff, day: 1, cash: d.cash, rep: 30, owner: owner || "Patron", name: shopName || "Chez Birame", shops: [], stock: {}, prices: {}, idx: {}, sup: { A: 0, B: 0, C: 0 }, loan: 0, loanDay: 0, ad: { days: 0, boost: 0 }, hist: [], evs: [], log: [], ach: {}, weekRev: 0, weekProf: 0, win: false, broke: 0, stats: { cust: 0, sold: 0, best: 0 }, tutor: 0, news: [], daySeed: 0 };
+  S.shops.push(mkShop("sandaga", S.name)); PRODS.forEach(function (p) { S.stock[p.id] = []; S.prices[p.id] = Math.round(p.price * 1.08 / 10) * 10; S.idx[p.id] = 1; });
+  return S;
+}
+function mkShop(q, name) { return { q: q, name: name, tier: 0, up: {}, staff: [], col: "#e0b43c", awn: "#c62828", theme: 0, open: true }; }
+function qOf(id) { return QUART.filter(function (q) { return q.id === id; })[0]; }
+function netWorth(S) {
+  var v = S.cash - S.loan; PRODS.forEach(function (p) { (S.stock[p.id] || []).forEach(function (l) { v += l.n * l.c; }); });
+  S.shops.forEach(function (sh) { v += qOf(sh.q).cost * .6 + TIERS[sh.tier].up * .5; UPS.forEach(function (u) { if (sh.up[u.id]) v += u.cost * .4; }); }); return Math.round(v);
+}
+function level(S) { var w = netWorth(S), l = 1; for (var i = 0; i < NWT.length; i++) if (w >= NWT[i]) l = i + 1; return Math.max(l, S.maxLv || 1); }
+function updLevel(S) { var l = level(S); if (l > (S.maxLv || 1)) { S.maxLv = l; return l; } return 0; }
+function evActive(S, k) { return S.evs.some(function (e) { return e.k === k && e.left > 0; }); }
+function evMods(S) {
+  var m = { traffic: 1, dem: {}, cost: {}, block: {}, power: false, tq: {} }; function d(pid, x) { m.dem[pid] = (m.dem[pid] || 1) * x; }
+  if (evActive(S, "magal")) { m.tq.touba = 2.6; d("the", 2); }
+  if (evActive(S, "tabaski")) { m.traffic *= 1.3; d("riz", 1.3); d("huile", 1.7); d("oignon", 2); d("habit", 2.2); d("sucre", 1.3); }
+  if (evActive(S, "korite")) { m.traffic *= 1.2; d("sucre", 1.9); d("habit", 1.9); d("pain", 1.25); }
+  if (evActive(S, "gamou")) { m.traffic *= 1.2; d("the", 2); d("lait", 1.6); d("sucre", 1.4); }
+  if (evActive(S, "greve")) m.block.A = 1;
+  if (evActive(S, "delest")) m.power = true;
+  if (evActive(S, "rizhaus")) { m.cost.riz = 1.25; }
+  if (evActive(S, "pluie") && S.rain) { m.traffic *= .85; m.cost.tomate = 1.3; }
+  S.evs.forEach(function (e) { if (e.k === "promo" && e.left > 0) m.cost[e.cat] = .8; });
+  return m;
+}
+function costToday(S, pid, sup) {
+  var p = PID[pid], s = SUPS.filter(function (x) { return x.id === sup; })[0], m = evMods(S), mult = s.mult, cm = m.cost[pid] || 1; if (m.cost[p.cat]) cm *= m.cost[p.cat];
+  if (sup === "B" && p.per) return null; if (sup === "C" && !p.per && p.cat !== "mode") { mult = 1.02; }
+  if (sup === "C" && p.per) mult = .84; if (sup === "B" && p.cat !== "base" && p.cat !== "tech") mult = 1;
+  var rel = Math.min(8, S.sup[sup] / 12) / 100; return Math.round(p.cost * S.idx[pid] * mult * cm * DIFF[S.diff].cost * (1 - rel) / 5) * 5;
+}
+function offer(S, pid, sup) {
+  var p = PID[pid], s = SUPS.filter(function (x) { return x.id === sup; })[0], lv = level(S); if (lv < s.lv || lv < p.lv) return null; if (evMods(S).block[sup]) return { blocked: true };
+  var c = costToday(S, pid, sup); if (c === null) return null; if (sup === "C" && !p.per) return null; if (sup === "B" && p.w > 5 && false) return null;
+  var left = sup === "C" ? Math.max(0, 160 - (S.boughtC || 0)) : 99999; return { cost: c, min: p.cost > 20000 ? 1 : s.min, q: s.q && !p.per ? 1 : 0, left: left };
+}
+function bulk(qty) { return qty >= 200 ? .08 : qty >= 100 ? .05 : qty >= 50 ? .03 : 0; }
+function stockQty(S, pid) { var n = 0; S.stock[pid].forEach(function (l) { n += l.n; }); return n; }
+function buy(S, pid, sup, qty) {
+  var o = offer(S, pid, sup); if (!o) return "Indisponible"; if (o.blocked) return "Ce fournisseur est en grève aujourd'hui"; if (qty < 1) return "Quantité nulle"; if (qty < o.min && PID[pid].cost < 20000) return "Minimum " + o.min + " chez ce fournisseur"; if (qty > o.left) return "Stock du fournisseur épuisé";
+  var c = Math.round(o.cost * (1 - bulk(qty))), tot = c * qty; if (tot > S.cash) return "Pas assez d'argent"; S.cash -= tot; S.stock[pid].push({ n: qty, c: c, q: o.q, age: sup === "C" && PID[pid].per ? -1 : 0 });
+  if (sup === "C") S.boughtC = (S.boughtC || 0) + qty; S.sup[sup] = Math.min(100, S.sup[sup] + tot / 40000); S.spent = (S.spent || 0) + tot; return null;
+}
+function marketPrice(S, pid) { var p = PID[pid], m = evMods(S); return Math.round(p.price * S.idx[pid] * (m.cost[pid] ? (1 + (m.cost[pid] - 1) * .8) : 1) / 5) * 5; }
+function tolerance(S, sh, lot) { var q = qOf(sh.q); return q.wealth + S.rep / 100 * .08 + (lot && lot.q ? .1 : 0) + (sh.up.decor ? .02 : 0); }
+function probBuy(price, mkt, tol) { var r = price / mkt / (1 + tol); return r <= .95 ? 1 : r <= 1 ? .97 : Math.max(0, .97 - (r - 1) * 1.7); }
+function dayInfo(S) { var d = S.day, dow = (d - 1) % 7; return { dow: dow, name: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"][dow] }; }
+function shopTraffic(S, sh) {
+  var q = qOf(sh.q), m = evMods(S), T = TIERS[sh.tier], dow = dayInfo(S).dow; var up = 1 + (sh.up.shelf ? .12 : 0) + (sh.up.sign ? .15 : 0) + (sh.up.moto ? .14 : 0) + (sh.up.decor ? .05 : 0) + (sh.up.momo ? .06 : 0);
+  var ad = S.ad.days > 0 ? 1 + S.ad.boost : 1, dw = [1, .95, 1, 1, 1.12, 1.25, .8][dow];
+  return T.tr * q.tr * (.5 + S.rep / 100 * .95) * up * ad * m.traffic * (m.tq[sh.q] || 1) * (S.rain ? .85 : 1) * dw * DIFF[S.diff].dem * (.92 + RND() * .16);
+}
+function shopCap(sh) { var c = TIERS[sh.tier].cap + (sh.up.reg ? 8 : 0); sh.staff.forEach(function (e) { if (e.train <= 0) c += 5 + e.skill * 3; }); return c; }
+function startDay(S) {
+  S.news = []; S.boughtC = 0; S.rain = false; var d = S.day;
+  // calendrier + aléas
+  CALEV.forEach(function (e) { if (d === e.from) { S.evs.push({ k: e.k, left: e.len }); S.news.push(EVN[e.k]); } });
+  if (evActive(S, "pluie")) S.rain = RND() < .45; var ev = DIFF[S.diff].ev;
+  function rnd(k, p, left, extra) { if (RND() < p * ev && !evActive(S, k)) { var o = { k: k, left: left }; if (extra) for (var x in extra) o[x] = extra[x]; S.evs.push(o); S.news.push(EVN[k]); } }
+  if (d > 4) { rnd("greve", .05, 2); rnd("delest", .16 + (d > 40 && d < 80 ? .1 : 0), 1); rnd("rizhaus", .04, 6); rnd("vol", .05, 1); rnd("controle", .03, 1); rnd("promo", .06, 4, { cat: pick(["frais", "base", "mode"]) }); }
+  S.started = 1;
+  // marché
+  PRODS.forEach(function (p) { var x = S.idx[p.id]; x += rr(-.035, .035) + (1 - x) * .15; S.idx[p.id] = Math.max(.75, Math.min(1.4, x)); });
+  return makeQueue(S, S.news);
+}
+function makeQueue(S, news) {
+  var D = { queue: [], i: 0, served: 0, lost: 0, rev: 0, cogs: 0, lostRev: 0, lostWhy: { rupture: 0, prix: 0, file: 0 }, shopsRev: S.shops.map(function () { return 0; }), sold: {}, haggles: 0, hagMax: 3, news: (news || []).slice(), momo: 0 };
+  S.shops.forEach(function (sh, si) {
+    var n = Math.round(shopTraffic(S, sh)), cap = shopCap(sh); sh._cap = cap; sh._exp = n; var served = Math.min(n, cap), over = n - served;
+    for (var i = 0; i < served; i++) D.queue.push({ s: si, t: RND() });
+    D.lost += over; D.lostWhy.file += over; D.lostRev += over * 2500; if (over > 0 && S.rep > 5) S.rep = Math.max(5, S.rep - Math.min(.6, over * .03));
+  });
+  D.queue.sort(function (a, b) { return a.t - b.t; }); D.n = D.queue.length; return D;
+}
+function wantList(S, sh) {
+  var lv = level(S), m = evMods(S), r = RND(), n = r < .5 ? 1 : r < .85 ? 2 : 3, list = [], pool = PRODS.filter(function (p) { return p.lv <= lv; }), tw = 0; pool.forEach(function (p) { p._w = p.w * (m.dem[p.id] || 1) * (p.id === "tomate" && S.rain ? .7 : 1); tw += p._w; });
+  for (var i = 0; i < n; i++) { var x = RND() * tw, ch = pool[0]; for (var j = 0; j < pool.length; j++) { x -= pool[j]._w; if (x <= 0) { ch = pool[j]; break; } } if (!list.some(function (l) { return l.pid === ch.id; })) list.push({ pid: ch.id, qty: ri(ch.q[0], ch.q[1]) }); }
+  return list;
+}
+function takeStock(S, pid, qty) { var cost = 0, got = 0, prem = false, L = S.stock[pid]; while (got < qty && L.length) { var lot = L[0], t = Math.min(qty - got, lot.n); cost += t * lot.c; got += t; lot.n -= t; if (lot.q) prem = true; if (lot.n <= 0) L.shift(); } return { got: got, cost: cost, prem: prem }; }
+// traite un client ; renvoie {sold:[], haggle?}
+function nextCustomer(S, D) {
+  if (D.i >= D.queue.length) return null; var c = D.queue[D.i++], sh = S.shops[c.s], want = wantList(S, sh), rec = { s: c.s, items: [], lost: [], total: 0, haggle: null }, m = evMods(S);
+  var cust = { s: c.s, want: want, rec: rec };
+  want.forEach(function (w) {
+    var p = PID[w.pid], have = stockQty(S, w.pid); if (have <= 0) { rec.lost.push({ pid: w.pid, why: "rupture" }); D.lostWhy.rupture++; D.lostRev += p.price * w.qty; S.rep = Math.max(0, S.rep - .12); return; }
+    var qty = Math.min(w.qty, have), lot = S.stock[w.pid][0], price = S.prices[w.pid], mkt = marketPrice(S, w.pid), pb = probBuy(price, mkt, tolerance(S, sh, lot));
+    if (RND() > pb) { rec.lost.push({ pid: w.pid, why: "prix" }); D.lostWhy.prix++; D.lostRev += price * qty; return; }
+    rec.items.push({ pid: w.pid, qty: qty, price: price });
+  });
+  rec.total = rec.items.reduce(function (a, it) { return a + it.price * it.qty; }, 0);
+  if (rec.items.length && rec.total >= 2500 && D.haggles < D.hagMax && RND() < .22) { D.haggles++; rec.haggle = { offer: Math.round(rec.total * rr(.74, .9) / 10) * 10, full: rec.total }; }
+  return cust;
+}
+function finishCustomer(S, D, cust, decision) { // decision: null | 'accept' | {counter:x} | 'refuse'
+  var rec = cust.rec, f = 1, hag = rec.haggle;
+  if (hag) { if (decision === "refuse" || !decision && false) { if (RND() < .3) f = 1; else { rec.items.forEach(function (it) { D.lostWhy.prix++; }); D.lost++; D.lostRev += rec.total; rec.items = []; return rec; } }
+    else if (decision === "accept") f = hag.offer / hag.full;
+    else if (decision && decision.counter) { var c = Math.max(hag.offer, Math.min(hag.full, decision.counter)); var p = hag.full === hag.offer ? 1 : 1 - (c - hag.offer) / (hag.full - hag.offer) * .85; if (RND() < p) f = c / hag.full; else { D.lost++; D.lostRev += rec.total; rec.items = []; return rec; } } }
+  var sh = S.shops[rec.s], rev = 0, cogs = 0; rec.items.forEach(function (it) { var tk = takeStock(S, it.pid, it.qty); if (!tk.got) return; var r = Math.round(it.price * tk.got * f / 5) * 5; rev += r; cogs += tk.cost; D.sold[it.pid] = (D.sold[it.pid] || 0) + tk.got; if (tk.prem && S.rep < 100) S.rep = Math.min(100, S.rep + .05); });
+  S.cash += rev; D.rev += rev; D.cogs += cogs; D.shopsRev[rec.s] += rev; if (rev) { D.served++; S.rep = Math.min(100, S.rep + .04); } else if (rec.lost.length) D.lost++; rec.rev = rev; return rec;
+}
+function endDay(S, D) {
+  var R = { day: S.day, rev: D.rev, cogs: D.cogs, served: D.served, lost: D.lost, lostRev: D.lostRev, lostWhy: D.lostWhy, news: D.news, exp: {}, notes: [], sold: D.sold }, tot = 0, m = evMods(S);
+  // dépenses
+  var rent = 0, sal = 0, momo = 0, fuel = 0; S.shops.forEach(function (sh, i) { rent += qOf(sh.q).rent * TIERS[sh.tier].rent; sh.staff.forEach(function (e) { sal += 1500 + 700 * e.skill; if (e.train > 0) e.train--; else if (e.train === 0) { } }); if (sh.up.gen) fuel += 1200; if (sh.up.momo) momo += Math.round(D.shopsRev[i] * .025 + 1500); });
+  R.exp.loyer = rent; R.exp.salaires = sal; R.exp.carburant = fuel; R.exp.eau_elec = 600 * S.shops.length; if (momo) R.notes.push("💳 Commissions mobile money : +" + momo); S.cash += momo; R.rev += momo;
+  // intérêts
+  if (S.loan > 0) { var it = Math.round(S.loan * .004); R.exp.intérêts = it; }
+  // pertes (frais + coupure)
+  var spoil = 0, spoilN = 0, gen = S.shops.every(function (s) { return s.up.gen; }), fr = S.shops.some(function (s) { return s.up.fridge; }); S.stock && PRODS.forEach(function (p) { if (!p.per) return; var L = S.stock[p.id], life = p.per + (fr ? 3 : 0), keep = []; L.forEach(function (l) { l.age++; if (l.age >= life) { spoil += l.n * l.c; spoilN += l.n; } else { if (m.power && !gen && RND() < .35) { var lost = Math.floor(l.n * .35); spoil += lost * l.c; spoilN += lost; l.n -= lost; } if (l.n > 0) keep.push(l); } }); S.stock[p.id] = keep; });
+  if (spoil) { R.exp.pertes = Math.round(spoil); R.notes.push("🗑️ Produits perdus (périmés / coupure) : " + spoilN + " pièces"); }
+  if (evActive(S, "vol") && RND() < .5) { var th = Math.min(S.cash * .04, 40000); th = Math.round(th); if (th > 0) { R.exp.vol = th; R.notes.push("🦹 Un voleur t'a pris " + th + " FCFA"); } }
+  if (evActive(S, "controle")) { var hi = 0; PRODS.forEach(function (p) { if (S.prices[p.id] > marketPrice(S, p.id) * 1.35 && stockQty(S, p.id) > 0) hi++; }); if (hi) { R.exp.amende = 15000 * hi; R.notes.push("📋 Amende contrôle des prix (" + hi + " produit(s) trop chers)"); } }
+  // fin de semaine : impôts
+  S.weekRev += D.rev; if (S.day % 7 === 0) { var tx = Math.round(S.weekRev * (.02 + .004 * level(S))); R.exp.impôts = tx; R.notes.push("🧾 Patente & impôts de la semaine : " + tx); S.weekRev = 0; }
+  for (var k in R.exp) { tot += R.exp[k]; } S.cash -= tot; R.expTot = tot; R.profit = R.rev - R.cogs - tot - (R.exp.pertes ? 0 : 0); R.cash = S.cash; R.rep = Math.round(S.rep);
+  // personnel : moral
+  S.shops.forEach(function (sh) { sh.staff.forEach(function (e) { if (e.train === 0) { e.skill = Math.min(5, e.skill + 1); e.train = -1; R.notes.push("🎓 " + e.n + " a fini sa formation (niveau " + e.skill + ")"); } }); });
+  // pub, evts
+  if (S.ad.days > 0) S.ad.days--; S.evs.forEach(function (e) { e.left--; }); S.evs = S.evs.filter(function (e) { return e.left > 0; });
+  S.hist.push({ day: S.day, rev: R.rev, prof: R.profit, cust: D.served, lost: D.lost, cash: S.cash }); if (S.hist.length > 60) S.hist.shift(); S.stats.cust += D.served; S.weekProf += R.profit;
+  var nl = updLevel(S); if (nl) R.notes.push("⭐ Niveau " + nl + " atteint : nouveaux produits, quartiers et fournisseurs débloqués !");
+  // faillite
+  if (netWorth(S) < 0) S.broke++; else S.broke = 0; R.broke = S.broke >= 5;
+  if (!S.win && netWorth(S) >= 15000000 && S.shops.length >= 4 && S.rep >= 70) { S.win = true; R.win = true; }
+  S.started = 0; S.day++; S.rep = Math.max(0, S.rep - .05); return R;
+}
+/* actions */
+function openShop(S, qid) { var q = qOf(qid); if (!q) return "Quartier inconnu"; if (level(S) < q.lv) return "Niveau " + q.lv + " requis"; if (S.shops.some(function (s) { return s.q === qid; })) return "Tu as déjà une boutique ici"; if (S.cash < q.cost) return "Pas assez d'argent"; S.cash -= q.cost; S.shops.push(mkShop(qid, "Chez " + S.owner + " – " + q.n.split(" ").pop())); return null; }
+function upgradeTier(S, si) { var sh = S.shops[si], nt = TIERS[sh.tier + 1]; if (!nt) return "Niveau maximum"; if (level(S) < 2 + sh.tier * 3) return "Niveau " + (2 + sh.tier * 3) + " requis"; if (S.cash < nt.up) return "Pas assez d'argent"; S.cash -= nt.up; sh.tier++; return null; }
+function buyUp(S, si, uid) { var sh = S.shops[si], u = UPS.filter(function (x) { return x.id === uid; })[0], c = Math.round(u.cost * (1 + sh.tier * .5)); if (sh.up[uid]) return "Déjà installé"; if (level(S) < u.lv) return "Niveau " + u.lv + " requis"; if (S.cash < c) return "Pas assez d'argent"; S.cash -= c; sh.up[uid] = 1; if (uid === "decor") S.rep = Math.min(100, S.rep + 5); return null; }
+function upCost(sh, uid) { var u = UPS.filter(function (x) { return x.id === uid; })[0]; return Math.round(u.cost * (1 + sh.tier * .5)); }
+var NAMES = ["Moussa", "Awa", "Cheikh", "Fatou", "Ibrahima", "Mame", "Ousmane", "Khady", "Modou", "Aminata", "Abdou", "Rokhaya"];
+function hire(S, si) { var sh = S.shops[si]; if (sh.staff.length >= 2 + sh.tier * 2) return "Équipe complète pour cette boutique"; var e = { n: pick(NAMES), skill: ri(1, 2), train: -1, moral: 70 }; sh.staff.push(e); return null; }
+function fire(S, si, ei) { S.shops[si].staff.splice(ei, 1); }
+function trainCost(e) { return 12000 * (e.skill + 1); }
+function train(S, si, ei) { var e = S.shops[si].staff[ei]; if (e.skill >= 5) return "Niveau maximum"; if (e.train >= 0) return "Déjà en formation"; var c = trainCost(e); if (S.cash < c) return "Pas assez d'argent"; S.cash -= c; e.train = 3; return null; }
+function borrow(S, amt) { var lim = 400000 * level(S); if (S.loan + amt > lim) return "Plafond du microcrédit : " + lim; S.loan += amt; S.cash += amt; return null; }
+function repay(S, amt) { amt = Math.min(amt, S.loan, S.cash); if (amt <= 0) return "Rien à rembourser"; S.loan -= amt; S.cash -= amt; return null; }
+function adBuy(S, lvl) { var costs = [15000, 40000, 90000], boost = [.1, .22, .4]; if (S.cash < costs[lvl]) return "Pas assez d'argent"; S.cash -= costs[lvl]; S.ad = { days: 5, boost: boost[lvl] }; return null; }
+function setPrice(S, pid, p) { S.prices[pid] = Math.max(5, Math.round(p / 5) * 5); }
+function dailyInterest(S) { if (S.loan > 0) { /* appliqué dans endDay via exp */ } }
+/*ENDLOGIC*/
+
+var $ = function (i) { return document.getElementById(i); };
+var KEY = "memo-calme-commerce", S = null, D = null, TAB = "shop", SEL = 0, SUPSEL = "A", LIVE = null, CFGU = { snd: 1, auto: 0 }, SCN = { walkers: [], pops: [], t: 0, prog: 0 };
+function fmt(n) { n = Math.round(n); return (n < 0 ? "−" : "") + Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " F"; }
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function toast(t) { var e = $("toast"); e.textContent = t; e.style.opacity = 1; clearTimeout(toast.h); toast.h = setTimeout(function () { e.style.opacity = 0; }, 1800); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ S: S, C: CFGU })); } catch (e) { } }
+function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || "null"); if (o && o.S) { S = o.S; if (o.C) CFGU = o.C; return true; } } catch (e) { } return false; }
+/* son */
+var AC = null; function tink(f) { if (!CFGU.snd) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.type = "triangle"; o.frequency.value = f || 880; g.gain.value = .06; g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + .18); o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + .18); } catch (e) { } }
+function modal(html) { return new Promise(function (res) { $("md").innerHTML = html; $("ov").classList.add("on"); $("md").scrollTop = 0; $("md").querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { $("ov").classList.remove("on"); res(b.dataset.r); }; }); }); }
+/* ---------- accueil / nouvelle partie ---------- */
+var NG = { diff: 1, name: "Chez Birame", owner: "Birame", col: "#e0b43c", awn: "#c62828" };
+var PAL = ["#e0b43c", "#4caf50", "#42a5f5", "#ef5350", "#ab47bc", "#ff7043"], AWN = ["#c62828", "#1565c0", "#2e7d32", "#f9a825", "#6a1b9a", "#00838f"];
+function showIntro() {
+  var el = $("intro"); el.classList.add("on");
+  var h = "<h1>🛒 Petit Commerce</h1><div class='sub'>Du marché Sandaga au Grand Entrepreneur : achète, fixe tes prix, sers tes clients et développe ton commerce.</div><a href='./index.html'>← Salle de jeux</a>";
+  h += "<div class='lab'>TON NOM</div><input class='inp' id='iOwner' value='" + esc(NG.owner) + "' maxlength='16'><div class='lab'>NOM DE TA BOUTIQUE</div><input class='inp' id='iName' value='" + esc(NG.name) + "' maxlength='22'>";
+  h += "<div class='lab'>COULEUR DE L'ENSEIGNE</div><div class='chips' id='iCol'></div><div class='lab'>COULEUR DU STORE</div><div class='chips' id='iAwn'></div><div class='lab'>DIFFICULTÉ</div><div class='chips' id='iDiff'></div>";
+  h += "<div class='sub' id='iDesc' style='margin-top:6px'></div><button class='btn' id='iGo' style='margin-top:10px'>▶ Ouvrir mon étal</button>"; if (load()) h += "<button class='btn sec' id='iCont' style='margin-top:10px'>Continuer ma partie (jour " + S.day + ")</button>";
+  el.innerHTML = h;
+  function sw(id, arr, key) { var c = $(id); c.innerHTML = ""; arr.forEach(function (v) { var b = document.createElement("button"); b.className = "sw" + (NG[key] === v ? " on" : ""); b.style.background = v; b.onclick = function () { NG[key] = v; sw(id, arr, key); }; c.appendChild(b); }); }
+  sw("iCol", PAL, "col"); sw("iAwn", AWN, "awn");
+  function df() { var c = $("iDiff"); c.innerHTML = ""; DIFF.forEach(function (d, i) { var b = document.createElement("button"); b.className = "chip" + (NG.diff === i ? " on" : ""); b.textContent = d.n; b.onclick = function () { NG.diff = i; df(); }; c.appendChild(b); }); $("iDesc").textContent = ["Départ confortable (220 000 F), clients plus nombreux, aléas rares.", "Départ de 150 000 F. Équilibré : il faut bien gérer.", "Départ de 100 000 F, clients exigeants, prix en hausse, aléas fréquents."][NG.diff]; }
+  df(); $("iGo").onclick = function () { NG.owner = $("iOwner").value.trim() || "Patron"; NG.name = $("iName").value.trim() || "Chez " + NG.owner; S = newGame(NG.diff, NG.name, NG.owner); S.shops[0].col = NG.col; S.shops[0].awn = NG.awn; S.tutor = 1; el.classList.remove("on"); beginDay(); save(); render(); };
+  if ($("iCont")) $("iCont").onclick = function () { el.classList.remove("on"); resumeGame(); };
+}
+function resumeGame() { if (S.started) D = makeQueue(S, S.news); else beginDay(); render(); }
+function beginDay() { D = startDay(S); S.news = D.news.slice(); if (D.news.length) { } save(); }
+/* ---------- en-tête ---------- */
+function head() {
+  $("dDay").textContent = "Jour " + S.day; $("dDow").textContent = dayInfo(S).name + (S.rain ? " 🌧️" : " ☀️"); $("cashV").textContent = fmt(S.cash); $("cashV").style.color = S.cash < 0 ? "#ff8a80" : "#7be39a"; $("rep").textContent = "⭐ " + Math.round(S.rep); $("lvl").textContent = "Niv. " + level(S);
+}
+var TABS = [["shop", "🏪", "Boutique"], ["stock", "📦", "Stock"], ["prix", "🏷️", "Prix"], ["team", "👥", "Équipe"], ["biz", "📈", "Affaires"]];
+function drawTabs() { var t = $("tabs"); t.innerHTML = ""; TABS.forEach(function (x) { var b = document.createElement("button"); b.className = x[0] === TAB ? "on" : ""; b.innerHTML = "<b>" + x[1] + "</b>" + x[2]; b.onclick = function () { if (LIVE) { toast("La journée est en cours…"); return; } TAB = x[0]; render(); }; t.appendChild(b); }); }
+function render() { head(); drawTabs(); var m = $("main"), st = m.scrollTop; m.innerHTML = ""; ({ shop: vShop, stock: vStock, prix: vPrix, team: vTeam, biz: vBiz })[TAB](m); if (TAB !== "shop") m.scrollTop = st; if (TAB === "shop") startScene(); save(); }
+/* ---------- onglet Boutique ---------- */
+var TIPS = ["", "👋 Bienvenue ! 1) Va dans <b>📦 Stock</b> et appuie sur « Remplir automatiquement » pour acheter ta marchandise. 2) Vérifie tes prix dans <b>🏷️ Prix</b>. 3) Reviens ici et ouvre la boutique !", "💡 Ouvre la boutique pour voir tes clients arriver. Un client peut marchander : accepte, contre-propose ou refuse.", "📊 Lis bien le rapport du soir : il t'explique pourquoi des clients sont partis (rupture, prix trop hauts, trop de monde)."];
+function vShop(m) {
+  var sh = S.shops[Math.min(SEL, S.shops.length - 1)]; if (S.tutor && S.tutor < TIPS.length) m.insertAdjacentHTML("beforeend", "<div class='tip'>" + TIPS[S.tutor] + "<div style='text-align:right;margin-top:6px'><button class='btn sm' id='tipOk'>Compris</button></div></div>");
+  if (S.shops.length > 1) { var h = "<div class='sel'>"; S.shops.forEach(function (s, i) { h += "<button class='chip" + (i === SEL ? " on" : "") + "' data-i='" + i + "'>" + TIERS[s.tier].sym + " " + esc(qOf(s.q).n.split(" ").pop()) + "</button>"; }); m.insertAdjacentHTML("beforeend", h + "</div>"); m.querySelectorAll("[data-i]").forEach(function (b) { b.onclick = function () { SEL = +b.dataset.i; render(); }; }); }
+  m.insertAdjacentHTML("beforeend", "<canvas id='sc' width='360' height='200'></canvas>");
+  var exp = 0, cap = 0; S.shops.forEach(function (s) { exp += s._exp || 0; cap += s._cap || 0; });
+  var h2 = "<div class='card' style='margin-top:10px'><div class='row'><div class='sp'><b>" + esc(sh.name) + "</b><div class='mut'>" + qOf(sh.q).n + " · " + TIERS[sh.tier].n + "</div></div><div style='text-align:right'><b>≈ " + exp + " clients</b><div class='mut'>capacité " + cap + "</div></div></div></div>";
+  if (D && D.news.length) D.news.forEach(function (n) { h2 += "<div class='news'><b>" + n[0] + "</b><br>" + n[1] + "</div>"; });
+  S.evs.forEach(function (e) { if (e.left > 0 && !(D && D.news.some(function (n) { return n === EVN[e.k]; }))) h2 += "<div class='news' style='opacity:.75'><b>" + EVN[e.k][0] + "</b> · encore " + e.left + " j</div>"; });
+  // alertes
+  var al = []; var lvv = level(S); PRODS.forEach(function (p) { if (p.lv > lvv) return; var have = stockQty(S, p.id); if (have <= 0) al.push(p.e + " " + p.n + " : <b class='rd'>en rupture</b>"); else if (S.prices[p.id] > marketPrice(S, p.id) * 1.3) al.push(p.e + " " + p.n + " : <b class='rd'>prix trop haut</b>"); }); if (S.loan > 0) al.push("🏦 Microcrédit à rembourser : " + fmt(S.loan));
+  if (al.length) h2 += "<div class='card'><h3>⚠️ À surveiller</h3><div style='font-size:13px;line-height:1.6'>" + al.slice(0, 6).join("<br>") + (al.length > 6 ? "<br>… et " + (al.length - 6) + " autre(s)" : "") + "</div></div>";
+  h2 += "<div id='live'></div><button class='btn' id='bOpen' style='margin-top:4px'>▶ Ouvrir la boutique</button>"; m.insertAdjacentHTML("beforeend", h2);
+  if ($("tipOk")) $("tipOk").onclick = function () { S.tutor++; render(); };
+  $("bOpen").onclick = runDay;
+}
+/* scène animée */
+var SCT = null;
+function startScene() { SCN.t = 0; if (!SCT) { SCT = true; requestAnimationFrame(sceneLoop); } }
+var lastT = 0;
+function sceneLoop(ts) { requestAnimationFrame(sceneLoop); var c = $("sc"); if (!c || TAB !== "shop" || !S) return; var dt = Math.min(.05, (ts - lastT) / 1000 || .016); lastT = ts; SCN.t += dt; drawScene(c, dt); }
+function drawScene(cv, dt) {
+  var x = cv.getContext("2d"), W = cv.width, H = cv.height, sh = S.shops[Math.min(SEL, S.shops.length - 1)], p = LIVE ? LIVE.prog : 0, tier = sh.tier;
+  var night = p > .8 ? (p - .8) / .2 : 0, g = x.createLinearGradient(0, 0, 0, H * .7); var sky = [[120, 190, 245], [255, 190, 120], [30, 38, 80]]; var a = p < .6 ? 0 : p < .85 ? 1 : 2, f = p < .6 ? 0 : p < .85 ? (p - .6) / .25 : 1; var c0 = p < .6 ? sky[0] : sky[1], c1 = p < .6 ? sky[0] : p < .85 ? sky[1] : sky[2]; var mix = function (u, v, t) { return Math.round(u + (v - u) * t); };
+  var col = [mix(120, p < .6 ? 120 : p < .85 ? 255 : 30, p < .6 ? 0 : p < .85 ? f : 1), 0, 0]; var top = p < .6 ? [100, 175, 240] : p < .85 ? [mix(100, 255, f), mix(175, 150, f), mix(240, 100, f)] : [mix(255, 22, night), mix(150, 28, night), mix(100, 70, night)]; var bot = p < .6 ? [180, 220, 250] : p < .85 ? [mix(180, 255, f), mix(220, 200, f), mix(250, 150, f)] : [mix(255, 50, night), mix(200, 55, night), mix(150, 100, night)];
+  g.addColorStop(0, "rgb(" + top.join(",") + ")"); g.addColorStop(1, "rgb(" + bot.join(",") + ")"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  if (night > .3) { x.fillStyle = "#fff"; for (var i = 0; i < 14; i++) x.fillRect((i * 97) % W, (i * 41) % 60, 2, 2); x.font = "22px sans-serif"; x.fillText("🌙", W - 50, 36); } else { x.font = "26px sans-serif"; x.fillText("☀️", 30 + p * (W - 100), 36 - Math.sin(p * 3) * 6); }
+  // décor de fond (maisons)
+  x.fillStyle = "rgba(60,50,45,.35)"; for (var k = 0; k < 6; k++) { x.fillRect(k * 64 - 10, 92 - (k % 3) * 10, 54, 80); } x.fillStyle = "#a98a60"; x.fillRect(0, H - 52, W, 52); x.fillStyle = "#8f7350"; x.fillRect(0, H - 52, W, 4);
+  // boutique
+  var bx = 70, bw = 220, by = 62, bh = H - 52 - 62; if (tier === 0) { bw = 170; bx = 95; by = 82; bh = H - 52 - 82; } if (tier === 2) { bx = 30; bw = 300; by = 38; bh = H - 52 - 38; }
+  x.fillStyle = tier === 0 ? "#7a5530" : tier === 1 ? "#e8d9b8" : "#cfd8e2"; x.fillRect(bx, by, bw, bh);
+  if (tier === 0) { x.fillStyle = "#5a3d20"; x.fillRect(bx + 6, by + 36, 8, bh - 36); x.fillRect(bx + bw - 14, by + 36, 8, bh - 36); }
+  // étagères & produits
+  x.fillStyle = tier === 0 ? "#3c2a17" : "#9b8a6a"; var rows = tier === 0 ? 1 : tier === 1 ? 2 : 3; var lvv = level(S), vis = PRODS.filter(function (q) { return q.lv <= lvv; });
+  for (var r = 0; r < rows; r++) { var ry = by + 54 + r * 26 + (tier === 2 ? -8 : 0); x.fillRect(bx + 18, ry + 20, bw - 36, 3); x.font = "17px sans-serif"; for (var j = 0; j < Math.floor((bw - 40) / 24); j++) { var pr = vis[(j + r * 5) % vis.length]; if (stockQty(S, pr.id) > 0) x.fillText(pr.e, bx + 20 + j * 24, ry + 18); } }
+  // porte / vitrine
+  x.fillStyle = tier === 2 ? "rgba(140,200,240,.6)" : "#4a3220"; var dw = tier === 0 ? 0 : 34; if (dw) x.fillRect(bx + bw / 2 - dw / 2, H - 52 - 50, dw, 50);
+  // store
+  x.fillStyle = sh.awn; var ay = by + 8, aw = bw + 16; for (var s = 0; s < 10; s++) { x.fillStyle = s % 2 ? "#fff" : sh.awn; x.fillRect(bx - 8 + s * aw / 10, ay, aw / 10 + .5, 20); } x.fillStyle = "rgba(0,0,0,.2)"; x.fillRect(bx - 8, ay + 20, aw, 3);
+  // enseigne
+  x.fillStyle = sh.col; var sw = Math.min(bw - 10, 200), sx = bx + bw / 2 - sw / 2; x.fillRect(sx, by - 24 + (tier === 2 ? 2 : 0), sw, 24); x.fillStyle = "#1a1408"; x.font = "800 " + (sh.name.length > 16 ? 12 : 14) + "px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(sh.name, bx + bw / 2, by - 11 + (tier === 2 ? 2 : 0)); x.textAlign = "left"; x.textBaseline = "alphabetic";
+  // améliorations visibles
+  x.font = "22px sans-serif"; if (sh.up.decor) { x.fillText("🪴", bx - 26, H - 56); x.fillText("🪴", bx + bw + 6, H - 56); } if (sh.up.moto) x.fillText("🛵", bx + bw + 8, H - 24); if (sh.up.fridge) x.fillText("🧊", bx + 8, H - 56); if (sh.up.gen) x.fillText("⚡", bx + bw - 28, H - 56);
+  // clients
+  var dr = SCN.walkers; for (var w = dr.length - 1; w >= 0; w--) { var q = dr[w]; q.t += dt * q.sp; var u = q.t; if (u > 2) { dr.splice(w, 1); continue; } var px = u < 1 ? q.from + (bx + bw / 2 - q.from) * u : bx + bw / 2 + (q.to - (bx + bw / 2)) * (u - 1); x.font = "22px sans-serif"; x.globalAlpha = u > .85 && u < 1.15 ? .35 : 1; x.fillText(q.e, px - 10, H - 34 + Math.sin(u * 30) * 1.5); x.globalAlpha = 1; if (!q.paid && u >= 1) { q.paid = 1; if (q.rev) { SCN.pops.push({ x: bx + bw / 2, y: H - 70, t: 0, s: "+" + fmt(q.rev) }); tink(500 + Math.min(800, q.rev / 6)); } } }
+  x.font = "800 13px Arial"; x.textAlign = "center"; for (var pp = SCN.pops.length - 1; pp >= 0; pp--) { var o = SCN.pops[pp]; o.t += dt; if (o.t > 1.1) { SCN.pops.splice(pp, 1); continue; } x.globalAlpha = 1 - o.t / 1.1; x.fillStyle = "#1b5e20"; x.fillText(o.s, o.x + 1, o.y - o.t * 34 + 1); x.fillStyle = "#b9f6ca"; x.fillText(o.s, o.x, o.y - o.t * 34); x.globalAlpha = 1; } x.textAlign = "left";
+  if (night > 0) { x.fillStyle = "rgba(10,14,45," + night * .45 + ")"; x.fillRect(0, 0, W, H); }
+  if (S.rain && LIVE) { x.strokeStyle = "rgba(200,220,255,.6)"; x.beginPath(); for (var d = 0; d < 40; d++) { var rx = (d * 53 + SCN.t * 260) % W, ry2 = (d * 37 + SCN.t * 420) % H; x.moveTo(rx, ry2); x.lineTo(rx - 3, ry2 + 9); } x.stroke(); }
+}
+function spawnWalker(rec, shopSel) { var e = ["🚶", "🚶‍♀️", "🧍", "👩‍🦱", "🧑🏾", "👵🏾", "👨🏾‍🦲"][Math.floor(Math.random() * 7)], left = Math.random() < .5; if (SCN.walkers.length > 14) return; SCN.walkers.push({ e: e, from: left ? -20 : 380, to: Math.random() < .5 ? -20 : 380, t: 0, sp: .9 + Math.random() * .5, rev: rec && rec.rev || 0 }); }
+/* ---------- journée ---------- */
+var CUSTN = ["Awa", "Moussa", "Fatou", "Cheikh", "Mame Diarra", "Ibou", "Khady", "Modou", "Aïssatou", "Pape", "Ndèye", "Samba", "Rama", "Lamine"];
+async function runDay() {
+  if (LIVE) return; var capLoss = 0; if (S.tutor === 1) { S.tutor = 2; } var noStock = PRODS.filter(function (p) { return p.lv <= level(S); }).every(function (p) { return stockQty(S, p.id) === 0; });
+  if (noStock) { var r = await modal("<h2>Rayons vides !</h2><p>Tu n'as aucune marchandise à vendre. Va dans <b>📦 Stock</b> pour acheter, sinon tes clients repartiront les mains vides.</p><button class='btn' data-r='stock'>Aller au Stock</button><button class='btn sec' data-r='go' style='margin-top:8px'>Ouvrir quand même</button>"); if (r === "stock") { TAB = "stock"; render(); return; } }
+  LIVE = { prog: 0, speed: 1, paused: false, total: Math.max(1, D.n) }; $("bOpen").style.display = "none"; drawTabs();
+  $("live").innerHTML = "<div class='card'><div class='row'><b id='lvC'>0 / " + D.n + " clients</b><div class='sp'></div><b id='lvR' style='color:#7be39a'>0 F</b></div><div class='bar'><i id='lvB' style='width:0;background:#e0b43c'></i></div><div class='row' style='margin-top:8px'><button class='btn sm sec' data-s='1'>×1</button><button class='btn sm sec' data-s='3'>×3</button><button class='btn sm' data-s='99'>Passer ⏭</button></div><div id='feed' style='margin-top:8px'></div></div>";
+  $("live").querySelectorAll("[data-s]").forEach(function (b) { b.onclick = function () { LIVE.speed = +b.dataset.s; }; });
+  var perMs = D.n / 14000, acc = 0, last = performance.now(), feed = $("feed");
+  function addFeed(t) { var d = document.createElement("div"); d.innerHTML = t; feed.appendChild(d); while (feed.children.length > 6) feed.removeChild(feed.firstChild); }
+  while (D.i < D.n) {
+    var now = performance.now(), dt = now - last; last = now; acc += dt * perMs * LIVE.speed; var k = Math.floor(acc); acc -= k; if (LIVE.speed >= 99) k = D.n;
+    for (var j = 0; j < k && D.i < D.n; j++) {
+      var cust = nextCustomer(S, D); if (!cust) break; var dec = null, rec = cust.rec;
+      if (rec.haggle) { dec = await askHaggle(cust); last = performance.now(); }
+      var res = finishCustomer(S, D, cust, dec); if (cust.s === SEL || true) { if (cust.s === Math.min(SEL, S.shops.length - 1)) spawnWalker(res); }
+      var nm = CUSTN[Math.floor(Math.random() * CUSTN.length)]; if (res.rev) { var it = res.items[0]; addFeed("<b>" + nm + "</b> achète " + res.items.map(function (z) { return PID[z.pid].e + "×" + z.qty; }).join(" ") + " · <span class='gn'>" + fmt(res.rev) + "</span>"); } else if (res.lost.length) addFeed("<b>" + nm + "</b> repart " + (res.lost[0].why === "rupture" ? "(rupture : " + PID[res.lost[0].pid].e + ")" : "(trop cher " + PID[res.lost[0].pid].e + ")"));
+    }
+    LIVE.prog = D.i / LIVE.total; $("lvC").textContent = D.i + " / " + D.n + " clients"; $("lvR").textContent = fmt(D.rev); $("lvB").style.width = (LIVE.prog * 100) + "%"; $("cashV").textContent = fmt(S.cash);
+    await new Promise(function (r) { requestAnimationFrame(r); });
+  }
+  LIVE.prog = 1; await new Promise(function (r) { setTimeout(r, 700); });
+  var R = endDay(S, D); LIVE = null; checkAch(R); await report(R); if (R.broke) { await modal("<h2>Faillite 😢</h2><p>Ta fortune est restée négative trop longtemps : les créanciers ont fermé ta boutique.</p><button class='btn' data-r='ok'>Recommencer</button>"); localStorage.removeItem(KEY); S = null; showIntro(); return; }
+  if (R.win) await victory(); if (S.tutor === 2) S.tutor = 3; else if (S.tutor === 3) S.tutor = 4; beginDay(); TAB = "shop"; SCN.walkers = []; render();
+}
+function askHaggle(cust) {
+  var h = cust.rec.haggle, it = cust.rec.items, nm = CUSTN[Math.floor(Math.random() * CUSTN.length)];
+  return new Promise(function (res) { var mid = Math.round((h.offer + h.full) / 2 / 10) * 10; $("md").innerHTML = "<h2>🗣️ Marchandage</h2><p><b>" + nm + "</b> prend " + it.map(function (z) { return PID[z.pid].e + " " + PID[z.pid].n + " ×" + z.qty; }).join(", ") + " (" + fmt(h.full) + ") et dit : « <i>Dama bëgg ma jëndi ci " + fmt(h.offer) + ", mooy sa prix bu mat !</i> »</p><div style='display:grid;gap:8px'><button class='btn' data-d='a'>✅ Accepter " + fmt(h.offer) + "</button><button class='btn sec' data-d='c'>🤝 Contre-proposer " + fmt(mid) + "</button><button class='btn sec' data-d='r'>❌ Refuser (garder " + fmt(h.full) + ")</button></div>"; $("ov").classList.add("on");
+    $("md").querySelectorAll("[data-d]").forEach(function (b) { b.onclick = function () { $("ov").classList.remove("on"); res(b.dataset.d === "a" ? "accept" : b.dataset.d === "r" ? "refuse" : { counter: mid }); }; }); });
+}
+async function report(R) {
+  var h = "<h2>🌙 Fin du jour " + R.day + "</h2><table><tr><td>Ventes</td><td>" + fmt(R.rev) + "</td></tr><tr><td>Coût de la marchandise vendue</td><td>−" + fmt(R.cogs) + "</td></tr>"; for (var k in R.exp) h += "<tr><td>" + k.replace("_", " / ").replace(/^./, function (c) { return c.toUpperCase(); }) + "</td><td class='rd'>−" + fmt(R.exp[k]) + "</td></tr>"; h += "<tr><td><b>Bénéfice du jour</b></td><td class='" + (R.profit >= 0 ? "gn" : "rd") + "'>" + fmt(R.profit) + "</td></tr></table>";
+  h += "<div style='font-size:13px'>👥 <b>" + R.served + "</b> clients servis · <b>" + R.lost + "</b> partis" + (R.lost ? " <span class='mut'>(rupture " + R.lostWhy.rupture + " · prix " + R.lostWhy.prix + " · trop de monde " + R.lostWhy.file + ")</span>" : "") + "</div>";
+  var adv = []; if (R.lostWhy.rupture > 3) adv.push("📦 Tu as manqué de stock : achète un peu plus."); if (R.lostWhy.prix > R.served * .4) adv.push("🏷️ Beaucoup de clients trouvent tes prix trop hauts : baisse-les un peu."); if (R.lostWhy.file > 4) adv.push("👥 Trop de monde pour toi : embauche un employé ou installe une caisse enregistreuse."); if (R.profit > 0 && R.lostWhy.prix === 0 && R.served > 10) adv.push("💡 Aucun client n'a refusé tes prix : tu peux monter un peu les prix pour gagner plus."); if (adv.length) h += "<div class='news' style='margin-top:8px'>" + adv.join("<br>") + "</div>";
+  if (R.notes.length) h += "<div style='font-size:13px;margin-top:8px;line-height:1.5'>" + R.notes.join("<br>") + "</div>";
+  h += "<div class='lab'>BÉNÉFICES DES DERNIERS JOURS</div><canvas id='chart' width='320' height='110' style='width:100%;background:#16212f;border-radius:10px'></canvas><button class='btn' data-r='ok' style='margin-top:12px'>Jour suivant ▶</button>";
+  var p = modal(h); drawChart(); await p;
+}
+function drawChart() { var c = $("chart"); if (!c) return; var x = c.getContext("2d"), H = S.hist.slice(-14), W = c.width, Ht = c.height, mx = 1, mn = 0; H.forEach(function (d) { mx = Math.max(mx, d.prof); mn = Math.min(mn, d.prof); }); var rng = mx - mn || 1, zero = 10 + (Ht - 30) * (mx / rng), bw = (W - 20) / 14; x.strokeStyle = "#34465e"; x.beginPath(); x.moveTo(8, zero); x.lineTo(W - 8, zero); x.stroke(); H.forEach(function (d, i) { var h2 = (Ht - 30) * Math.abs(d.prof) / rng; x.fillStyle = d.prof >= 0 ? "#7be39a" : "#ff8a80"; x.fillRect(10 + i * bw + 2, d.prof >= 0 ? zero - h2 : zero, bw - 4, Math.max(1, h2)); }); x.fillStyle = "#9fb0c6"; x.font = "10px Arial"; x.fillText("max " + fmt(mx), 10, 10); }
+async function victory() { await modal("<h2>🏆 GRAND ENTREPRENEUR !</h2><p style='text-align:center;font-size:16px'>Bravo " + esc(S.owner) + " ! Tu as bâti un vrai empire : fortune de " + fmt(netWorth(S)) + ", " + S.shops.length + " boutiques et une excellente réputation.</p><p style='text-align:center'>Tu peux continuer à jouer en mode libre pour battre ton record.</p><button class='btn' data-r='ok'>Continuer l'aventure</button>"); }
+var ACH = [["first", "🎉 Premier client", function () { return S.stats.cust >= 1; }], ["c100", "👥 100 clients servis", function () { return S.stats.cust >= 100; }], ["c1000", "🏅 1 000 clients", function () { return S.stats.cust >= 1000; }], ["s2", "🏪 Deuxième boutique", function () { return S.shops.length >= 2; }], ["w1", "💰 Fortune de 1 million", function () { return netWorth(S) >= 1e6; }], ["w10", "💎 Fortune de 10 millions", function () { return netWorth(S) >= 1e7; }], ["rep", "⭐ Réputation 90", function () { return S.rep >= 90; }], ["l5", "🚀 Niveau 5", function () { return level(S) >= 5; }], ["sup", "🏬 Supermarché", function () { return S.shops.some(function (s) { return s.tier === 2; }); }], ["win", "🏆 Grand Entrepreneur", function () { return S.win; }]];
+function checkAch(R) { ACH.forEach(function (a) { if (!S.ach[a[0]] && a[2]()) { S.ach[a[0]] = S.day; R.notes.push("🏅 Succès débloqué : " + a[1]); } }); }
+/* ---------- Stock ---------- */
+function expectedDemand(pid) { var p = PID[pid], base = 0; S.shops.forEach(function (s) { base += s._exp || 20; }); var h = S.lastSold && S.lastSold[pid]; var est = (p.w / 85) * base * 1.7 * (p.q[0] + p.q[1]) / 2; return h !== undefined ? h * .7 + est * .3 : est; }
+function vStock(m) {
+  var lvv = level(S), h = "<div class='sel'>"; SUPS.forEach(function (s) { var lock = lvv < s.lv; h += "<button class='chip" + (SUPSEL === s.id ? " on" : "") + "' data-s='" + s.id + "'" + (lock ? " disabled style='opacity:.4'" : "") + ">" + s.e + " " + s.n.split(" ")[0] + (lock ? " 🔒" + s.lv : "") + "</button>"; }); h += "</div>";
+  var sup = SUPS.filter(function (s) { return s.id === SUPSEL; })[0]; h += "<div class='card'><b>" + sup.e + " " + sup.n + "</b><div class='mut'>" + sup.d + " · Relation : " + Math.round(S.sup[sup.id]) + " %" + (evMods(S).block[sup.id] ? " · <b class='rd'>EN GRÈVE</b>" : "") + "</div><div class='mut' style='margin-top:4px'>Remise de volume : −3 % dès 50, −5 % dès 100, −8 % dès 200.</div><button class='btn' id='bAuto' style='margin-top:8px'>🛒 Remplir automatiquement (meilleur prix)</button></div><div class='card'>";
+  var any = false; PRODS.forEach(function (p) { if (p.lv > lvv) return; var o = offer(S, p.id, SUPSEL); if (!o) return; any = true; var have = stockQty(S, p.id), age = S.stock[p.id].reduce(function (a, l) { return Math.max(a, l.age); }, 0), base = p.cost, dlt = o.blocked ? 0 : (o.cost / base - 1) * 100;
+    var steps = p.cost > 20000 ? [1, 2, 5] : [10, 50, 100]; h += "<div class='prod'><div class='e'>" + p.e + "</div><div class='n'><b>" + p.n + (p.per ? "<span class='tag w'>frais " + p.per + "j</span>" : "") + (o.q ? "<span class='tag'>premium</span>" : "") + "</b><span>" + (o.blocked ? "indisponible" : fmt(o.cost) + " / " + p.u + " <i class='" + (dlt > 2 ? "up" : dlt < -2 ? "dn" : "") + "'>" + (dlt > 2 ? "▲" : dlt < -2 ? "▼" : "•") + "</i> · min " + o.min) + "<br>En stock : <b>" + have + "</b>" + (p.per && have ? " (âge " + Math.max(0, age) + "j)" : "") + "</span></div><div class='qb'>" + (o.blocked ? "" : steps.map(function (q) { return "<button data-b='" + p.id + "' data-q='" + q + "'>+" + q + "</button>"; }).join("")) + "</div></div>"; });
+  if (!any) h += "<div class='mut'>Rien à acheter chez ce fournisseur pour l'instant.</div>"; h += "</div>"; m.innerHTML = h;
+  m.querySelectorAll("[data-s]").forEach(function (b) { b.onclick = function () { SUPSEL = b.dataset.s; render(); }; });
+  m.querySelectorAll("[data-b]").forEach(function (b) { b.onclick = function () { var e = buy(S, b.dataset.b, SUPSEL, +b.dataset.q); if (e) toast(e); else { tink(660); render(); } }; });
+  $("bAuto").onclick = function () { var spent = autoStock(); toast(spent ? "Achats effectués : " + fmt(spent) : "Ton stock est déjà suffisant"); render(); };
+}
+function autoStock() {
+  var lvv = level(S), before = S.cash; PRODS.forEach(function (p) { if (p.lv > lvv) return; var exp = expectedDemand(p.id), days = p.per ? (p.per >= 5 ? 2 : 1) : 3, need = Math.ceil(exp * days * 1.25) + 2 - stockQty(S, p.id); if (need <= 0) return; var best = null; ["A", "B", "C"].forEach(function (s) { var o = offer(S, p.id, s); if (!o || o.blocked) return; if (need < o.min && p.cost <= 20000) return; if (!best || o.cost < best.o.cost) best = { s: s, o: o }; }); if (!best) return; var q = Math.min(need, best.o.left, Math.floor(Math.max(0, S.cash - before * .3) * .9 / best.o.cost)); if (q >= best.o.min || (q > 0 && p.cost > 20000)) buy(S, p.id, best.s, q); });
+  return before - S.cash;
+}
+/* ---------- Prix ---------- */
+function vPrix(m) {
+  var lvv = level(S), sh = S.shops[0], h = "<div class='card'><div class='row'><div class='sp mut'>Les clients comparent ton prix au prix du marché. Un peu au‑dessus (+8 à +15 %) rapporte plus ; trop haut, ils partent.</div></div><button class='btn sm' id='bRec' style='margin-top:8px'>✨ Prix conseillés partout</button></div><div class='card'>";
+  PRODS.forEach(function (p) { if (p.lv > lvv) return; var mk = marketPrice(S, p.id), pr = S.prices[p.id], pb = probBuy(pr, mk, tolerance(S, sh, S.stock[p.id][0])), stp = Math.max(5, Math.round(mk * .03 / 5) * 5), cost = S.stock[p.id][0] ? S.stock[p.id][0].c : costToday(S, p.id, "A"), mg = pr - cost;
+    h += "<div class='prod'><div class='e'>" + p.e + "</div><div class='n'><b>" + p.n + "</b><span>Marché : " + fmt(mk) + " · Coût : " + fmt(cost) + "<br>Marge : <b class='" + (mg > 0 ? "gn" : "rd") + "'>" + fmt(mg) + "</b> · Stock " + stockQty(S, p.id) + "</span><div class='bar'><i style='width:" + Math.round(pb * 100) + "%;background:" + (pb > .8 ? "#7be39a" : pb > .5 ? "#e0b43c" : "#ff8a80") + "'></i></div></div><div class='qb'><button class='pm' data-p='" + p.id + "' data-d='-" + stp + "'>−</button><b style='min-width:62px;text-align:center;align-self:center;font-size:13px'>" + fmt(pr) + "</b><button class='pm' data-p='" + p.id + "' data-d='" + stp + "'>+</button></div></div>"; });
+  m.innerHTML = h + "</div>"; m.querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { var pid = b.dataset.p; setPrice(S, pid, S.prices[pid] + (+b.dataset.d)); render(); }; });
+  $("bRec").onclick = function () { PRODS.forEach(function (p) { setPrice(S, p.id, marketPrice(S, p.id) * 1.1); }); toast("Prix mis à jour"); render(); };
+}
+/* ---------- Équipe & boutiques ---------- */
+function vTeam(m) {
+  var h = ""; S.shops.forEach(function (sh, si) {
+    var q = qOf(sh.q), nt = TIERS[sh.tier + 1];
+    h += "<div class='card'><div class='row'><b class='sp'>" + TIERS[sh.tier].sym + " " + esc(sh.name) + "</b><button class='btn sm sec' data-ren='" + si + "'>✏️</button></div><div class='mut'>" + q.n + " · " + TIERS[sh.tier].n + " · loyer " + fmt(q.rent * TIERS[sh.tier].rent) + "/j · capacité " + shopCap(sh) + " clients</div>";
+    if (nt) h += "<button class='btn sm' style='margin-top:8px;width:100%' data-tier='" + si + "'>⬆️ Passer en " + nt.n + " — " + fmt(nt.up) + "</button>";
+    h += "<div class='lab'>PERSONNEL</div>"; sh.staff.forEach(function (e, ei) { h += "<div class='row' style='padding:4px 0'><div class='sp'><b>" + esc(e.n) + "</b> · niveau " + e.skill + (e.train >= 0 ? " <span class='tag w'>formation " + e.train + "j</span>" : "") + "<div class='mut'>salaire " + fmt(1500 + 700 * e.skill) + "/j</div></div><button class='btn sm sec' data-tr='" + si + "," + ei + "'>🎓 " + fmt(trainCost(e)) + "</button><button class='btn sm red' data-fi='" + si + "," + ei + "'>✕</button></div>"; });
+    h += "<button class='btn sm sec' data-hi='" + si + "' style='margin-top:6px'>➕ Embaucher (" + sh.staff.length + "/" + (2 + sh.tier * 2) + ")</button>";
+    h += "<div class='lab'>AMÉLIORATIONS</div><div class='ups'>"; UPS.forEach(function (u) { var own = sh.up[u.id], c = upCost(sh, u.id); h += "<div class='upc" + (own ? " own" : "") + "'><b>" + u.e + " " + u.n + "</b>" + u.d + (own ? "<br><b class='gn'>✓ installé</b>" : "<button data-up='" + si + "," + u.id + "'" + (level(S) < u.lv ? " disabled" : "") + ">" + (level(S) < u.lv ? "Niv. " + u.lv : fmt(c)) + "</button>") + "</div>"; }); h += "</div>";
+    h += "<div class='lab'>PERSONNALISER</div><div class='chips' style='margin-bottom:6px' data-colw='" + si + "'>"; PAL.forEach(function (c) { h += "<button class='sw" + (sh.col === c ? " on" : "") + "' style='background:" + c + "' data-col='" + si + "," + c + "'></button>"; }); h += "</div><div class='chips'>"; AWN.forEach(function (c) { h += "<button class='sw" + (sh.awn === c ? " on" : "") + "' style='background:" + c + "' data-awn='" + si + "," + c + "'></button>"; }); h += "</div></div>";
+  });
+  h += "<div class='card'><h3>🗺️ Ouvrir une nouvelle boutique</h3>"; QUART.forEach(function (q) { if (S.shops.some(function (s) { return s.q === q.id; })) return; var lock = level(S) < q.lv; h += "<div class='prod'><div class='n'><b>" + q.n + "</b><span>trafic ×" + q.tr + (q.wealth > .05 ? " · clientèle aisée" : "") + " · loyer " + fmt(q.rent) + "/j" + (lock ? " · niveau " + q.lv : "") + "</span></div><button class='btn sm' data-open='" + q.id + "'" + (lock ? " disabled" : "") + ">" + fmt(q.cost) + "</button></div>"; }); h += "</div>";
+  m.innerHTML = h;
+  function act(sel, f) { m.querySelectorAll(sel).forEach(function (b) { b.onclick = function () { var e = f(b); if (e) toast(e); else { tink(700); render(); } }; }); }
+  act("[data-tier]", function (b) { return upgradeTier(S, +b.dataset.tier); }); act("[data-hi]", function (b) { return hire(S, +b.dataset.hi); });
+  act("[data-fi]", function (b) { var a = b.dataset.fi.split(","); fire(S, +a[0], +a[1]); return null; }); act("[data-tr]", function (b) { var a = b.dataset.tr.split(","); return train(S, +a[0], +a[1]); });
+  act("[data-up]", function (b) { var a = b.dataset.up.split(","); return buyUp(S, +a[0], a[1]); }); act("[data-open]", function (b) { var e = openShop(S, b.dataset.open); return e; });
+  act("[data-col]", function (b) { var a = b.dataset.col.split(","); S.shops[+a[0]].col = a[1]; return null; }); act("[data-awn]", function (b) { var a = b.dataset.awn.split(","); S.shops[+a[0]].awn = a[1]; return null; });
+  m.querySelectorAll("[data-ren]").forEach(function (b) { b.onclick = async function () { var n = prompt("Nom de la boutique :", S.shops[+b.dataset.ren].name); if (n && n.trim()) { S.shops[+b.dataset.ren].name = n.trim().slice(0, 22); render(); } }; });
+}
+/* ---------- Affaires ---------- */
+function vBiz(m) {
+  var nw = netWorth(S), stockV = 0; PRODS.forEach(function (p) { S.stock[p.id].forEach(function (l) { stockV += l.n * l.c; }); }); var lim = 400000 * level(S);
+  var h = "<div class='card'><h3>🎯 Objectif : Grand Entrepreneur</h3>" + goal("Fortune", nw, 15000000, true) + goal("Boutiques", S.shops.length, 4) + goal("Réputation", Math.round(S.rep), 70) + "<div class='mut' style='margin-top:6px'>Fortune = caisse + stock + boutiques − dettes. Niveau actuel : " + level(S) + "/10</div></div>";
+  h += "<div class='card'><h3>💰 Finances</h3><table style='width:100%;font-size:14px'><tr><td>Caisse</td><td style='text-align:right'><b>" + fmt(S.cash) + "</b></td></tr><tr><td>Valeur du stock</td><td style='text-align:right'>" + fmt(stockV) + "</td></tr><tr><td>Dette (microcrédit)</td><td style='text-align:right' class='" + (S.loan ? "rd" : "") + "'>" + fmt(S.loan) + "</td></tr><tr><td><b>Fortune</b></td><td style='text-align:right'><b>" + fmt(nw) + "</b></td></tr></table><div class='mut'>Microcrédit : intérêt 0,4 % par jour, plafond " + fmt(lim) + ".</div><div class='row' style='margin-top:8px'><button class='btn sm' id='bLoan'>Emprunter 100 000</button><button class='btn sm sec' id='bRep'>Rembourser</button></div></div>";
+  h += "<div class='card'><h3>📣 Publicité (5 jours)</h3>" + (S.ad.days > 0 ? "<div class='news'>Campagne en cours : +" + Math.round(S.ad.boost * 100) + " % de clients pendant encore " + S.ad.days + " jours.</div>" : "") + "<div class='row'><button class='btn sm sec' data-ad='0'>Affiches<br>" + fmt(15000) + "</button><button class='btn sm sec' data-ad='1'>Radio<br>" + fmt(40000) + "</button><button class='btn sm sec' data-ad='2'>Télé<br>" + fmt(90000) + "</button></div></div>";
+  h += "<div class='card'><h3>🏅 Succès</h3>"; ACH.forEach(function (a) { h += "<div style='padding:3px 0;opacity:" + (S.ach[a[0]] ? 1 : .4) + "'>" + (S.ach[a[0]] ? "✅ " : "🔒 ") + a[1] + "</div>"; }); h += "</div>";
+  h += "<div class='card'><h3>⚙️ Réglages</h3><div class='row' style='flex-wrap:wrap'><button class='btn sm sec' id='bSnd'>" + (CFGU.snd ? "🔊 Son activé" : "🔇 Son coupé") + "</button><button class='btn sm sec' id='bExp'>📤 Exporter</button><button class='btn sm sec' id='bImp'>📥 Importer</button><button class='btn sm red' id='bNew'>🗑️ Nouvelle partie</button></div></div>";
+  m.innerHTML = h;
+  $("bLoan").onclick = function () { var e = borrow(S, 100000); if (e) toast(e); else { tink(700); render(); } }; $("bRep").onclick = function () { var e = repay(S, 100000); if (e) toast(e); else render(); };
+  m.querySelectorAll("[data-ad]").forEach(function (b) { b.onclick = function () { var e = adBuy(S, +b.dataset.ad); if (e) toast(e); else { toast("Campagne lancée !"); render(); } }; });
+  $("bSnd").onclick = function () { CFGU.snd = CFGU.snd ? 0 : 1; render(); };
+  $("bExp").onclick = function () { var code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); modal("<h2>Code de sauvegarde</h2><p>Copie ce texte pour sauvegarder ta partie :</p><textarea class='inp' id='expT' rows='6' readonly>" + code + "</textarea><button class='btn' data-r='ok' style='margin-top:10px'>Fermer</button>"); setTimeout(function () { var t = $("expT"); if (t) { t.focus(); t.select(); } }, 100); };
+  $("bImp").onclick = async function () { var c = prompt("Colle ton code de sauvegarde :"); if (!c) return; try { var o = JSON.parse(decodeURIComponent(escape(atob(c.trim())))); if (!o.shops || !o.stock) throw 0; S = o; save(); resumeGame(); toast("Partie importée"); } catch (e) { toast("Code invalide"); } };
+  $("bNew").onclick = async function () { var r = await modal("<h2>Nouvelle partie ?</h2><p>Ta partie actuelle sera effacée.</p><button class='btn red' data-r='y'>Oui, tout effacer</button><button class='btn sec' data-r='n' style='margin-top:8px'>Annuler</button>"); if (r === "y") { localStorage.removeItem(KEY); S = null; showIntro(); } };
+}
+function goal(n, v, t, money) { var p = Math.min(100, v / t * 100); return "<div style='margin:6px 0'><div class='row'><span class='sp'>" + n + "</span><b>" + (money ? fmt(v) + " / " + fmt(t) : v + " / " + t) + "</b></div><div class='bar'><i style='width:" + p + "%;background:" + (p >= 100 ? "#7be39a" : "#e0b43c") + "'></i></div></div>"; }
+$("bSet").onclick = function () { TAB = "biz"; if (!LIVE && S) render(); };
+/* mémorise les ventes pour estimer la demande */
+var _end = endDay; endDay = function (s, d) { s.lastSold = s.lastSold || {}; var R = _end(s, d); PRODS.forEach(function (p) { var q = d.sold[p.id] || 0; s.lastSold[p.id] = s.lastSold[p.id] === undefined ? q : s.lastSold[p.id] * .6 + q * .4; }); return R; };
+(function init() { if (load()) { showIntro(); } else showIntro(); })();
+
+</script></body></html>
