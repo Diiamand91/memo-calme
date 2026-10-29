@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#2a170d"><title>Teranga Grill</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;background:#1d120b;color:#fff4e0;font-family:-apple-system,system-ui,Arial,sans-serif;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+button,input{font:inherit}a{color:#ffb400;text-decoration:none;font-weight:800}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:linear-gradient(#3b2112,#24140b)}
+#top{flex:none;display:flex;align-items:center;gap:8px;padding:max(6px,env(safe-area-inset-top)) 10px 6px;background:#2a170d;border-bottom:2px solid #5a3820}
+.ib{appearance:none;border:0;background:#4a2f1c;color:#fff;border-radius:10px;width:34px;height:34px;font-size:15px;display:flex;align-items:center;justify-content:center}
+#cash{font-weight:900;font-size:18px;color:#7be39a;white-space:nowrap}
+#dayb{flex:1;min-width:0}#dayt{font-size:11px;opacity:.85;display:flex;justify-content:space-between}
+.bar{height:7px;background:#14090400;border-radius:5px;overflow:hidden;margin-top:3px;background:#120a05}.bar i{display:block;height:100%;background:#ffb400;transition:width .15s}
+#rt{font-size:12px;text-align:right;line-height:1.2;white-space:nowrap}
+#custs{flex:none;display:flex;gap:6px;padding:8px 8px 4px;min-height:152px;align-items:stretch;overflow:hidden}
+.cc{flex:1 1 0;min-width:0;background:linear-gradient(#5b3a22,#46291a);border:2px solid #7a5232;border-radius:14px;padding:5px 3px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cc.empty{opacity:.35;border-style:dashed;justify-content:center;font-size:12px}
+.cc.ok{border-color:#7be39a;box-shadow:0 0 14px #7be39a;animation:pl .7s infinite alternate}
+@keyframes pl{to{box-shadow:0 0 4px #7be39a}}
+.cc .f{font-size:28px;line-height:1}.cc .m{position:absolute;top:2px;right:3px;font-size:14px}
+.cc .rn{font-size:11px;font-weight:800;line-height:1.1}.cc .ri{font-size:15px;line-height:1.15;word-break:break-all}
+.cc .si{font-size:17px}.cc .pr{font-size:11px;color:#ffd36b;font-weight:800}
+.cc .bar{width:90%}
+#hint{flex:none;min-height:24px;text-align:center;font-size:13px;color:#ffd36b;padding:0 10px;display:flex;align-items:center;justify-content:center}
+#cook{flex:none;padding:2px 8px;display:flex;flex-direction:column;gap:5px}
+.dev{display:flex;align-items:center;gap:6px;background:#2f1b0e;border-radius:12px;padding:5px 6px}
+.dev .tt{font-size:11px;width:44px;text-align:center;line-height:1.1;opacity:.9}
+.dev .chips{display:flex;flex-direction:column;gap:3px}
+.rawc{appearance:none;border:2px solid #5a3820;background:#3a2416;border-radius:8px;font-size:15px;padding:1px 5px;color:#fff}.rawc.on{border-color:#ffb400;background:#6a4318}
+.slots{flex:1;display:flex;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+.sl{width:52px;height:52px;border-radius:50%;background:radial-gradient(#3b3b40,#18181b);border:3px solid #55555c;position:relative;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.sl.cook{border-color:#ff8a2a}.sl.ready{border-color:#7be39a;background:radial-gradient(#4a6a3a,#1f2f17);animation:pl .5s infinite alternate}
+.sl.burnt{border-color:#ff4a3a;background:radial-gradient(#222,#000)}
+.sl .pg{position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#ffb400 var(--p),transparent 0);-webkit-mask:radial-gradient(circle,transparent 55%,#000 57%);mask:radial-gradient(circle,transparent 55%,#000 57%)}
+.sl .pl{font-size:10px;position:absolute;bottom:-2px;background:#000a;border-radius:6px;padding:0 3px}
+#tray{flex:1;min-height:0;margin:6px 8px 0;background:radial-gradient(#6b4a2c,#3e2815);border:3px solid #7a5232;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;padding:4px}
+#stack{display:flex;flex-direction:column-reverse;align-items:center;justify-content:flex-start;height:100%;max-height:260px;overflow:visible;padding-bottom:6px}
+#stack .it{font-size:46px;line-height:.62;height:27px;display:flex;align-items:center;filter:drop-shadow(0 2px 1px #0008)}
+#stack .base{width:150px;height:14px;border-radius:50%;background:#e8d9b8;order:-1;margin-top:2px;box-shadow:0 3px 0 #bfae88}
+#sides{display:flex;flex-direction:column;gap:2px;font-size:44px}
+#tr-b{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:6px}
+#tr-b .ib{width:40px;height:40px;font-size:18px}
+#tray .emp{opacity:.5;font-size:13px;text-align:center}
+#ings{flex:none;padding:6px 8px max(10px,env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#2a170d;border-top:2px solid #5a3820}
+.ib2{appearance:none;border:2px solid #7a5232;background:linear-gradient(#5b3a22,#46291a);border-radius:12px;color:#fff;font-size:24px;width:calc(25% - 6px);height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ib2 small{font-size:9px;opacity:.85;margin-top:2px}.ib2:active{transform:scale(.93);background:#7a5232}.ib2.dr{border-color:#c62828}
+.scr{position:fixed;inset:0;z-index:30;display:none;overflow:auto;padding:max(14px,env(safe-area-inset-top)) 14px 24px;background:radial-gradient(circle at 50% 0%,#5a3a1e,#1d120b 70%);touch-action:pan-y}
+.scr.on{display:block}
+h1{margin:6px 0 2px;text-align:center;font-size:30px;color:#ffb400;text-shadow:0 3px 0 #7a2a10}
+.sub{text-align:center;opacity:.8;font-size:14px;margin-bottom:12px}
+.lab{font-size:12px;letter-spacing:1px;opacity:.7;margin:12px 0 6px;font-weight:700}
+.inp{width:100%;background:#2f1b0e;border:2px solid #5a3820;color:#fff4e0;border-radius:12px;padding:12px;font-size:16px}
+.btn{appearance:none;border:0;border-radius:14px;padding:14px 18px;font-weight:900;font-size:17px;background:#ffb400;color:#2a1500;width:100%;margin-top:8px}
+.btn.sec{background:#4a2f1c;color:#fff4e0}.btn.sm{width:auto;padding:8px 12px;font-size:14px;margin:0}.btn:disabled{opacity:.4}.btn:active{transform:scale(.98)}
+.card{background:#3a2416;border-radius:14px;padding:10px;margin-bottom:8px;border:2px solid #5a3820}
+.row{display:flex;align-items:center;gap:10px}.sp{flex:1}.mut{opacity:.65;font-size:12px}
+.ov{position:fixed;inset:0;background:rgba(10,5,2,.82);z-index:40;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.md{background:#3a2416;border:2px solid #ffb400;border-radius:20px;padding:16px;max-width:380px;width:100%;max-height:90vh;overflow:auto;font-size:15px;touch-action:pan-y}
+.md h2{margin:0 0 8px;color:#ffb400;text-align:center}
+.md table{width:100%;border-collapse:collapse}.md td{padding:5px 2px;border-bottom:1px solid #5a3820}.md td:last-child{text-align:right;font-weight:800}
+.gn{color:#7be39a}.rd{color:#ff8a80}
+#toast{position:fixed;left:50%;top:34%;transform:translateX(-50%);z-index:50;font-weight:900;font-size:22px;color:#fff;text-shadow:0 2px 6px #000;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;max-width:94vw;text-align:center}
+.pay{position:fixed;z-index:45;font-weight:900;font-size:20px;color:#7be39a;text-shadow:0 2px 4px #000;pointer-events:none;animation:up 1s forwards}
+@keyframes up{to{transform:translateY(-60px);opacity:0}}
+.up{display:flex;align-items:center;gap:8px}.up .e{font-size:28px;width:38px;text-align:center}
+.lv{display:flex;gap:3px;margin-top:3px}.lv i{width:14px;height:6px;border-radius:3px;background:#120a05}.lv i.on{background:#ffb400}
+.stars{font-size:26px;text-align:center;letter-spacing:4px}
+</style></head><body>
+<div id="app">
+ <div id="top"><a class="ib" href="./index.html">←</a><div id="cash">0 F</div><div id="dayb"><div id="dayt"><span id="dn">Jour 1</span><span id="gl"></span></div><div class="bar"><i id="db" style="width:0"></i></div></div><div id="rt"></div><button class="ib" id="pz">⏸</button></div>
+ <div id="custs"></div>
+ <div id="hint"></div>
+ <div id="cook"></div>
+ <div id="tray"><div id="stack"></div><div id="sides"></div><div id="tr-b"><button class="ib" data-a="undo">↩</button><button class="ib" data-a="clear">🗑</button></div></div>
+ <div id="ings"></div>
+</div>
+<div class="scr on" id="scr"></div>
+<div class="ov" id="ov"><div class="md" id="md"></div></div>
+<div id="toast"></div>
+<script>
+
+var ING={pain:{e:"🥖",n:"Pain"},bun:{e:"🍞",n:"Pain burger"},oignon:{e:"🧅",n:"Oignons"},moutarde:{e:"🟡",n:"Moutarde"},salade:{e:"🥬",n:"Salade"},tomate:{e:"🍅",n:"Tomate"},fromage:{e:"🧀",n:"Fromage"},galette:{e:"🫓",n:"Galette"},sauce:{e:"🌶️",n:"Sauce piment"},viande:{e:"🥩",n:"Viande"},poulet:{e:"🍗",n:"Poulet"}};
+var RECIPES=[
+ {id:"dibi",n:"Sandwich Dibi",e:"🥖",st:["pain","viande","oignon","moutarde"],price:1500,lv:1},
+ {id:"burger",n:"Burger Teranga",e:"🍔",st:["bun","viande","fromage","salade","tomate","bun"],price:2400,lv:2},
+ {id:"chawarma",n:"Chawarma poulet",e:"🌯",st:["galette","poulet","salade","sauce","oignon"],price:2800,lv:3}];
+var SIDES=[
+ {id:"bissap",n:"Bissap",e:"🥤",price:500,lv:1,cook:0},
+ {id:"frites",n:"Frites",e:"🍟",price:800,lv:2,cook:1},
+ {id:"gingembre",n:"Gingembre",e:"🧃",price:500,lv:3,cook:0},
+ {id:"pastel",n:"Pastels",e:"🥟",price:1100,lv:4,cook:1},
+ {id:"touba",n:"Café Touba",e:"☕",price:700,lv:5,cook:0}];
+var COOK={viande:{t:5.5,dev:"grill",tray:"stack"},poulet:{t:6.5,dev:"grill",tray:"stack"},frites:{t:4.5,dev:"fry",tray:"side"},pastel:{t:5.5,dev:"fry",tray:"side"}};
+var RAW={viande:"🥩",poulet:"🍗",frites:"🥔",pastel:"🐟"};
+var DONE={viande:"🥩",poulet:"🍗",frites:"🍟",pastel:"🥟"};
+var XPT=[0,45,150,330,560,880,1300,1900,2700,3800];
+var TIERS=[{n:"La Baraque",m:1,rent:400},{n:"La Boutique",m:1.35,rent:900},{n:"Le Resto",m:1.8,rent:1800}];
+var UPG=[
+ {id:"grill",n:"Plaques de grill",e:"🔥",d:"+1 emplacement de cuisson",max:3,cost:[8000,14500,24000],lv:1},
+ {id:"gspeed",n:"Grill rapide",e:"⚡",d:"Cuisson 12 % plus rapide",max:4,cost:[6500,13000,22500,38500],lv:1},
+ {id:"fry",n:"Friteuse",e:"🍟",d:"+1 panier de friture",max:2,cost:[9500,19000],lv:2},
+ {id:"spots",n:"Comptoir",e:"🪑",d:"+1 place pour les clients",max:2,cost:[9500,22500],lv:1},
+ {id:"decor",n:"Décoration",e:"🎨",d:"Clients plus patients, meilleurs pourboires",max:3,cost:[13000,29000,64000],lv:2},
+ {id:"helper",n:"Aide-cuisinier",e:"👨🏾‍🍳",d:"Lance la cuisson tout seul",max:2,cost:[24000,56000],lv:3},
+ {id:"cashier",n:"Caissier",e:"🧑🏾‍💼",d:"Les clients attendent plus longtemps",max:2,cost:[19000,45000],lv:2},
+ {id:"mkt",n:"Marketing",e:"📣",d:"Plus de clients",max:3,cost:[16000,35000,72000],lv:2},
+ {id:"tier",n:"Agrandir le local",e:"🏠",d:"Nouveau local : tous les prix augmentent",max:2,cost:[96000,320000],lv:4}];
+var UPID={};UPG.forEach(function(u){UPID[u.id]=u});
+function newGame(name){return{v:1,name:name||"Teranga Grill",cash:0,day:1,xp:0,lvl:1,rating:3,up:{grill:0,gspeed:0,fry:0,spots:0,decor:0,helper:0,cashier:0,mkt:0,tier:0},stats:{served:0,lost:0,best:0,earned:0},hist:[],tut:1,ach:{},pace:1}}
+function levelOf(xp){var l=1;for(var i=0;i<XPT.length;i++)if(xp>=XPT[i])l=i+1;return l}
+function tierM(P){return TIERS[P.up.tier].m}
+function grillSlots(P){return 2+P.up.grill}function frySlots(P){return 1+P.up.fry}function spots(P){return 3+P.up.spots}
+function cookTime(P,k){return COOK[k].t*(1-.12*P.up.gspeed)}
+function availRecipes(P){return RECIPES.filter(function(r){return r.lv<=P.lvl})}
+function availSides(P){return SIDES.filter(function(s){return s.lv<=P.lvl})}
+function recOf(id){for(var i=0;i<RECIPES.length;i++)if(RECIPES[i].id===id)return RECIPES[i];return null}
+function sideOf(id){for(var i=0;i<SIDES.length;i++)if(SIDES[i].id===id)return SIDES[i];return null}
+function dayLen(P){return 90}
+function dayGoal(P){return Math.round((13000+P.day*1500)*tierM(P)/500)*500}
+/* ---- journée ---- */
+function startDay(P){var D={t:0,len:dayLen(P),cust:[],spawnT:1.2,nid:1,tray:{stack:[],sides:[]},grill:[],fry:[],earned:0,served:0,lost:0,combo:0,maxCombo:0,tips:0,hint:"",done:0,helperT:0,goal:dayGoal(P),cogs:0};
+ for(var i=0;i<grillSlots(P);i++)D.grill.push({k:null,t:0,st:"empty"});for(i=0;i<frySlots(P);i++)D.fry.push({k:null,t:0,st:"empty"});return D}
+function genOrder(P){var rs=availRecipes(P),ss=availSides(P),rec=null,sides=[],r=Math.random();
+ if(r<.88||ss.length===0)rec=rs[Math.floor(Math.random()*rs.length)];
+ var nS=Math.random(),n=nS<.5?0:nS<.88?1:2;if(!rec&&n===0)n=1;n=Math.min(n,ss.length,rec?2:2);
+ var pool=ss.slice();for(var i=0;i<n;i++){var k=Math.floor(Math.random()*pool.length);sides.push(pool[k].id);pool.splice(k,1)}
+ return{rec:rec?rec.id:null,sides:sides}}
+function orderPrice(P,o){var p=o.rec?recOf(o.rec).price:0;o.sides.forEach(function(s){p+=sideOf(s).price});return Math.round(p*tierM(P)/10)*10}
+function patienceFor(P,o,day){var n=(o.rec?recOf(o.rec).st.length:0)+o.sides.length*2;var base=32+n*4.2;base*=1+.08*P.up.decor;base*=1+.22*P.up.cashier;base*=Math.max(.72,1-day*.01);return base}
+function spawnCustomer(P,D){var o=genOrder(P),pm=patienceFor(P,o,P.day);D.cust.push({id:D.nid++,order:o,pat:pm,pm:pm,price:orderPrice(P,o),face:Math.floor(Math.random()*8),age:0})}
+function spawnGap(P,D){return Math.max(4.6,9.4-P.day*.2-P.up.mkt*.7-(D.t>30&&D.t<60?1.2:0))*(.85+Math.random()*.3)}
+function tick(P,D,dt){if(D.done)return;D.t+=dt;
+ D.spawnT-=dt;if(D.spawnT<=0&&D.t<D.len-8){if(D.cust.length<spots(P))spawnCustomer(P,D);D.spawnT=spawnGap(P,D)*(P.pace||1)}
+ var i;for(i=D.cust.length-1;i>=0;i--){var c=D.cust[i];c.pat-=dt;c.age+=dt;if(c.pat<=0){D.cust.splice(i,1);D.lost++;D.combo=0;P.rating=Math.max(1,P.rating-.12);P.stats.lost++;D.lastEvent={t:"lost",c:c}}}
+ [["grill",D.grill],["fry",D.fry]].forEach(function(dv){dv[1].forEach(function(s){if(s.st==="cook"){s.t-=dt;if(s.t<=0){s.st="ready";s.t=7}}else if(s.st==="ready"){s.t-=dt;if(s.t<=0){s.st="burnt"}}})});
+ if(P.up.helper>0){D.helperT-=dt;if(D.helperT<=0){D.helperT=2.6-P.up.helper*.6;
+  var want={};D.cust.forEach(function(c){if(c.order.rec)recOf(c.order.rec).st.forEach(function(k){if(COOK[k])want[k]=(want[k]||0)+1});c.order.sides.forEach(function(k){if(COOK[k])want[k]=(want[k]||0)+1})});
+  for(var k in want){var have=0;[D.grill,D.fry].forEach(function(a){a.forEach(function(s){if(s.k===k&&(s.st==="cook"||s.st==="ready"))have++})});if(have<want[k]){var dev=COOK[k].dev==="grill"?D.grill:D.fry,sl=null;dev.forEach(function(s){if(!sl&&s.st==="empty")sl=s});if(sl){sl.k=k;sl.st="cook";sl.t=cookTime(P,k);break}}}}}
+ if(D.t>=D.len&&D.cust.length===0)D.done=1;if(D.t>=D.len+45)D.done=1}
+/* ---- actions ---- */
+function cookStart(P,D,dev,i,k){var arr=dev==="grill"?D.grill:D.fry,s=arr[i];if(!s||s.st!=="empty")return"occupied";if(COOK[k].dev!==dev)return"bad";s.k=k;s.st="cook";s.t=cookTime(P,k);return null}
+function takeCooked(P,D,dev,i){var arr=dev==="grill"?D.grill:D.fry,s=arr[i];if(!s)return"none";if(s.st==="burnt"){s.st="empty";s.k=null;return"burnt"}
+ if(s.st!=="ready")return"wait";var k=s.k,c=COOK[k];if(c.tray==="stack"){if(D.tray.stack.length>=8)return"full";D.tray.stack.push(k)}else{if(D.tray.sides.indexOf(k)>=0)return"dup";D.tray.sides.push(k)}s.st="empty";s.k=null;return null}
+function addIng(P,D,id){if(D.tray.stack.length>=8)return"full";D.tray.stack.push(id);return null}
+function addSide(P,D,id){if(D.tray.sides.indexOf(id)>=0)return"dup";D.tray.sides.push(id);return null}
+function clearTray(D){D.tray.stack=[];D.tray.sides=[]}
+function undoIng(D){D.tray.stack.pop()}
+function sameArr(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true}
+function trayMatches(D,o){var st=o.rec?recOf(o.rec).st:[];if(!sameArr(D.tray.stack,st))return false;var a=D.tray.sides.slice().sort(),b=o.sides.slice().sort();return sameArr(a,b)}
+function whyNot(D,o){var st=o.rec?recOf(o.rec).st:[],s=D.tray.stack;if(s.length===0&&D.tray.sides.length===0)return"Le plateau est vide.";
+ for(var i=0;i<s.length;i++){if(i>=st.length)return"Il y a trop d'ingrédients.";if(s[i]!==st[i])return"L'ordre n'est pas bon : "+ING[st[i]].n+" attendu à l'étape "+(i+1)+"."}
+ if(s.length<st.length)return"Il manque : "+ING[st[s.length]].n+".";
+ for(var j=0;j<o.sides.length;j++)if(D.tray.sides.indexOf(o.sides[j])<0)return"Il manque : "+sideOf(o.sides[j]).n+".";
+ return"Il y a quelque chose en trop."}
+function serve(P,D,ci){var c=D.cust[ci];if(!c)return{ok:0,msg:"?"};if(!trayMatches(D,c.order))return{ok:0,msg:whyNot(D,c.order)};
+ var f=Math.max(0,c.pat/c.pm),tip=c.price*(.12+.28*f)*(1+.1*P.up.decor),cb=D.combo>=6?.2:D.combo>=3?.1:0,bonus=c.price*cb;var pay=Math.round((c.price+tip+bonus)/10)*10;
+ D.cust.splice(ci,1);D.earned+=pay;D.tips+=Math.round(tip+bonus);D.served++;D.combo++;D.maxCombo=Math.max(D.maxCombo,D.combo);D.cogs+=Math.round(c.price*.32);
+ P.xp+=Math.ceil(pay/450)+1;var nl=levelOf(P.xp),up=nl>P.lvl;P.lvl=nl;P.stats.served++;P.rating=Math.min(5,P.rating+(f>.5?.06:.02));clearTray(D);return{ok:1,pay:pay,tip:Math.round(tip+bonus),lvlUp:up,c:c}}
+function endDay(P,D){var rent=TIERS[P.up.tier].rent,gross=D.earned,cogs=D.cogs,profit=gross-cogs-rent,stars=gross>=D.goal*1.8?3:gross>=D.goal*1.35?2:gross>=D.goal?1:0,bonus=Math.round(gross>=D.goal?gross*.05*stars:0);
+ P.cash+=profit+bonus;if(P.cash<0)P.cash=0;P.stats.earned+=gross;P.stats.best=Math.max(P.stats.best,gross);var rep={day:P.day,gross:gross,cogs:cogs,rent:rent,profit:profit,bonus:bonus,served:D.served,lost:D.lost,tips:D.tips,combo:D.maxCombo,goal:D.goal,stars:stars,rating:P.rating};if(D.lost>=3)P.pace=Math.min(1.7,(P.pace||1)+.14*(D.lost>=5?1.5:1));else if(D.lost===0&&D.served>=8)P.pace=Math.max(.85,(P.pace||1)-.06);P.hist.push({d:P.day,g:gross,p:profit});if(P.hist.length>20)P.hist.shift();P.day++;return rep}
+function upCost(P,id){var u=UPID[id],l=P.up[id];return l>=u.max?null:u.cost[l]}
+function buyUp(P,id){var u=UPID[id],l=P.up[id];if(l>=u.max)return"Niveau max";if(P.lvl<u.lv)return"Niveau "+u.lv+" requis";var c=u.cost[l];if(P.cash<c)return"Pas assez d'argent";P.cash-=c;P.up[id]++;return null}
+
+
+var $=function(i){return document.getElementById(i)};
+var KEY="memo-calme-teranga",P=null,D=null,running=false,paused=false,AIDE=true,SND=true,RAWSEL={grill:"viande",fry:"frites"},lvStart=1,lastT=0,cache={};
+var FACES=["👨🏾","👩🏾","👴🏾","👵🏾","🧑🏾","👦🏾","👧🏾","👨🏿"];
+function fmt(n){n=Math.round(n);return(n<0?"−":"")+Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ")+" F"}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({P:P,aide:AIDE,snd:SND}))}catch(e){}}
+function load(){try{var o=JSON.parse(localStorage.getItem(KEY)||"null");if(o&&o.P){P=o.P;AIDE=o.aide!==false;SND=o.snd!==false;return true}}catch(e){}return false}
+var AC=null;function tone(f,d,v){if(!SND)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.type="triangle";o.frequency.value=f;g.gain.value=v||.06;g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function toast(t,ms){var e=$("toast");e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(function(){e.style.opacity=0},ms||1200)}
+function modal(html){return new Promise(function(res){$("md").innerHTML=html;$("ov").classList.add("on");$("md").scrollTop=0;$("md").querySelectorAll("[data-r]").forEach(function(b){b.onclick=function(){$("ov").classList.remove("on");res(b.dataset.r)}})})}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+/* ---------- écrans ---------- */
+function showIntro(){var s=$("scr");s.classList.add("on");running=false;var cont=load();
+ var h="<h1>🍢 TERANGA GRILL</h1><div class='sub'>Prépare les commandes, sers vite, fais grandir ton restaurant du stand de rue jusqu'au grand resto.</div><a href='./index.html'>← Salle de jeux</a>";
+ if(cont){h+="<div class='card' style='margin-top:12px'><b>"+esc(P.name)+"</b><div class='mut'>"+TIERS[P.up.tier].n+" · Niveau "+P.lvl+" · Jour "+P.day+" · "+fmt(P.cash)+"</div></div><button class='btn' id='bC'>▶ Continuer (jour "+P.day+")</button><button class='btn sec' id='bN'>Nouvelle partie</button>"}
+ else h+="<div class='lab'>NOM DE TON RESTAURANT</div><input class='inp' id='iN' value='Chez Birame' maxlength='22'><button class='btn' id='bG'>▶ Ouvrir mon stand</button>";
+ s.innerHTML=h;
+ if(cont){$("bC").onclick=function(){shop(null)};$("bN").onclick=async function(){var r=await modal("<h2>Nouvelle partie ?</h2><p>Ta progression sera effacée.</p><button class='btn' data-r='y' style='background:#c62828;color:#fff'>Oui, tout effacer</button><button class='btn sec' data-r='n'>Annuler</button>");if(r==="y"){localStorage.removeItem(KEY);P=null;showIntro()}}}
+ else $("bG").onclick=function(){P=newGame(($("iN").value||"Mon resto").trim().slice(0,22));P.cash=0;save();tutorial().then(beginDay)}}
+async function tutorial(){await modal("<h2>Comment jouer</h2><p style='line-height:1.5'>👥 Les clients commandent. Regarde leur bulle.<br>🔥 Pose la <b>viande</b> sur le grill (touche un rond vide), attends qu'elle soit <b>prête</b> (vert) puis touche-la : elle va sur ton plateau.<br>🥖 Ajoute les ingrédients <b>dans le bon ordre</b> avec les boutons du bas.<br>🥤 Les boissons s'ajoutent d'un toucher.<br>✅ Quand le plateau est bon, la carte du client brille : <b>touche le client</b> pour le servir.<br>⏱ Plus tu es rapide, plus le pourboire est gros.<br>↩ annule le dernier ingrédient, 🗑 vide le plateau.</p><button class='btn' data-r='ok'>C'est parti !</button>")}
+function shop(rep){var s=$("scr");s.classList.add("on");running=false;var xpN=levelXpInfo();
+ var h="<div class='row'><a href='./index.html'>←</a><div class='sp' style='text-align:center'><b style='font-size:18px;color:#ffb400'>"+esc(P.name)+"</b><div class='mut'>"+TIERS[P.up.tier].n+" · ⭐ "+P.rating.toFixed(1)+"</div></div><div style='font-weight:900;color:#7be39a'>"+fmt(P.cash)+"</div></div>";
+ h+="<div class='card' style='margin-top:10px'><div class='row'><b>Niveau "+P.lvl+"</b><div class='sp'><div class='bar'><i style='width:"+xpN.pct+"%'></i></div></div><span class='mut'>"+xpN.txt+"</span></div><div class='mut' style='margin-top:4px'>Objectif du jour "+P.day+" : "+fmt(dayGoal(P))+" de ventes pour 1 ⭐</div></div>";
+ h+="<div class='lab'>AMÉLIORATIONS</div>";UPG.forEach(function(u){var l=P.up[u.id],c=upCost(P,u.id),lock=P.lvl<u.lv;
+  var nm=u.id==="tier"&&l<2?"Agrandir : "+TIERS[l+1].n:u.n;
+  h+="<div class='card'><div class='up'><div class='e'>"+u.e+"</div><div class='sp'><b>"+nm+"</b><div class='mut'>"+u.d+"</div><div class='lv'>"+Array.apply(null,Array(u.max)).map(function(_,i){return"<i class='"+(i<l?"on":"")+"'></i>"}).join("")+"</div></div>"+(c===null?"<b class='gn'>MAX</b>":"<button class='btn sm' data-up='"+u.id+"'"+(lock||P.cash<c?" disabled":"")+">"+(lock?"Niv. "+u.lv:fmt(c))+"</button>")+"</div></div>"});
+ h+="<div class='lab'>MENU DÉBLOQUÉ</div><div class='card'>"+RECIPES.map(function(r){return r.lv<=P.lvl?r.e+" "+r.n+" ("+fmt(r.price*tierM(P))+")":"🔒 "+r.n+" (niv. "+r.lv+")"}).join("<br>")+"<br>"+SIDES.map(function(r){return r.lv<=P.lvl?r.e+" "+r.n:"🔒 "+r.n+" (niv. "+r.lv+")"}).join(" · ")+"</div>";
+ h+="<button class='btn' id='bGo'>▶ Jour "+P.day+"</button><button class='btn sec' id='bRec'>📖 Recettes</button><button class='btn sec' id='bMenu'>Menu principal</button>";
+ s.innerHTML=h;s.scrollTop=s._st||0;
+ s.querySelectorAll("[data-up]").forEach(function(b){b.onclick=function(){var e=buyUp(P,b.dataset.up);if(e)toast(e);else{tone(700,.15);save();s._st=s.scrollTop;shop(null)}}});
+ $("bGo").onclick=beginDay;$("bRec").onclick=recipes;$("bMenu").onclick=function(){s._st=0;showIntro()}}
+function levelXpInfo(){var l=P.lvl;if(l>=XPT.length)return{pct:100,txt:"MAX"};var a=XPT[l-1],b=XPT[l];return{pct:Math.round((P.xp-a)/(b-a)*100),txt:P.xp+"/"+b+" XP"}}
+function recipes(){var h="<h2>📖 Recettes</h2>";RECIPES.forEach(function(r){var lock=r.lv>P.lvl;h+="<div class='card'><b>"+r.e+" "+r.n+"</b> <span class='mut'>"+fmt(r.price*tierM(P))+(lock?" · niveau "+r.lv:"")+"</span><div style='font-size:22px;margin-top:4px'>"+(lock?"🔒":r.st.map(function(k){return ING[k].e}).join(" "))+"</div><div class='mut'>"+(lock?"":"de bas en haut : "+r.st.map(function(k){return ING[k].n}).join(" → "))+"</div></div>"});
+ h+="<div class='card'><b>Accompagnements</b><div style='margin-top:4px'>"+SIDES.map(function(r){return(r.lv<=P.lvl?r.e+" "+r.n+" "+fmt(r.price*tierM(P)):"🔒 "+r.n)}).join("<br>")+"</div></div><button class='btn' data-r='ok'>Fermer</button>";return modal(h)}
+/* ---------- journée ---------- */
+function beginDay(){$("scr").classList.remove("on");lvStart=P.lvl;D=startDay(P);cache={};buildIngs();running=true;paused=false;lastT=performance.now();RAWSEL={grill:"viande",fry:"frites"};render(true)}
+function buildIngs(){var cold={},h="",i;availRecipes(P).forEach(function(r){r.st.forEach(function(k){if(!COOK[k])cold[k]=1})});
+ var order=["pain","oignon","moutarde","bun","fromage","salade","tomate","galette","sauce"];order.forEach(function(k){if(cold[k])h+="<button class='ib2' data-a='ing' data-id='"+k+"'>"+ING[k].e+"<small>"+ING[k].n+"</small></button>"});
+ availSides(P).forEach(function(s){if(!s.cook)h+="<button class='ib2 dr' data-a='side' data-id='"+s.id+"'>"+s.e+"<small>"+s.n+"</small></button>"});$("ings").innerHTML=h}
+function setH(id,h){if(cache[id]!==h){cache[id]=h;$(id).innerHTML=h}}
+function render(force){if(!D)return;
+ $("cash").textContent=fmt(P.cash+D.earned);$("dn").textContent="Jour "+P.day;$("gl").textContent=fmt(D.earned)+" / "+fmt(D.goal);$("db").style.width=Math.min(100,D.t/D.len*100)+"%";$("db").style.background=D.t>=D.len?"#ff5a3a":"#ffb400";$("rt").innerHTML="⭐ "+P.rating.toFixed(1)+"<br>Niv. "+P.lvl+(D.combo>=2?" · 🔥x"+D.combo:"");
+ // clients
+ var h="",n=spots(P);for(var i=0;i<n;i++){var c=D.cust[i];if(!c){h+="<div class='cc empty'>🪑<br>libre</div>";continue}
+  var f=c.pat/c.pm,mood=f>.6?"😊":f>.3?"😐":"😡",o=c.order,ok=trayMatches(D,o),col=f>.6?"#7be39a":f>.3?"#ffb400":"#ff5a4a";
+  h+="<div class='cc"+(ok?" ok":"")+"' data-a='cust' data-i='"+i+"'><span class='m'>"+mood+"</span><div class='f'>"+FACES[c.face]+"</div><div class='rn'>"+(o.rec?recOf(o.rec).n:"À boire")+"</div>"+(o.rec?"<div class='ri'>"+recOf(o.rec).st.map(function(k){return ING[k].e}).join("")+"</div>":"")+(o.sides.length?"<div class='si'>"+o.sides.map(function(s){return sideOf(s).e}).join("")+"</div>":"")+"<div class='pr'>"+fmt(c.price)+"</div><div class='bar'><i style='width:"+Math.round(f*20)*5+"%;background:"+col+"'></i></div></div>"}
+ setH("custs",h);
+ // cuisson
+ var ch="";[["grill","🔥 Grill",D.grill,["viande","poulet"]],["fry","🍟 Friteuse",D.fry,["frites","pastel"]]].forEach(function(dv){var dev=dv[0];if(dev==="fry"&&P.lvl<2)return;var opts=dv[3].filter(function(k){return k==="viande"||k==="frites"||(k==="poulet"&&P.lvl>=3)||(k==="pastel"&&P.lvl>=4)});
+  ch+="<div class='dev'><div class='tt'>"+dv[1]+"</div>"+(opts.length>1?"<div class='chips'>"+opts.map(function(k){return"<button class='rawc"+(RAWSEL[dev]===k?" on":"")+"' data-a='raw' data-d='"+dev+"' data-k='"+k+"'>"+RAW[k]+"</button>"}).join("")+"</div>":"")+"<div class='slots'>";
+  dv[2].forEach(function(s,i){var inner="＋",cls="",pl="",pg="";if(s.st==="cook"){var tot=cookTime(P,s.k),p=Math.round((1-s.t/tot)*20)*5;cls="cook";inner=RAW[s.k];pg="<div class='pg' style='--p:"+p+"%'></div>"}else if(s.st==="ready"){cls="ready";inner=DONE[s.k];pl="<span class='pl'>Prêt</span>"}else if(s.st==="burnt"){cls="burnt";inner="💨";pl="<span class='pl'>Brûlé</span>"}
+   ch+="<div class='sl "+cls+"' data-a='slot' data-d='"+dev+"' data-i='"+i+"'>"+pg+inner+pl+"</div>"});ch+="</div></div>"});
+ setH("cook",ch);
+ // plateau
+ var sh="<div class='base'></div>";D.tray.stack.forEach(function(k){sh+="<div class='it'>"+ING[k].e+"</div>"});setH("stack",sh);
+ var sd="";D.tray.sides.forEach(function(k){sd+="<div>"+sideOf(k).e+"</div>"});if(!D.tray.stack.length&&!D.tray.sides.length)sd="";setH("sides",sd);
+ // aide
+ $("hint").textContent=AIDE?hintText():""}
+function hintText(){if(!D.cust.length)return D.t>=D.len?"Dernier service…":"Les clients arrivent…";
+ var ci=-1;D.cust.forEach(function(c,i){if(trayMatches(D,c.order))ci=i});if(ci>=0)return"✅ Touche le client qui brille pour le servir !";
+ var c=D.cust[0];D.cust.forEach(function(x){if(x.pat<c.pat)c=x});var o=c.order,st=o.rec?recOf(o.rec).st:[],ts=D.tray.stack;
+ for(var i=0;i<ts.length;i++)if(ts[i]!==st[i])return"Le plateau ne va pas : touche 🗑 pour le vider.";
+ if(ts.length<st.length){var nx=st[ts.length];if(COOK[nx]){var rdy=false,cook=false;[D.grill,D.fry].forEach(function(a){a.forEach(function(s){if(s.k===nx){if(s.st==="ready")rdy=true;else if(s.st==="cook")cook=true}})});return rdy?"Prends "+ING[nx].e+" prêt sur le grill.":cook?"Patiente : "+ING[nx].e+" cuit…":"Pose "+RAW[nx]+" sur le grill pour "+recOf(o.rec).n+"."}return"Ajoute : "+ING[nx].e+" "+ING[nx].n}
+ for(var j=0;j<o.sides.length;j++){var sd=o.sides[j];if(D.tray.sides.indexOf(sd)<0){var sdf=sideOf(sd);if(COOK[sd]){var r2=false,k2=false;D.fry.forEach(function(s){if(s.k===sd){if(s.st==="ready")r2=true;else if(s.st==="cook")k2=true}});return r2?"Prends "+sdf.e+" prêt.":k2?"Patiente : "+sdf.e+" cuit…":"Lance "+RAW[sd]+" à la friteuse."}return"Ajoute la boisson "+sdf.e}}
+ return"Touche le client pour servir."}
+/* ---------- actions ---------- */
+function act(t){if(!running||paused)return;var a=t.dataset.a,e=null;
+ if(a==="cust"){var i=+t.dataset.i,r=serve(P,D,i);if(r.ok){tone(660,.12);tone(990,.2,.05);var rc=t.getBoundingClientRect(),p=document.createElement("div");p.className="pay";p.textContent="+"+fmt(r.pay);p.style.left=(rc.left+rc.width/2-30)+"px";p.style.top=rc.top+"px";document.body.appendChild(p);setTimeout(function(){p.remove()},1000);if(D.combo>=3)toast("🔥 Combo x"+D.combo+" !",900);if(r.lvlUp)toast("⭐ Niveau "+P.lvl+" !",1600)}else{tone(180,.2,.08);toast(r.msg,1500)}}
+ else if(a==="ing"){e=addIng(P,D,t.dataset.id);tone(520,.06,.04)}
+ else if(a==="side"){e=addSide(P,D,t.dataset.id);tone(560,.06,.04);if(e==="dup")e="Déjà sur le plateau"}
+ else if(a==="undo"){undoIng(D)}
+ else if(a==="clear"){clearTray(D);tone(240,.1,.05)}
+ else if(a==="raw"){RAWSEL[t.dataset.d]=t.dataset.k}
+ else if(a==="slot"){var dev=t.dataset.d,i2=+t.dataset.i,arr=dev==="grill"?D.grill:D.fry,s=arr[i2];if(s.st==="empty"){e=cookStart(P,D,dev,i2,RAWSEL[dev]);tone(300,.08,.04)}else if(s.st==="cook"){toast("Ça cuit…",600)}else{var r3=takeCooked(P,D,dev,i2);if(r3==="burnt")toast("🔥 Brûlé ! Jeté.",1000);else if(r3==="full")toast("Plateau plein");else if(r3==="dup")toast("Déjà sur le plateau");else tone(480,.06,.04)}}
+ if(e&&typeof e==="string"&&e!=="occupied"&&e!=="full")toast(e);if(e==="full")toast("Plateau plein");cache.custs=cache.cook=cache.stack=null;render()}
+document.addEventListener("pointerdown",function(e){var t=e.target.closest&&e.target.closest("[data-a]");if(t&&t.dataset.a){e.preventDefault();act(t)}});
+function loop(ts){requestAnimationFrame(loop);if(!running||paused||!D)return;var dt=Math.min(.1,(ts-lastT)/1000||.016);lastT=ts;tick(P,D,dt);if(Math.floor(ts/100)!==loop.l){loop.l=Math.floor(ts/100);render()}if(D.done){running=false;finishDay()}}
+requestAnimationFrame(loop);
+async function finishDay(){var R=endDay(P,D),ups=[];RECIPES.concat(SIDES).forEach(function(x){if(x.lv>lvStart&&x.lv<=P.lvl)ups.push(x.e+" "+x.n)});save();
+ var h="<h2>🌙 Fin du jour "+R.day+"</h2><div class='stars'>"+["☆☆☆","⭐☆☆","⭐⭐☆","⭐⭐⭐"][R.stars]+"</div><div class='mut' style='text-align:center'>Objectif "+fmt(R.goal)+"</div><table><tr><td>Ventes</td><td>"+fmt(R.gross)+"</td></tr><tr><td>dont pourboires</td><td>"+fmt(R.tips)+"</td></tr><tr><td>Matières premières</td><td class='rd'>−"+fmt(R.cogs)+"</td></tr><tr><td>Loyer</td><td class='rd'>−"+fmt(R.rent)+"</td></tr>"+(R.bonus?"<tr><td>Bonus étoiles</td><td class='gn'>+"+fmt(R.bonus)+"</td></tr>":"")+"<tr><td><b>Bénéfice</b></td><td class='"+(R.profit+R.bonus>=0?"gn":"rd")+"'>"+fmt(R.profit+R.bonus)+"</td></tr></table><div style='margin-top:8px;font-size:13px'>👥 "+R.served+" servis · "+R.lost+" partis · meilleur combo x"+R.combo+"</div>";
+ if(R.lost>=3)h+="<div class='mut' style='margin-top:6px'>💡 Des clients sont partis : le jour suivant sera un peu plus calme. Améliore le grill, le comptoir ou embauche.</div>";
+ if(ups.length)h+="<div class='card' style='margin-top:8px;border-color:#ffb400'><b>⭐ Niveau "+P.lvl+" !</b><br>Nouveau : "+ups.join(", ")+"</div>";
+ h+="<button class='btn' data-r='ok'>Boutique ▶</button>";await modal(h);shop(R)}
+/* ---------- pause ---------- */
+$("pz").onclick=async function(){if(!running)return;paused=true;var r=await modal("<h2>⏸ Pause</h2><button class='btn' data-r='go'>▶ Reprendre</button><button class='btn sec' data-r='rec'>📖 Recettes</button><button class='btn sec' data-r='aide'>"+(AIDE?"💡 Aide : activée":"💡 Aide : coupée")+"</button><button class='btn sec' data-r='snd'>"+(SND?"🔊 Son : activé":"🔇 Son : coupé")+"</button><button class='btn sec' data-r='quit'>Quitter la journée</button>");
+ if(r==="rec")await recipes();if(r==="aide"){AIDE=!AIDE;save()}if(r==="snd"){SND=!SND;save()}if(r==="quit"){running=false;D=null;location.reload();return}paused=false;lastT=performance.now()};
+document.addEventListener("visibilitychange",function(){if(document.hidden&&running&&!paused)$("pz").click()});
+showIntro();
+</script></body></html>
