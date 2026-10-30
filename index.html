@@ -191,12 +191,60 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .rc4.two { grid-template-columns: 1fr 1fr; }
 </style>
 
+
+<style>
+/* ===== Accueil professionnel ===== */
+.hb{display:flex;flex-direction:column;gap:12px;margin-bottom:2px}
+.hb-top{display:flex;align-items:center;gap:14px}
+.hb-logo{border-radius:14px;box-shadow:0 6px 16px rgba(11,122,85,.35);flex:none}
+.hb h1{font-size:1.9rem;letter-spacing:-.01em}
+.hb-tag{margin:2px 0 0;color:var(--muted);font-size:.92rem;line-height:1.3}
+.hb-chips{display:flex;gap:6px;flex-wrap:wrap}
+.hb-chips span{font-size:.76rem;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.hb-last{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.hb-last[hidden]{display:none!important}
+.hb-lt{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.hb-last b{font-family:var(--font-display);font-size:1.05rem}
+.hb-last i{font-style:normal;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.hb-feat{position:relative;display:block;overflow:hidden;border-radius:20px;padding:20px 18px 18px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#b3261e 0%,#e8702a 55%,#f2b233 100%);box-shadow:0 10px 24px rgba(179,38,30,.32)}
+.hb-feat:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 10%,rgba(255,255,255,.28),transparent 55%),repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 10px,transparent 10px 20px)}
+.hb-feat>*{position:relative}
+.hb-badge{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.1em;padding:4px 9px;border-radius:999px;background:#fff;color:#b3261e}
+.hb-fart{position:absolute!important;right:12px;top:10px;font-size:2.1rem;display:flex;gap:2px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.3));transform:rotate(6deg)}
+.hb-feat h2{font-family:var(--font-display);font-size:1.75rem;margin:12px 0 4px;line-height:1.05}
+.hb-feat p{margin:0 0 14px;font-size:.92rem;line-height:1.4;opacity:.95;max-width:30ch}
+.hb-play{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#8a1c14;font-weight:800;padding:10px 20px;border-radius:12px;font-size:.95rem}
+.hb-h{font-family:var(--font-display);font-size:1.25rem;margin:8px 0 2px}
+.hb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hb-tile{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(20,35,29,.07);transition:transform .15s,box-shadow .15s}
+.hb-tile:active{transform:scale(.97)}
+.hb-art{height:84px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hb-art:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.35),transparent 60%)}
+.hb-art span{font-size:2.6rem;position:relative;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+.hb-tile b{font-family:var(--font-display);font-size:1rem;padding:10px 12px 0;line-height:1.15}
+.hb-tile small{padding:2px 12px 12px;color:var(--muted);font-size:.78rem}
+.t-foot .hb-art{background:linear-gradient(135deg,#1f9d55,#0b6b3a)}
+.t-3d .hb-art{background:linear-gradient(135deg,#2b6fc4,#1b3f7a)}
+.t-race .hb-art{background:linear-gradient(135deg,#444a58,#14161c)}
+.t-card .hb-art{background:linear-gradient(135deg,#17734a,#0a3d27)}
+.t-shop .hb-art{background:linear-gradient(135deg,#e3a600,#a86a00)}
+.t-grill .hb-art{background:linear-gradient(135deg,#e8702a,#9a2a0c)}
+.t-puz .hb-art{background:linear-gradient(135deg,#d6336c,#7a1a8a)}
+.t-mind .hb-art{background:linear-gradient(135deg,#3dc594,#0b7a55)}
+.hb-foot{margin-top:6px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:center}
+.hb-foot b{font-family:var(--font-display);display:block;font-size:1.05rem;margin-bottom:4px}
+.hb-foot p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.4}
+@media (prefers-reduced-motion:reduce){.hb-tile{transition:none}}
+</style>
 </head>
 <body>
 <main>
-  <header>
-    <h1>Mémo Calme</h1>
-    <p class="sub">Onze jeux et un défi du jour pour garder l'esprit vif. Pas de chrono, pas de pub.</p>
+  <header class="hb">
+    <div class="hb-top">
+      <img class="hb-logo" src="icon-192.png" alt="" width="52" height="52">
+      <div class="hb-brand"><h1>Mémo Calme</h1><p class="hb-tag">Jeux gratuits, sans pub, qui marchent hors-ligne</p></div>
+    </div>
+    <div class="hb-chips"><span>🎮 8 jeux</span><span>🧠 11 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
     <p id="streak" class="streak"></p>
     <p id="flash" class="flash" role="status" hidden></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
@@ -206,15 +254,31 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <p id="pnote" class="pnote"></p>
   </header>
 
-  <section class="salle" aria-label="Salle de jeux">
-    <h2 class="sh">🎮 Salle de jeux</h2>
-    <div class="cat"><span>⚽ Sport</span><a class="gcard" href="./navetane.html"><b>NAVETANE</b><small>Football 2D</small></a><a class="gcard" href="./navetane3d.html"><b>NAVETANE 3D</b><small>Football en 3D</small></a></div>
-    <div class="cat"><span>🧩 Puzzle</span><a class="gcard" href="./puzzle.html"><b>Fruits de Dakar</b><small>Aligne les fruits · 45 niveaux</small></a></div>
-    <div class="cat"><span>🏎️ Arcade</span><a class="gcard" href="./turbo.html"><b>Turbo Dakar</b><small>Course · nitro</small></a></div>
-    <div class="cat"><span>🃏 Cartes</span><a class="gcard" href="./belote.html"><b>Belote &amp; Coinche</b><small>Contre l'ordinateur</small></a></div>
-    <div class="cat"><span>💼 Gestion</span><a class="gcard" href="./commerce.html"><b>Petit Commerce</b><small>Gère ta boutique</small></a><a class="gcard" href="./restoexpress.html"><b>Resto Express</b><small>Cours, sers, débloque ton resto</small></a><a class="gcard" href="./teranga.html"><b>Teranga Grill</b><small>Cuisine et tapote</small></a></div>
-    <div class="cat"><span>🧠 Esprit</span><small class="gnote">Les jeux d'entraînement mental sont juste en dessous ⬇️</small></div>
+  <a id="hb-last" class="hb-last" href="#" hidden><span class="hb-lt">Reprendre</span><b id="hb-lname"></b><i>▶</i></a>
+
+  <a class="hb-feat" href="./restoexpress.html" data-game="Resto Express">
+    <span class="hb-badge">NOUVEAU</span>
+    <div class="hb-fart" aria-hidden="true"><span>🍽️</span><span>🏨</span><span>🍢</span></div>
+    <h2>Resto Express</h2>
+    <p>Construis ton restaurant, ton bar et ton hôtel. Sers les clients, recrute ton équipe, deviens un grand patron.</p>
+    <span class="hb-play">Jouer ▶</span>
+  </a>
+
+  <section class="hb-sec" aria-label="Jeux">
+    <h2 class="hb-h">Tous les jeux</h2>
+    <div class="hb-grid">
+      <a class="hb-tile t-foot" href="./navetane.html" data-game="NAVETANE"><div class="hb-art"><span>⚽</span></div><b>NAVETANE</b><small>Football · 2D</small></a>
+      <a class="hb-tile t-3d" href="./navetane3d.html" data-game="NAVETANE 3D"><div class="hb-art"><span>🏟️</span></div><b>NAVETANE 3D</b><small>Football · 3D</small></a>
+      <a class="hb-tile t-race" href="./turbo.html" data-game="Turbo Dakar"><div class="hb-art"><span>🏎️</span></div><b>Turbo Dakar</b><small>Course · poursuite</small></a>
+      <a class="hb-tile t-card" href="./belote.html" data-game="Belote &amp; Coinche"><div class="hb-art"><span>🃏</span></div><b>Belote &amp; Coinche</b><small>Cartes · vs ordinateur</small></a>
+      <a class="hb-tile t-shop" href="./commerce.html" data-game="Petit Commerce"><div class="hb-art"><span>🏪</span></div><b>Petit Commerce</b><small>Gestion · boutique</small></a>
+      <a class="hb-tile t-grill" href="./teranga.html" data-game="Teranga Grill"><div class="hb-art"><span>🔥</span></div><b>Teranga Grill</b><small>Gestion · cuisine</small></a>
+      <a class="hb-tile t-puz" href="./puzzle.html" data-game="Fruits de Dakar"><div class="hb-art"><span>🍉</span></div><b>Fruits de Dakar</b><small>Puzzle · 45 niveaux</small></a>
+      <a class="hb-tile t-mind" href="#hb-mind" data-game=""><div class="hb-art"><span>🧠</span></div><b>Entraînement</b><small>Mémoire · calcul · logique</small></a>
+    </div>
   </section>
+
+  <h2 class="hb-h" id="hb-mind">🧠 Entraînement mental</h2>
 
   <div class="tabs" role="tablist" aria-label="Choix du jeu">
         <button id="tab-memo" class="tab on" type="button" role="tab" aria-selected="true">Mémoire</button>
@@ -505,6 +569,16 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <p id="sh-msg" class="foot" aria-live="polite"></p>
   </section>
   <p class="foot">Gratuit, sans abonnement. Ta progression reste sur cet appareil.</p>
+
+<footer class="hb-foot"><b>Mémo Calme</b><p>Gratuit pour toujours, sans publicité, sans abonnement.<br>📲 Ajoute-le à ton écran d'accueil pour jouer comme une vraie application, même sans internet.</p></footer>
+<script>
+(function(){try{
+ document.querySelectorAll("[data-game]").forEach(function(a){a.addEventListener("click",function(){var n=a.getAttribute("data-game");if(n)localStorage.setItem("memo-calme-last",JSON.stringify({n:n.replace("&amp;","&"),h:a.getAttribute("href")}))})});
+ var l=JSON.parse(localStorage.getItem("memo-calme-last")||"null"),el=document.getElementById("hb-last");
+ if(l&&l.h&&el){el.href=l.h;document.getElementById("hb-lname").textContent=l.n;el.hidden=false}
+ document.querySelectorAll('a[href="#hb-mind"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.getElementById("hb-mind");if(t)t.scrollIntoView({behavior:"smooth"})})});
+}catch(e){}})();
+</script>
 </main>
 
 <script>
