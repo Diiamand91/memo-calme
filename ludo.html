@@ -34,6 +34,7 @@ h1{margin:6px 0 2px;text-align:center;font-size:34px;letter-spacing:1px;color:#f
   <div class="logo"><i style="background:#d8322c"></i><i style="background:#22a04a"></i><i style="background:#f0b81e"></i><i style="background:#2a6fd0"></i></div>
   <div class="sub">Sors tes pions, fais le tour et gagne la maison.</div>
   <div class="lab">JOUEURS</div><div class="chips" id="mN"></div>
+  <div class="lab">HUMAINS (on se passe le téléphone)</div><div class="chips" id="mH"></div>
   <div class="lab">NIVEAU DES ADVERSAIRES</div><div class="chips" id="mL"></div>
   <div class="lab">VITESSE</div><div class="chips" id="mS"></div>
   <button class="btn" id="mGo">▶ Jouer</button>
@@ -72,8 +73,9 @@ function nextPlayer(G){var k=G.act.indexOf(G.cur);return G.act[(k+1)%G.act.lengt
 
 
 var $=function(i){return document.getElementById(i)};
-var CFG={n:4,lvl:1,spd:1,snd:1},STAT={played:0,won:0,caps:0};
+var CFG={n:4,lvl:1,spd:1,snd:1,h:1},STAT={played:0,won:0,caps:0};
 try{var sv=JSON.parse(localStorage.getItem("memo-calme-ludo")||"null");if(sv){if(sv.cfg)for(var k0 in sv.cfg)CFG[k0]=sv.cfg[k0];if(sv.stat)STAT=sv.stat}}catch(e){}
+if(!CFG.h)CFG.h=1;
 function saveAll(){try{localStorage.setItem("memo-calme-ludo",JSON.stringify({cfg:CFG,stat:STAT}))}catch(e){}}
 var NAMES=["Awa","Modou","Aminata","Toi"],SPD=[900,520,240];
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -157,7 +159,7 @@ var T0=0;
 function stackOff(){var m={};TK.forEach(function(a){a.forEach(function(t){var k=Math.round(t.x*4)+","+Math.round(t.y*4);(m[k]=m[k]||[]).push(t)})});for(var k in m){var l=m[k];l.forEach(function(t,i){t.ox=l.length>1?(i-(l.length-1)/2)*.28:0;t.oy=l.length>1?(i%2?.06:-.06):0})}}
 function frame(ts){requestAnimationFrame(frame);if(!G||!GO)return;var t=ts/1000;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);if(!BOARD)buildBoard();cx.drawImage(BOARD,BX-15,BY-15,U*15+30,U*15+30);
  // noms dans les cours
- G.act.forEach(function(c){var o=YARD[c];cx.save();cx.font="800 "+Math.max(11,U*.5)+"px Arial";cx.textAlign="center";cx.textBaseline="middle";var lx=px(o[0]+3),ly=py(o[1]+(c<2?.45:5.55)),nm=c===3?"Toi":NAMES[c===0?0:c===1?1:2];cx.fillStyle="rgba(0,0,0,.35)";cx.fillText(nm,lx+1,ly+1);cx.fillStyle="#fff";cx.fillText(nm,lx,ly);if(G.cur===c&&G.over<0){cx.strokeStyle="rgba(255,255,255,.95)";cx.lineWidth=3;cx.setLineDash([8,5]);cx.lineDashOffset=-t*30;rr(px(o[0])+3,py(o[1])+3,U*6-6,U*6-6,6);cx.stroke();cx.setLineDash([])}cx.restore()});
+ G.act.forEach(function(c){var o=YARD[c];cx.save();cx.font="800 "+Math.max(11,U*.5)+"px Arial";cx.textAlign="center";cx.textBaseline="middle";var lx=px(o[0]+3),ly=py(o[1]+(c<2?.45:5.55)),nm=pname(c);cx.fillStyle="rgba(0,0,0,.35)";cx.fillText(nm,lx+1,ly+1);cx.fillStyle="#fff";cx.fillText(nm,lx,ly);if(G.cur===c&&G.over<0){cx.strokeStyle="rgba(255,255,255,.95)";cx.lineWidth=3;cx.setLineDash([8,5]);cx.lineDashOffset=-t*30;rr(px(o[0])+3,py(o[1])+3,U*6-6,U*6-6,6);cx.stroke();cx.setLineDash([])}cx.restore()});
  stackOff();var all=[];TK.forEach(function(a,c){if(G.act.indexOf(c)>=0)a.forEach(function(k){all.push(k)})});all.sort(function(a,b){return a.y-b.y});
  all.forEach(function(k){var mv=MOVABLE.some(function(m){return m.c===k.c&&m.i===k.i}),bob=mv?Math.abs(Math.sin(t*6))*U*.18:0,x=px(k.x+(k.ox||0)),y=py(k.y+(k.oy||0));if(mv){cx.strokeStyle="rgba(255,255,255,.9)";cx.lineWidth=3;cx.beginPath();cx.ellipse(x,y+U*.12,U*.5,U*.2,0,0,7);cx.stroke()}drawPawn(x,y,CHEX[k.c],.92,(k.lift||0)*U+bob)});
  FX=FX.filter(function(f){f.t+=.016;if(f.t>1)return false;cx.save();cx.globalAlpha=1-f.t;cx.strokeStyle=f.col;cx.lineWidth=4;cx.beginPath();cx.arc(px(f.x),py(f.y),U*(.3+f.t*1.2),0,7);cx.stroke();cx.restore();return true});
@@ -177,45 +179,48 @@ async function moveToken(c,i,d){var p=G.tok[c][i],np=p<0?0:p+d,tk=TK[c][i],sp=SP
  var r=applyMove(G,c,i,d);
  // réajuste la position finale (pile au centre / empilement)
  var f=cellPos(c,np,i);tk.x=f[0];tk.y=f[1];
- for(var a=0;a<r.caps.length;a++){var k2=r.caps[a],t2=TK[k2[0]][k2[1]];FX.push({x:t2.x,y:t2.y,t:0,col:"#fff"});SFX.cap();STAT.caps+=(c===3?1:0);var s2=cellPos(k2[0],-1,k2[1]);tween(t2,s2[0],s2[1],sp*.9,2.2)}
+ for(var a=0;a<r.caps.length;a++){var k2=r.caps[a],t2=TK[k2[0]][k2[1]];FX.push({x:t2.x,y:t2.y,t:0,col:"#fff"});SFX.cap();STAT.caps+=(HUM[c]?1:0);var s2=cellPos(k2[0],-1,k2[1]);tween(t2,s2[0],s2[1],sp*.9,2.2)}
  if(r.caps.length)await sleep(sp*.7);if(r.np===56){SFX.home();FX.push({x:f[0],y:f[1],t:0,col:CHEX[c]})}
  return r}
+var HUM=[false,false,false,true];
+function setHum(){var pr=[3,1,0,2],k=Math.min(CFG.h||1,CFG.n);HUM=[false,false,false,false];var o=pr.filter(function(c){return G.act.indexOf(c)>=0});for(var i=0;i<k;i++)HUM[o[i]]=true}
+function pname(c){if(HUM[c]){if(CFG.h===1)return"Toi";var o=[3,1,0,2].filter(function(x){return HUM[x]});return"Joueur "+(o.indexOf(c)+1)}return NAMES[c===0?0:c===1?1:2]}
 function say(t){msg=t}
-function setTurn(){var el=$("turn"),c=G.cur;el.textContent=(c===3?"À toi de jouer":"Tour de "+NAMES[c===0?0:c===1?1:2])+" · "+CNAME[c];el.style.borderColor=CHEX[c]}
+function setTurn(){var el=$("turn"),c=G.cur;el.textContent=(HUM[c]?(CFG.h===1?"À toi de jouer":"À "+pname(c)+" de jouer"):"Tour de "+pname(c))+" · "+CNAME[c];el.style.borderColor=CHEX[c]}
 function rollDie(){return new Promise(function(res){var v=1+Math.floor(Math.random()*6);DICE.rolling=true;SFX.roll();var t0=performance.now(),TOT=1150,lastF=0;
  (function s(){var el=performance.now()-t0;if(el>=TOT){DICE.rolling=false;DICE.v=v;DICE.h=0;DICE.rot=0;DICE.dx=0;if(v===6)SFX.six();res(v);return}
   if(el-lastF>75&&el<900){DICE.v=1+Math.floor(Math.random()*6);lastF=el}
   if(el<500){DICE.h=.35+Math.abs(Math.sin(el/55))*.12;DICE.dx=Math.sin(el/38)*5;DICE.rot=Math.sin(el/46)*.55}
   else{var u=(el-500)/650,k=0,ts=[0,.26,.45,.58,.68,1],ht=[1.15,.55,.28,.12,.05];var seg=0;for(;seg<4;seg++)if(u<ts[seg+1])break;var w=(u-ts[seg])/(ts[seg+1]-ts[seg]);DICE.h=Math.abs(Math.sin(w*Math.PI))*ht[Math.min(seg,4)]*(seg===4?0:1);DICE.dx=(1-u)*(1-u)*-38;DICE.rot=(1-u)*(1-u)*(5.2)*(seg%2?-1:1)*Math.sin(u*9+1)}
   requestAnimationFrame(s)})()})}
-function waitRoll(){return new Promise(function(res){if(AUTO){res();return}ROLLWAIT=res;SFX.turn();say("Touche le dé pour lancer")})}
-function waitPick(moves,d){return new Promise(function(res){if(AUTO){res(aiPick(G,3,d,moves));return}MOVABLE=moves.map(function(i){return{c:3,i:i}});WAIT=res})}
+function waitRoll(){return new Promise(function(res){if(AUTO){res();return}ROLLWAIT=res;SFX.turn();say(CFG.h>1?pname(G.cur)+" : touche le dé":"Touche le dé pour lancer")})}
+function waitPick(moves,d){var hc=G.cur;return new Promise(function(res){if(AUTO){res(aiPick(G,hc,d,moves));return}MOVABLE=moves.map(function(i){return{c:hc,i:i}});WAIT=res})}
 cv.addEventListener("pointerdown",function(e){if(!GO)return;e.preventDefault();var r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
  if(ROLLWAIT&&Math.hypot(x-DICE.x,y-DICE.y)<DICE.r*1.5){var f=ROLLWAIT;ROLLWAIT=null;f();return}
- if(WAIT){var best=-1,bd=1e9;MOVABLE.forEach(function(m){var k=TK[3][m.i],dd=Math.hypot(x-px(k.x),y-(py(k.y)-U*.4));if(dd<bd){bd=dd;best=m.i}});if(best>=0&&bd<U*1.4){var f2=WAIT;WAIT=null;MOVABLE=[];f2(best)}}});
+ if(WAIT){var best=-1,bd=1e9;MOVABLE.forEach(function(m){var k=TK[m.c][m.i],dd=Math.hypot(x-px(k.x),y-(py(k.y)-U*.4));if(dd<bd){bd=dd;best=m.i}});if(best>=0&&bd<U*1.4){var f2=WAIT;WAIT=null;MOVABLE=[];f2(best)}}});
 async function playGame(){var sixes=0;
- while(GO&&G.over<0){var c=G.cur,human=c===3;setTurn();sixes=0;var extra=true;
+ while(GO&&G.over<0){var c=G.cur,human=HUM[c];setTurn();sixes=0;var extra=true;
   while(extra&&GO&&G.over<0){extra=false;
-   if(human){await waitRoll()}else{say(NAMES[c===0?0:c===1?1:2]+" lance le dé…");await sleep(SPD[CFG.spd]*.7)}
+   if(human){await waitRoll()}else{say(pname(c)+" lance le dé…");await sleep(SPD[CFG.spd]*.7)}
    if(!GO)return;var d=await rollDie();if(!GO)return;
    if(d===6){sixes++;if(sixes===3){say("Trois 6 de suite : tour annulé !");await sleep(SPD[CFG.spd]*1.4);break}}else sixes=0;
    var mv=legal(G,c,d);
    if(!mv.length){say(d===6?"Aucun pion ne peut bouger":"Aucun mouvement possible");await sleep(SPD[CFG.spd]*1.1);break}
-   var pick;if(human){if(mv.length===1&&!AUTO){say("Un seul coup possible");MOVABLE=[{c:3,i:mv[0]}];await sleep(480);MOVABLE=[];pick=mv[0]}else{say("Choisis un pion à déplacer");pick=await waitPick(mv,d)}}else{pick=aiPick(G,c,d,mv);await sleep(SPD[CFG.spd]*.35)}
+   var pick;if(human){if(mv.length===1&&!AUTO){say("Un seul coup possible");MOVABLE=[{c:c,i:mv[0]}];await sleep(480);MOVABLE=[];pick=mv[0]}else{say(CFG.h>1?pname(c)+" : choisis un pion":"Choisis un pion à déplacer");pick=await waitPick(mv,d)}}else{pick=aiPick(G,c,d,mv);await sleep(SPD[CFG.spd]*.35)}
    if(!GO)return;var r=await moveToken(c,pick,d);
    if(G.over>=0)break;
    if(d===6||r.caps.length||r.np===56){extra=true;say(d===6?"6 ! Rejoue":r.caps.length?"Capture ! Rejoue":"Arrivé ! Rejoue")}
   }
   if(G.over>=0)break;G.cur=nextPlayer(G)}
  if(GO&&G.over>=0)endGame()}
-async function endGame(){GO=false;SFX.win();var w=G.over;STAT.played++;if(w===3)STAT.won++;saveAll();setTurn();
- var a=await modal("<h2>"+(w===3?"🏆 Tu as gagné !":"Partie terminée")+"</h2><p style='text-align:center'>"+(w===3?"Bravo, tes 4 pions sont à la maison !":NAMES[w===0?0:w===1?1:2]+" ("+CNAME[w]+") a gagné.")+"</p><button class='btn' data-r='again'>Rejouer</button><button class='btn sec' data-r='menu'>Menu</button>");
+async function endGame(){GO=false;SFX.win();var w=G.over;STAT.played++;if(HUM[w])STAT.won++;saveAll();setTurn();
+ var a=await modal("<h2>"+(HUM[w]?"🏆 "+(CFG.h===1?"Tu as gagné !":pname(w)+" gagne !"):"Partie terminée")+"</h2><p style='text-align:center'>"+(HUM[w]?"Bravo, "+(CFG.h===1?"tes":"les")+" 4 pions sont à la maison !":pname(w)+" ("+CNAME[w]+") a gagné.")+"</p><button class='btn' data-r='again'>Rejouer</button><button class='btn sec' data-r='menu'>Menu</button>");
  if(a==="again")startGame();else showMenu()}
 function modal(html){return new Promise(function(res){$("cd").innerHTML=html;$("ov").classList.add("on");$("cd").querySelectorAll("[data-r]").forEach(function(b){b.onclick=function(){$("ov").classList.remove("on");res(b.dataset.r)}})})}
-function startGame(){G=newGame(CFG.n,CFG.lvl);GO=true;ROLLWAIT=null;WAIT=null;MOVABLE=[];FX=[];BOARD=null;$("menu").classList.remove("on");$("game").classList.add("on");resize();initTokens();DICE.v=1;msg="";setTurn();$("bSnd").textContent=CFG.snd?"🔊":"🔇";playGame()}
+function startGame(){G=newGame(CFG.n,CFG.lvl);setHum();GO=true;ROLLWAIT=null;WAIT=null;MOVABLE=[];FX=[];BOARD=null;$("menu").classList.remove("on");$("game").classList.add("on");resize();initTokens();DICE.v=1;msg="";setTurn();$("bSnd").textContent=CFG.snd?"🔊":"🔇";playGame()}
 function showMenu(){GO=false;ROLLWAIT=null;WAIT=null;$("game").classList.remove("on");$("menu").classList.add("on");drawMenu()}
 function chips(id,items,cur,cb){var el=$(id);el.innerHTML="";items.forEach(function(it){var b=document.createElement("button");b.className="chip"+(it[0]===cur?" on":"");b.textContent=it[1];b.onclick=function(){cb(it[0]);drawMenu()};el.appendChild(b)})}
-function drawMenu(){chips("mN",[[2,"2 joueurs"],[3,"3 joueurs"],[4,"4 joueurs"]],CFG.n,function(v){CFG.n=v;saveAll()});chips("mL",[[0,"Facile"],[1,"Normal"],[2,"Fort"]],CFG.lvl,function(v){CFG.lvl=v;saveAll()});chips("mS",[[0,"Lente"],[1,"Normale"],[2,"Rapide"]],CFG.spd,function(v){CFG.spd=v;saveAll()});$("mStat").textContent=STAT.played?"Parties : "+STAT.played+" · gagnées : "+STAT.won+" · captures : "+STAT.caps:"Bonne partie !"}
+function drawMenu(){chips("mN",[[2,"2 joueurs"],[3,"3 joueurs"],[4,"4 joueurs"]],CFG.n,function(v){CFG.n=v;if(CFG.h>v)CFG.h=v;saveAll()});chips("mH",[[1,"1 humain"],[2,"2 humains"],[3,"3 humains"],[4,"4 humains"]].filter(function(x){return x[0]<=CFG.n}),CFG.h,function(v){CFG.h=v;saveAll()});chips("mL",[[0,"Facile"],[1,"Normal"],[2,"Fort"]],CFG.lvl,function(v){CFG.lvl=v;saveAll()});chips("mS",[[0,"Lente"],[1,"Normale"],[2,"Rapide"]],CFG.spd,function(v){CFG.spd=v;saveAll()});$("mStat").textContent=STAT.played?"Parties : "+STAT.played+" · gagnées : "+STAT.won+" · captures : "+STAT.caps:"Bonne partie !"}
 drawMenu();
 var RULES="<h2>Règles du Ludo</h2><p>🎯 <b>But :</b> amener tes 4 pions de ta cour jusqu'au centre.</p><p>🎲 Il faut un <b>6</b> pour sortir un pion. Un 6 te fait <b>rejouer</b>. Trois 6 de suite : ton tour est annulé.</p><p>➡️ Les pions avancent dans le sens des aiguilles d'une montre, puis montent dans leur couloir de couleur.</p><p>💥 Si tu tombes sur un pion adverse, il retourne dans sa cour et tu rejoues. Les cases avec une <b>étoile</b> et les cases de départ sont sûres.</p><p>🏁 Pour entrer au centre, il faut le <b>nombre exact</b>. Arriver au centre te fait rejouer.</p><p>👆 Touche le dé pour lancer, puis touche le pion à déplacer.</p>";
 $("mGo").onclick=function(){SFX.click();startGame()};$("mRules").onclick=function(){modal(RULES+"<button class='btn' data-r='ok'>Fermer</button>")};
