@@ -128,6 +128,14 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 .bar .v{width:34px;text-align:center;font-weight:800}
 .bar .tr{flex:1;height:8px;border-radius:4px;background:#27402f;overflow:hidden;display:flex}
 .bar .tr i{display:block;height:100%}
+.pl{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:9px 11px;margin:6px 0;width:100%;border:0;color:var(--tx);text-align:left}
+.pl .nm{flex:1;min-width:0}.pl .nm b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pl .nm small{color:var(--mu);font-size:11.5px}
+.pl .no{width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+.ov{min-width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#1a1200;background:#8aa396}
+.ov.g{background:linear-gradient(135deg,#fdd835,#f9a825)}.ov.v{background:linear-gradient(135deg,#43d17a,#1fa355)}.ov.m{background:#b6d3c2}
+.pst{display:none;grid-template-columns:1fr 1fr;gap:5px 14px;padding:4px 4px 10px;margin:-2px 0 4px;background:var(--card);border-radius:0 0 14px 14px}
+.pst.on{display:grid}.sb{font-size:11.5px;color:var(--mu)}.sb i{display:block;height:6px;border-radius:3px;background:#27402f;margin-top:2px;overflow:hidden}.sb i u{display:block;height:100%;background:var(--y)}
+.sb span{float:right;color:var(--tx);font-weight:800}
 .note{font-size:12px;color:var(--mu);line-height:1.5;margin:10px 2px}
 @media (min-width:700px){.scr{padding-left:max(16px,calc(50vw - 270px));padding-right:max(16px,calc(50vw - 270px))}}
 </style>
@@ -156,6 +164,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="top"><button class="bk" data-back="home">←</button><h2>Match rapide</h2></div>
   <div class="card vs" id="suVs"></div>
   <div class="row"><button class="chip" id="suMe" style="flex:1">Changer mon équipe</button><button class="chip" id="suOpp" style="flex:1">Changer l'adversaire</button></div>
+  <div class="row" style="margin-top:8px"><button class="chip" id="suSqA" style="flex:1">👥 Mon effectif</button><button class="chip" id="suSqB" style="flex:1">👥 Effectif adversaire</button></div>
   <div class="lab">Difficulté</div><div class="chips" id="suDiff"></div>
   <div class="lab">Format</div><div class="chips" id="suFm"></div>
   <div class="lab">Vitesse du jeu</div><div class="chips" id="suGs"></div>
@@ -168,6 +177,8 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
   <div class="card" id="suTer" style="margin-top:14px"></div>
   <button class="btn pri" id="suGo" style="text-align:center;margin-top:14px">COUP D'ENVOI</button>
 </div>
+<!-- EFFECTIF -->
+<div class="scr" id="squad"><div class="top"><button class="bk" data-back="setup">←</button><h2 id="sqT">Effectif</h2></div><div id="sqB"></div></div>
 <!-- TOURNOI -->
 <div class="scr" id="tour"><div class="top"><button class="bk" data-back="home">←</button><h2 id="toT">Tournoi</h2></div><div id="toB"></div></div>
 <!-- CARRIERE -->
@@ -255,6 +266,16 @@ function slotPos(t, s, att, kick) {
   if (t.style === 1) u += s.r === "GK" ? 0 : 0.04; else if (t.style === 2) u -= s.r === "GK" ? 0 : 0.04;
   return { x: s.v * (PW / 2 - 28) * (t.dir < 0 ? 1 : -1), y: ownY(t) + t.dir * u * PL };
 }
+var NATS = [["Sénégal", "🇸🇳"], ["Mali", "🇲🇱"], ["Guinée", "🇬🇳"], ["Côte d'Ivoire", "🇨🇮"], ["Gambie", "🇬🇲"], ["Mauritanie", "🇲🇷"], ["Cap-Vert", "🇨🇻"], ["Cameroun", "🇨🇲"], ["Bénin", "🇧🇯"]];
+function posLabel(s) { if (s.r === "GK") return "Gardien"; var l = s.v < -0.4 ? " gauche" : s.v > 0.4 ? " droit" : " central"; return s.r === "DEF" ? "Défenseur" + l : s.r === "MID" ? "Milieu" + l : "Attaquant" + l; }
+function dispStats(p) { var D = function (v) { return Math.min(99, Math.round(v * 100)); };
+  return { vit: clamp(Math.round((p.spd - 80) * 3.4 + 20), 25, 99), acc: D(p.acc), pas: D(p.pas), tir: D(p.sht), pui: D(p.pow), dri: D(p.drb), def: D(p.def), end: D(p.sta), phy: D(p.phy), gk: D(p.gk) }; }
+function ovrOf(p) { var q = p.st, r = p.r, v;
+  if (r === "GK") v = q.gk * 0.85 + q.phy * 0.15;
+  else if (r === "ATT") v = q.tir * 0.25 + q.dri * 0.2 + q.vit * 0.15 + q.pui * 0.15 + q.pas * 0.1 + q.acc * 0.15;
+  else if (r === "MID") v = q.pas * 0.3 + q.dri * 0.2 + q.end * 0.15 + q.def * 0.1 + q.tir * 0.1 + q.vit * 0.15;
+  else v = q.def * 0.35 + q.phy * 0.2 + q.vit * 0.15 + q.pas * 0.15 + q.end * 0.15;
+  return Math.min(99, Math.round(v)); }
 function mkTeam(T, idx, dir, human, np) {
   np = np || 5; var FORMS = formsOf(np), NUMS = np === 7 ? NUMS7 : NUMS5;
   var t = { idx: idx, T: T, dir: dir, players: [], ctrl: -1, human: human, style: T.style || 0, hold: 0, press: T.press | 0 };
@@ -262,15 +283,21 @@ function mkTeam(T, idx, dir, human, np) {
   for (var i = 0; i < t.slots.length; i++) {
     var s = t.slots[i], seed = (T.seed || 7) * 31 + i * 13 + 5;
     var nm = T.names && T.names[i] ? T.names[i] : FIRST[Math.floor(hsh(seed) * FIRST.length)] + " " + LAST[Math.floor(hsh(seed + 3) * LAST.length)];
-    var a = T.a, d = T.d, v = T.v, r = s.r;
+    var a = T.a, d = T.d, v = T.v, r = s.r, sj = function (k, lo, hi) { return lo + (hi - lo) * hsh(seed + k); };
     var p = { team: idx, ix: i, r: r, name: nm, num: NUMS[i], x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: -dir, ph: Math.random() * 6, stun: 0, slide: 0, tcd: 0, pcd: 0, shield: 0, sprint: 0, stam: 1, think: Math.random() * 0.3, boost: 0,
-      spd: 84 + 3.2 * v + (r === "ATT" ? 3 : r === "DEF" ? -1 : 0) + rnd(-2, 2),
-      sht: clamp(0.42 + 0.07 * a + (r === "ATT" ? 0.09 : r === "MID" ? 0.03 : 0) + rnd(-0.04, 0.04), 0.3, 1),
-      pas: clamp(0.5 + 0.06 * (a + d) / 2 + (r === "MID" ? 0.08 : 0) + rnd(-0.04, 0.04), 0.35, 1),
-      def: clamp(0.42 + 0.07 * d + (r === "DEF" ? 0.09 : 0) + rnd(-0.04, 0.04), 0.3, 1),
-      drb: clamp(0.42 + 0.06 * (a + v) / 2 + (r === "ATT" ? 0.06 : 0) + rnd(-0.04, 0.04), 0.3, 1),
-      gk: clamp(0.4 + 0.08 * d + rnd(-0.04, 0.05), 0.3, 1),
+      spd: 84 + 3.2 * v + (r === "ATT" ? 3 : r === "DEF" ? -1 : 0) + sj(21, -2, 2),
+      sht: clamp(0.42 + 0.07 * a + (r === "ATT" ? 0.09 : r === "MID" ? 0.03 : 0) + sj(22, -0.04, 0.04), 0.3, 1),
+      pas: clamp(0.5 + 0.06 * (a + d) / 2 + (r === "MID" ? 0.08 : 0) + sj(23, -0.04, 0.04), 0.35, 1),
+      def: clamp(0.42 + 0.07 * d + (r === "DEF" ? 0.09 : 0) + sj(24, -0.04, 0.04), 0.3, 1),
+      drb: clamp(0.42 + 0.06 * (a + v) / 2 + (r === "ATT" ? 0.06 : 0) + sj(25, -0.04, 0.04), 0.3, 1),
+      gk: clamp(0.4 + 0.08 * d + sj(26, -0.04, 0.05), 0.3, 1),
+      acc: clamp(0.5 + 0.06 * v + (r === "ATT" ? 0.05 : 0) + sj(27, -0.08, 0.08), 0.35, 1),
+      pow: clamp(0.45 + 0.07 * a + (r === "ATT" ? 0.06 : r === "DEF" ? 0.03 : 0) + sj(28, -0.08, 0.08), 0.35, 1),
+      sta: clamp(0.5 + 0.06 * (d + v) / 2 + (r === "MID" ? 0.08 : 0) + sj(29, -0.1, 0.1), 0.35, 1),
+      phy: clamp(0.45 + 0.07 * d + (r === "DEF" ? 0.08 : r === "ATT" ? 0.02 : 0) + sj(30, -0.1, 0.1), 0.35, 1),
+      age: 17 + Math.floor(hsh(seed + 31) * 19), nat: NATS[Math.floor(Math.pow(hsh(seed + 33), 3.2) * NATS.length)],
       skin: SKINS[Math.floor(hsh(seed + 9) * SKINS.length)], hair: Math.floor(hsh(seed + 11) * 8), bh: .93 + hsh(seed + 13) * .14, bw: .94 + hsh(seed + 17) * .12, diving: 0, hold: 0 };
+    p.pos = posLabel(s); p.st = dispStats(p); p.ovr = ovrOf(p);
     t.players.push(p);
   }
   return t;
@@ -376,7 +403,7 @@ function doShot(m, p, power, aimx, forAI) {
   var press = pressureOn(m, p), shotSkill = p.sht * (forAI ? m.k.shot : 1);
   var tx = clamp(aimx * GW * 0.88, -GW * 0.9, GW * 0.9) + rnd(-1, 1) * (1 - shotSkill) * 66 * (1 + (press < 24 ? 0.6 : 0) + (power > 0.88 ? 0.5 : 0) + d / 400);
   var dx = tx - p.x, dy = gy - p.y, dd = hlen(dx, dy) || 1;
-  var sp = 300 + power * 270; b.vx = dx / dd * sp; b.vy = dy / dd * sp;
+  var sp = (300 + power * 270) * (0.9 + 0.2 * (p.pow || 0.7)); b.vx = dx / dd * sp; b.vy = dy / dd * sp;
   b.vz = 40 + power * 70 + (power > 0.9 ? rnd(10, 70) : rnd(0, 20)); b.z = 1;
   releaseBall(m, p); b.x = p.x + dx / dd * 10; b.y = p.y + dy / dd * 10; p.fx = dx / dd; p.fy = dy / dd;
   m.shots[p.team]++; m.ev.push({ k: "shot", team: p.team }); m.passT = null;
@@ -399,7 +426,7 @@ function tryTackle(m, p, bonus) {
   if (m.state === "play" && Math.random() < (sl0 ? (bh0 ? 0.4 : 0.16) : (bh0 ? 0.13 : 0.03))) { callFoul(m, p, o, sl0); return false; }
   if (o.shield > 0) { p.stun = 0.45; return false; }
   var behind = (p.x - o.x) * o.fx + (p.y - o.y) * o.fy < -2 ? 0.1 : 0;
-  var ch = 0.3 + 0.38 * (p.def - o.drb) + behind + (bonus || 0); ch = clamp(ch, 0.1, 0.72);
+  var ch = 0.3 + 0.38 * (p.def - o.drb) + 0.14 * ((p.phy || 0.7) - (o.phy || 0.7)) + behind + (bonus || 0); ch = clamp(ch, 0.1, 0.72);
   if (Math.random() < ch) {
     o.stun = 0.4; m.ev.push({ k: "tackle", x: o.x, y: o.y });
     if (Math.random() < 0.55) { b.own = p; b.lastTeam = p.team; b.lastP = p; p.pcd = 0; }
@@ -422,7 +449,7 @@ function steer(p, tx, ty, f, dt, maxMul) {
   var dx = tx - p.x, dy = ty - p.y, d = hlen(dx, dy), sp = p.spd * (maxMul || 1) * f;
   if (p.stun > 0) sp = 0;
   var ds = d < 10 ? sp * d / 10 : sp, dvx = d > 0.01 ? dx / d * ds : 0, dvy = d > 0.01 ? dy / d * ds : 0;
-  p.vx += (dvx - p.vx) * Math.min(1, dt * 9); p.vy += (dvy - p.vy) * Math.min(1, dt * 9);
+  var ar = 9 * (0.72 + 0.56 * (p.acc || 0.7)); p.vx += (dvx - p.vx) * Math.min(1, dt * ar); p.vy += (dvy - p.vy) * Math.min(1, dt * ar);
 }
 function carrierAI(m, p, dt) {
   var t = m.teams[p.team], k = m.k, b = m.b, gy = oppY(t);
@@ -534,7 +561,7 @@ function humanControl(m, t, inp, dt) {
   var jm = hlen(inp.jx, inp.jy), has = b.own === p;
   var sprintOk = inp.sprint && p.stam > 0.04 && jm > 0.5;
   var mulSp = (sprintOk ? 1.22 : 1) * (p.boost > 0 ? 1.55 : 1) * (has ? 0.95 : 1);
-  if (sprintOk) p.stam = Math.max(0, p.stam - dt * 0.32); else p.stam = Math.min(1, p.stam + dt * 0.16);
+  if (sprintOk) p.stam = Math.max(0, p.stam - dt * 0.32 * (1.3 - 0.6 * (p.sta || 0.7))); else p.stam = Math.min(1, p.stam + dt * 0.16);
   var dx = inp.jx, dy = inp.jy, mm = Math.min(1, jm);
   if (jm > 0.12) { var s = p.stun > 0 ? 0 : p.spd * mulSp * mm; var dvx = dx / jm * s, dvy = dy / jm * s; p.vx += (dvx - p.vx) * Math.min(1, dt * 10); p.vy += (dvy - p.vy) * Math.min(1, dt * 10); }
   else { p.vx -= p.vx * Math.min(1, dt * 8); p.vy -= p.vy * Math.min(1, dt * 8); }
@@ -898,6 +925,22 @@ function renderSetup() {
   $("suLen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.len = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suTer").innerHTML = "<b>📍 Terrain de " + esc(A.q) + "</b><div class='note' style='margin:4px 0 0'>Tu joues à domicile, devant les supporters du quartier. Ton équipe attaque vers le haut.</div>";
 }
+var SQN = { vit: "Vitesse", acc: "Accélération", pas: "Passe", tir: "Précision tir", pui: "Puissance tir", dri: "Dribble", def: "Défense", end: "Endurance", phy: "Physique", gk: "Gardien" };
+function renderSquad(T) {
+  var np = SV.fmt ? 7 : 5, tm = mkTeam(T, 0, -1, false, np), ps = tm.players.slice(), avg = 0;
+  ps.forEach(function (p) { avg += p.ovr; }); avg = Math.round(avg / ps.length);
+  $("sqT").textContent = "Effectif · " + T.n;
+  var h = "<div class='card' style='display:flex;align-items:center;gap:12px'>" + badge(T, 54) + "<div style='flex:1'><b style='font-size:17px'>" + esc(T.n) + "</b><div class='note' style='margin:2px 0 0'>" + np + " contre " + np + " · formation " + tm.form.n + "</div></div><div class='ov " + (avg >= 75 ? "g" : avg >= 65 ? "v" : "m") + "'>" + avg + "</div></div>";
+  ps.forEach(function (p, i) {
+    var cl = p.ovr >= 75 ? "g" : p.ovr >= 65 ? "v" : "m", keys = p.r === "GK" ? ["gk", "phy", "pas", "vit", "acc", "end"] : ["vit", "acc", "pas", "tir", "pui", "dri", "def", "end", "phy"];
+    h += "<button class='pl' data-i='" + i + "'><div class='no'>" + p.num + "</div><div class='nm'><b>" + esc(p.name) + "</b><small>" + p.pos + " · " + p.age + " ans · " + p.nat[1] + " " + p.nat[0] + "</small></div><div class='ov " + cl + "'>" + p.ovr + "</div></button>";
+    h += "<div class='pst' id='pst" + i + "'>" + keys.map(function (k) { return "<div class='sb'>" + SQN[k] + "<span>" + p.st[k] + "</span><i><u style='width:" + p.st[k] + "%'></u></i></div>"; }).join("") + "</div>";
+  });
+  $("sqB").innerHTML = h;
+  $("sqB").querySelectorAll(".pl").forEach(function (b) { b.onclick = function () { var e = $("pst" + b.getAttribute("data-i")); e.classList.toggle("on"); }; });
+}
+$("suSqA").onclick = function () { renderSquad(teamById(selId())); show("squad"); };
+$("suSqB").onclick = function () { renderSquad(teamById(oppId())); show("squad"); };
 $("bQuick").onclick = function () { renderSetup(); show("setup"); };
 $("suMe").onclick = function () { pickTeam("Ton équipe", "setup", function (id) { SV.sel = id; if (SV.opp === id) SV.opp = -2; save(); renderSetup(); show("setup"); }, selId()); };
 $("suOpp").onclick = function () { pickTeam("Adversaire", "setup", function (id) { SV.opp = id === -9 ? -2 : id; if (id === selId()) SV.opp = -2; save(); renderSetup(); show("setup"); }, SV.opp, true); };
