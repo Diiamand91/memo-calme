@@ -244,7 +244,21 @@ var FORMS7 = [
   { n: "3-1-2", d: "Contre-attaque : 3 défenseurs, 1 milieu, 2 attaquants", s: [{ r: "DEF", u: 0.22, v: -0.7 }, { r: "DEF", u: 0.22, v: 0 }, { r: "DEF", u: 0.22, v: 0.7 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.68, v: -0.45 }, { r: "ATT", u: 0.68, v: 0.45 }] },
   { n: "2-1-3", d: "Offensif : 2 défenseurs, 1 milieu, 3 attaquants", s: [{ r: "DEF", u: 0.24, v: -0.55 }, { r: "DEF", u: 0.24, v: 0.55 }, { r: "MID", u: 0.44, v: 0 }, { r: "ATT", u: 0.68, v: -0.65 }, { r: "ATT", u: 0.7, v: 0 }, { r: "ATT", u: 0.68, v: 0.65 }] }
 ];
-function formsOf(np) { return np === 7 ? FORMS7 : FORMS5; }
+var SK = 1, SPDK = 1;
+function applyNp(np) { var k = np === 11 ? 1.3 : 1; SK = k; SPDK = np === 11 ? 1.1 : 1; PW = 260 * k; PL = 420 * k; GW = 34 * k; GDEP = 16 * k; }
+function npOf() { return [5, 7, 11][SV.fmt | 0] || 5; }
+function F11(n, d, def, mid, att) { var s = []; def.forEach(function (q) { s.push({ r: "DEF", u: q[1] || 0.24, v: q[0] }); }); mid.forEach(function (q) { s.push({ r: "MID", u: q[1], v: q[0] }); }); att.forEach(function (q) { s.push({ r: "ATT", u: q[1] || 0.68, v: q[0] }); }); return { n: n, d: d, s: s }; }
+var D4 = [[-0.8, 0.27], [-0.27, 0.23], [0.27, 0.23], [0.8, 0.27]];
+var FORMS11 = [
+  F11("4-3-3", "Offensif : 4 défenseurs, 3 milieux, 3 attaquants dont 2 ailiers", D4, [[-0.5, 0.46], [0, 0.42], [0.5, 0.46]], [[-0.72, 0.66], [0, 0.7], [0.72, 0.66]]),
+  F11("4-4-2", "Classique et équilibré : 2 lignes de 4 et 2 attaquants", D4, [[-0.78, 0.47], [-0.26, 0.44], [0.26, 0.44], [0.78, 0.47]], [[-0.3, 0.68], [0.3, 0.68]]),
+  F11("4-2-3-1", "Contrôle du milieu : 2 récupérateurs, 3 créateurs, 1 pointe", D4, [[-0.3, 0.37], [0.3, 0.37], [-0.7, 0.53], [0, 0.55], [0.7, 0.53]], [[0, 0.7]]),
+  F11("3-5-2", "Milieu dense : 3 défenseurs, 5 milieux dont 2 pistons", [[-0.55, 0.23], [0, 0.21], [0.55, 0.23]], [[-0.88, 0.48], [-0.42, 0.43], [0, 0.4], [0.42, 0.43], [0.88, 0.48]], [[-0.3, 0.68], [0.3, 0.68]]),
+  F11("4-1-4-1", "Bloc compact : 1 sentinelle devant la défense", D4, [[0, 0.34], [-0.75, 0.5], [-0.25, 0.5], [0.25, 0.5], [0.75, 0.5]], [[0, 0.7]]),
+  F11("5-3-2", "Défensif : 5 défenseurs, contre-attaque rapide", [[-0.88, 0.28], [-0.45, 0.23], [0, 0.21], [0.45, 0.23], [0.88, 0.28]], [[-0.5, 0.46], [0, 0.42], [0.5, 0.46]], [[-0.3, 0.68], [0.3, 0.68]])
+];
+var NUMS11 = [1, 3, 5, 4, 2, 6, 8, 10, 7, 9, 11];
+function formsOf(np) { return np === 11 ? FORMS11 : np === 7 ? FORMS7 : FORMS5; }
 var NUMS5 = [1, 4, 5, 8, 9], NUMS7 = [1, 2, 3, 6, 8, 9, 10];
 var DIFF = [
   { n: "Débutant", spd: 0.86, tkl: 0.8, gk: 0.82, pas: 0.78, thk: 0.5, shot: 0.8 },
@@ -277,7 +291,7 @@ function ovrOf(p) { var q = p.st, r = p.r, v;
   else v = q.def * 0.35 + q.phy * 0.2 + q.vit * 0.15 + q.pas * 0.15 + q.end * 0.15;
   return Math.min(99, Math.round(v)); }
 function mkTeam(T, idx, dir, human, np) {
-  np = np || 5; var FORMS = formsOf(np), NUMS = np === 7 ? NUMS7 : NUMS5;
+  np = np || 5; var FORMS = formsOf(np), NUMS = np === 11 ? NUMS11 : np === 7 ? NUMS7 : NUMS5;
   var t = { idx: idx, T: T, dir: dir, players: [], ctrl: -1, human: human, style: T.style || 0, hold: 0, press: T.press | 0 };
   var fm = FORMS[T.form !== undefined ? T.form : Math.floor(hsh((T.seed || 7) * 3 + 1) * FORMS.length)] || FORMS[0]; t.form = fm; t.slots = [SLOTS[0]].concat(fm.s);
   for (var i = 0; i < t.slots.length; i++) {
@@ -297,7 +311,7 @@ function mkTeam(T, idx, dir, human, np) {
       phy: clamp(0.45 + 0.07 * d + (r === "DEF" ? 0.08 : r === "ATT" ? 0.02 : 0) + sj(30, -0.1, 0.1), 0.35, 1),
       age: 17 + Math.floor(hsh(seed + 31) * 19), nat: NATS[Math.floor(Math.pow(hsh(seed + 33), 3.2) * NATS.length)],
       skin: SKINS[Math.floor(hsh(seed + 9) * SKINS.length)], hair: Math.floor(hsh(seed + 11) * 8), bh: .93 + hsh(seed + 13) * .14, bw: .94 + hsh(seed + 17) * .12, diving: 0, hold: 0 };
-    p.pos = posLabel(s); p.st = dispStats(p); p.ovr = ovrOf(p);
+    p.pos = posLabel(s); p.st = dispStats(p); p.ovr = ovrOf(p); p.spd *= SPDK;
     t.players.push(p);
   }
   return t;
@@ -306,7 +320,7 @@ function newMatch(T0, T1, o) {
   o = o || {};
   var m = { wet: !!o.wet, fk: false, penT: 0, fouls: [0, 0], cards: [0, 0], o: o, k: DIFF[o.diff === undefined ? 2 : o.diff], halfLen: o.halfLen || 90, half: 1, clock: 0, state: "kickoff", st: 1.4, ev: [], score: [0, 0], teams: [], P: [],
     b: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, own: null, lastTeam: 0, lastP: null, spin: 0 }, passT: null, rs: null, time: 0, golden: !!o.golden, ended: false, shots: [0, 0], poss: [0, 0], on: [0, 0], goals: [], msg: "", extra: false, kickTeam: 0 };
-  m.np = o.np || 5; m.teams[0] = mkTeam(T0, 0, -1, !o.demo, m.np); m.teams[1] = mkTeam(T1, 1, 1, false, m.np);
+  m.np = o.np || 5; applyNp(m.np); m.teams[0] = mkTeam(T0, 0, -1, !o.demo, m.np); m.teams[1] = mkTeam(T1, 1, 1, false, m.np);
   m.teams.forEach(function (t) { t.players.forEach(function (p) { m.P.push(p); }); });
   m.ref = { x: 0, y: 40, vx: 0, vy: 0, fx: 0, fy: 1, ph: 0 };
   setKickoff(m, o.firstTeam === undefined ? 0 : o.firstTeam);
@@ -458,10 +472,10 @@ function carrierAI(m, p, dt) {
   if (p.think <= 0) {
     p.think = (t.human ? 0.3 : k.thk) * rnd(0.8, 1.3);
     var shoot = false;
-    if (m.fk && dGoal < 140 && dGoal > 40 && Math.random() < 0.3) { m.fk = false; doShot(m, p, rnd(0.6, 0.9), rnd(-0.8, 0.8), true); return; }
-    if (dGoal < 135 && dGoal > 55 && Math.abs(p.x) < 95) shoot = Math.random() < (dGoal < 100 ? 0.26 : 0.1);
-    if (!shoot && dGoal < 175 && Math.random() < 0.02) shoot = true;
-    if (dGoal < 48) shoot = true;
+    if (m.fk && dGoal < 140 * SK && dGoal > 40 * SK && Math.random() < 0.3) { m.fk = false; doShot(m, p, rnd(0.6, 0.9), rnd(-0.8, 0.8), true); return; }
+    if (dGoal < 135 * SK && dGoal > 55 * SK && Math.abs(p.x) < 95 * SK) shoot = Math.random() < (dGoal < 100 * SK ? 0.26 : 0.1);
+    if (!shoot && dGoal < 175 * SK && Math.random() < 0.02) shoot = true;
+    if (dGoal < 48 * SK) shoot = true;
     if (shoot) { doShot(m, p, rnd(0.5, 0.82), rnd(-0.85, 0.85), true); return; }
     var mustPass = press < 30 && Math.random() < 0.65;
     if (mustPass || Math.random() < 0.1) {
@@ -674,8 +688,8 @@ function referee(m) {
     var end = b.y < 0 ? -1 : 1;
     if (Math.abs(b.x) < GW && b.z < GH) {
       var dteam = end < 0 ? 1 : 0, gkp = m.teams[dteam].players[0], sp2 = hlen(b.vx, b.vy);
-      if (!b.own && sp2 > 130 && b.lastTeam !== dteam && !m.late && Math.abs(gkp.x - b.x) < 44) {
-        m.late = true; var kk = dteam === 1 ? m.k.gk : 1, near = 1 - Math.abs(gkp.x - b.x) / 44;
+      if (!b.own && sp2 > 130 && b.lastTeam !== dteam && !m.late && Math.abs(gkp.x - b.x) < 44 * SK) {
+        m.late = true; var kk = dteam === 1 ? m.k.gk : 1, near = 1 - Math.abs(gkp.x - b.x) / (44 * SK);
         if (Math.random() < clamp(0.5 + 0.5 * near * gkp.gk * kk, 0.3, 0.93)) {
           m.ev.push({ k: "save", team: dteam }); b.x = clamp(b.x, -GW + 4, GW - 4); b.y = end * (PL / 2 - 8); b.vy = -end * rnd(90, 160); b.vx = (b.x >= 0 ? 1 : -1) * rnd(50, 120); b.vz = rnd(30, 70); b.lastTeam = dteam; return;
         }
@@ -839,7 +853,7 @@ var PATS = ["Uni", "Rayures", "Ceinture", "Moitié"], BDS = ["Rond", "Écusson",
 var LENS = [{ n: "Court", sub: "2 × 45 s", h: 45 }, { n: "Normal", sub: "2 × 75 s", h: 75 }, { n: "Long", sub: "2 × 120 s", h: 120 }];
 var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6", "Joueur 7"];
-function FM() { return formsOf(SV.fmt ? 7 : 5); }
+function FM() { return formsOf(npOf()); }
 function fresh() {
   return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
@@ -916,7 +930,7 @@ function renderSetup() {
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = CAMN.map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suCam").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.cam = +b.getAttribute("data-v"); save(); renderSetup(); }; });
-  $("suFm").innerHTML = ["5 contre 5", "7 contre 7"].map(function (n, i) { return "<button class='chip" + (i === (SV.fmt | 0) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suFm").innerHTML = ["5 contre 5", "7 contre 7", "11 contre 11"].map(function (n, i) { return "<button class='chip" + (i === (SV.fmt | 0) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suFm").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.fmt = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suGs").innerHTML = GSN.map(function (n, i) { return "<button class='chip" + (i === SV.gs ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suGs").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.gs = +b.getAttribute("data-v"); save(); renderSetup(); }; });
@@ -927,7 +941,7 @@ function renderSetup() {
 }
 var SQN = { vit: "Vitesse", acc: "Accélération", pas: "Passe", tir: "Précision tir", pui: "Puissance tir", dri: "Dribble", def: "Défense", end: "Endurance", phy: "Physique", gk: "Gardien" };
 function renderSquad(T) {
-  var np = SV.fmt ? 7 : 5, tm = mkTeam(T, 0, -1, false, np), ps = tm.players.slice(), avg = 0;
+  var np = npOf(), tm = (applyNp(np), mkTeam(T, 0, -1, false, np)), ps = tm.players.slice(), avg = 0;
   ps.forEach(function (p) { avg += p.ovr; }); avg = Math.round(avg / ps.length);
   $("sqT").textContent = "Effectif · " + T.n;
   var h = "<div class='card' style='display:flex;align-items:center;gap:12px'>" + badge(T, 54) + "<div style='flex:1'><b style='font-size:17px'>" + esc(T.n) + "</b><div class='note' style='margin:2px 0 0'>" + np + " contre " + np + " · formation " + tm.form.n + "</div></div><div class='ov " + (avg >= 75 ? "g" : avg >= 65 ? "v" : "m") + "'>" + avg + "</div></div>";
@@ -1732,7 +1746,7 @@ var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
   cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0 }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
-  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: SV.fmt ? 7 : 5 }); applyCtl();
+  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: npOf() }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
   FV = false; var vi = SV.ven > 0 ? SV.ven - 1 : Math.floor(Math.random() * VENUES.length); R.ven = vi; VN = VENUES[vi]; R.camMode = SV.cam; R.tv = false; R.bg = null; R.snap = true; R.replay = false; G.rb = []; G.rp = null; $("rpl").className = ""; $("ht").className = ""; $("cmt").className = "";
@@ -1785,8 +1799,9 @@ function showHT(m) {
   $("ht").className = "on";
 }
 function m7() { return G.m && G.m.np === 7; }
+function nIntro() { return G.m && G.m.np === 11 ? [NUMS11, 11] : m7() ? [NUMS7, 7] : [NUMS5, 5]; }
 function showIntro(T0, T1, wxs) {
-  var wl = ["", "☀️ Soleil", "🌧 Pluie", "🌙 Match de nuit", "🌙🌧 Nuit sous la pluie"][wxs], nums = m7() ? NUMS7 : NUMS5, np = m7() ? 7 : 5;
+  var wl = ["", "☀️ Soleil", "🌧 Pluie", "🌙 Match de nuit", "🌙🌧 Nuit sous la pluie"][wxs], nums = nIntro()[0], np = nIntro()[1];
   var col = function (T) { var nm = (T.names || []); var L = []; for (var i = 0; i < np; i++) { var n = nm[i] || (FIRST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5)) * FIRST.length)] + " " + LAST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5) + 3) * LAST.length)]); L.push(nums[i] + " · " + esc(n)); } return "<div class='tmc'>" + badge(T, 66) + "<b>" + esc(T.n) + "</b>" + L.join("<br>") + "</div>"; };
   var z = T0.z ? ZN[T0.z] : T0.id === -1 ? "Ton quartier" : "Quartier de " + T0.q;
   $("intro").innerHTML = "<div class='tt'>NAVETANE</div><div style='color:var(--mu);font-size:13px'>📍 Terrain de " + esc(T0.q) + " · " + z + "<br>🏟 " + VN.n + " · " + wl + "</div><div class='tms'>" + col(T0) + "<div class='vsx'>VS</div>" + col(T1) + "</div><div class='tap'>Touche pour commencer</div>";
@@ -2424,8 +2439,8 @@ function buildScene() {
 }
 var S3KEY = "";
 function bakeBG() {
-  if (!GLOK || !R.m || !VN) return; var k = R.ven + "|" + R.theme + "|" + R.wx.rain + R.wx.night + "|" + R.kits.map(function (q) { return q.c1 + q.c2; }).join("");
-  if (!S3 || S3KEY !== k) { var prev = S3; S3 = { key: k, fence: false, crowdTex: null, crowd0: null, crowd1: null, layers: prev ? prev.layers : [] }; S3KEY = k; try { buildScene(); } catch (e) { GLOK = false; console.log("build3d", e); if (window.__err) window.__err(e); showGLerr(String(e && e.message || e)); } }
+  if (!GLOK || !R.m || !VN) return; var k = R.ven + "|" + (SK > 1 ? "L" : "S") + "|" + R.theme + "|" + R.wx.rain + R.wx.night + "|" + R.kits.map(function (q) { return q.c1 + q.c2; }).join("");
+  if (!S3 || S3KEY !== k) { var prev = S3; S3 = { key: k, fence: false, crowdTex: null, crowd0: null, crowd1: null, layers: prev ? prev.layers : [] }; S3KEY = k; var sPW = PW, sPL = PL, sGW = GW, sGD = GDEP; PW = 260; PL = 420; GW = 34; GDEP = 16; try { buildScene(); PW = sPW; PL = sPL; GW = sGW; GDEP = sGD; } catch (e) { PW = sPW; PL = sPL; GW = sGW; GDEP = sGD; GLOK = false; console.log("build3d", e); if (window.__err) window.__err(e); showGLerr(String(e && e.message || e)); } }
   S3.rot = FV ? Math.PI : 0;
 }
 function showGLerr(t) { var d = document.createElement("div"); d.style.cssText = "position:absolute;left:12px;right:12px;top:80px;background:#400;color:#fff;padding:12px;border-radius:10px;font:13px/1.4 Arial;z-index:50"; d.textContent = "Erreur 3D : " + t + " — utilise la version 2D."; $("cvw").appendChild(d); }
@@ -2436,12 +2451,12 @@ function resize() {
 }
 /* ---------- caméra ---------- */
 function camUpdate(m, dt) {
-  var b = m.b, mode = R.camMode | 0, bx = clamp(b.x, -140, 140), bz = b.y, ex, ey, ez, lx, ly, lz, gc = m.state === "goal" && !R.replay && m.goals && m.goals.length, sp = 4.6;
-  if (gc) { var gz = m.goals[m.goals.length - 1].team === 0 ? -PL / 2 : PL / 2, sg = gz < 0 ? -1 : 1; ex = clamp(bx * .55, -70, 70); ey = 22; ez = gz - sg * 92; lx = ex * .3; ly = 10; lz = gz; sp = 2.6; }
-  else if (mode === 1) { ex = bx * .6; ey = 82; ez = bz + 128; lx = bx * .8; ly = 0; lz = bz - 42; }
-  else if (mode === 2) { ex = bx * .6; ey = 250; ez = bz + 82; lx = bx * .8; ly = 0; lz = bz - 10; }
-  else { ex = bx * .5; ey = 132; ez = bz + 178; lx = bx * .75; ly = 0; lz = bz - 48; }
-  if (!gc) { ez = clamp(ez, -330, 300); lz = clamp(lz, -250, 250); }
+  var b = m.b, mode = R.camMode | 0, ZK = SK > 1 ? 1.22 : 1, bx = clamp(b.x, -140 * SK, 140 * SK), bz = b.y, ex, ey, ez, lx, ly, lz, gc = m.state === "goal" && !R.replay && m.goals && m.goals.length, sp = 4.6;
+  if (gc) { var gz = m.goals[m.goals.length - 1].team === 0 ? -PL / 2 : PL / 2, sg = gz < 0 ? -1 : 1; ex = clamp(bx * .55, -70 * SK, 70 * SK); ey = 22; ez = gz - sg * 92; lx = ex * .3; ly = 10; lz = gz; sp = 2.6; }
+  else if (mode === 1) { ex = bx * .6; ey = 82 * ZK; ez = bz + 128 * ZK; lx = bx * .8; ly = 0; lz = bz - 42; }
+  else if (mode === 2) { ex = bx * .6; ey = 250 * ZK; ez = bz + 82 * ZK; lx = bx * .8; ly = 0; lz = bz - 10; }
+  else { ex = bx * .5; ey = 132 * ZK; ez = bz + 178 * ZK; lx = bx * .75; ly = 0; lz = bz - 48; }
+  if (!gc) { ez = clamp(ez, -330 * SK, 300 * SK); lz = clamp(lz, -250 * SK, 250 * SK); }
   if (!CAM.ok || R.snap) { CAM.x = ex; CAM.y = ey; CAM.z = ez; CAM.tx = lx; CAM.ty = ly; CAM.tz = lz; CAM.ok = true; R.snap = false; }
   else { var k = 1 - Math.exp(-dt * sp); CAM.x += (ex - CAM.x) * k; CAM.y += (ey - CAM.y) * k; CAM.z += (ez - CAM.z) * k; CAM.tx += (lx - CAM.tx) * k; CAM.ty += (ly - CAM.ty) * k; CAM.tz += (lz - CAM.tz) * k; }
 }
@@ -2531,7 +2546,7 @@ function render(m, dt, inp) {
   gl.depthMask(false); gl.disable(gl.DEPTH_TEST); setU1("uFog", 0); mId(); mT(CAM.x, 0, CAM.z); drw(S3.sky, WHITE, null, 0, 0, 1);
   if (S3.stars) { setU1("uPS", 2400); drw(S3.stars, WHITE, null, 0, 0, .9, 1); setU1("uPS", 0); }
   gl.enable(gl.DEPTH_TEST); gl.depthMask(true); setU1("uFog", lt.f);
-  mId(); mRY(S3.rot || 0);
+  mId(); mRY(S3.rot || 0); mS(SK, 1, SK);
   S3.layers.forEach(function (l) { if (l.dw) drw(l.m, l.col, l.tex, l.tm, l.lit, l.al, l.em); });
   if (S3.c0) { var ch = R.cheer > 0; if (ch) R.cheer -= dt; var bb0 = ch ? Math.abs(Math.sin(R.t * 10)) * 1.4 : 0, bb1 = ch ? Math.abs(Math.sin(R.t * 10 + 1.7)) * 1.4 : 0; mPush(); mT(0, bb0, 0); drw(S3.c0, WHITE, S3.crowdTex, 1, .55, 1); mPop(); mPush(); mT(0, bb1, 0); drw(S3.c1, WHITE, S3.crowdTex, 1, .55, 1); mPop(); } else if (R.cheer > 0) R.cheer -= dt;
   // joueurs
@@ -2548,7 +2563,7 @@ function render(m, dt, inp) {
     if (m.b.own === cpl && m.state === "play" && inp) { var pk = passTargetFor(m, cpl, inp.jx, inp.jy, false); if (pk.t && pk.s > -0.1) { PKT = pk.t; mId(); mPush(); mT(pk.t.x, 25 + bobm + 3, pk.t.y); mS(2.2, -3, 2.2); drw(MS.cone, WHITE, null, 0, 0, 1, .5); mPop(); mPush(); mT(pk.t.x, .2, pk.t.y); mS(6.5, 1, 6.5); drw(MS.ring, WHITE, null, 0, 0, .85, .3); mPop(); } else PKT = null; } else PKT = null;
   } else PKT = null;
   // filets transparents (en dernier)
-  gl.depthMask(false); mId(); mRY(S3.rot || 0); S3.layers.forEach(function (l) { if (!l.dw) drw(l.m, l.col, l.tex, l.tm, l.lit, l.al, l.em); }); gl.depthMask(true);
+  gl.depthMask(false); mId(); mRY(S3.rot || 0); mS(SK, 1, SK); S3.layers.forEach(function (l) { if (!l.dw) drw(l.m, l.col, l.tex, l.tm, l.lit, l.al, l.em); }); gl.depthMask(true);
   // particules
   parts3(m, dt);
   overlay(m, dt, inp);
