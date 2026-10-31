@@ -214,7 +214,15 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .hb-feat h2{font-family:var(--font-display);font-size:1.75rem;margin:12px 0 4px;line-height:1.05}
 .hb-feat p{margin:0 0 14px;font-size:.92rem;line-height:1.4;opacity:.95;max-width:30ch}
 .hb-play{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#8a1c14;font-weight:800;padding:10px 20px;border-radius:12px;font-size:.95rem}
-.hb-h{font-family:var(--font-display);font-size:1.25rem;margin:8px 0 2px}
+.hb-h{font-family:var(--font-display);font-size:1.2rem;margin:0;line-height:1.1}
+.hb-sec{display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px}
+.hb-sh{display:flex;align-items:center;gap:10px;margin-top:10px;scroll-margin-top:12px}
+.hb-sh p{margin:2px 0 0;color:var(--muted);font-size:.8rem}
+.hb-si{width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:none}
+.hb-nav{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -2px}
+.hb-nav::-webkit-scrollbar{display:none}
+.hb-nav a{flex:none;text-decoration:none;color:var(--fg);font-weight:600;font-size:.85rem;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.t-run .hb-art{background:linear-gradient(135deg,#e8a21d,#b04a12)}
 .hb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .hb-tile{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(20,35,29,.07);transition:transform .15s,box-shadow .15s}
 .hb-tile:active{transform:scale(.97)}
@@ -245,7 +253,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <img class="hb-logo" src="icon-192.png" alt="" width="52" height="52">
       <div class="hb-brand"><h1>Mémo Calme</h1><p class="hb-tag">Jeux gratuits, sans pub, qui marchent hors-ligne</p></div>
     </div>
-    <div class="hb-chips"><span>🎮 9 jeux</span><span>🧠 11 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
+    <div class="hb-chips"><span>🎮 8 jeux</span><span>🧠 10 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
     <p id="streak" class="streak"></p>
     <p id="flash" class="flash" role="status" hidden></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
@@ -265,22 +273,41 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <span class="hb-play">Jouer ▶</span>
   </a>
 
-  <section class="hb-sec" aria-label="Jeux">
-    <h2 class="hb-h">Tous les jeux</h2>
+  <nav class="hb-nav" aria-label="Catégories"><a href="#c-sport">⚽ Sport</a><a href="#c-course">🏁 Course</a><a href="#c-cartes">🃏 Cartes</a><a href="#c-gestion">🍽️ Gestion</a><a href="#hb-mind">🧠 Entraînement</a></nav>
+
+  <section class="hb-sec" id="c-sport" aria-label="Sport">
+    <div class="hb-sh"><span class="hb-si">⚽</span><div><h2 class="hb-h">Sport</h2><p>Football dans les quartiers de Dakar</p></div></div>
     <div class="hb-grid">
       <a class="hb-tile t-foot" href="./navetane.html" data-game="NAVETANE"><div class="hb-art"><span>⚽</span></div><b>NAVETANE</b><small>Football · 2D</small></a>
       <a class="hb-tile t-3d" href="./navetane3d.html" data-game="NAVETANE 3D"><div class="hb-art"><span>🏟️</span></div><b>NAVETANE 3D</b><small>Football · 3D</small></a>
-      <a class="hb-tile t-race" href="./turbo.html" data-game="Turbo Dakar"><div class="hb-art"><span>🏎️</span></div><b>Turbo Dakar</b><small>Course · poursuite</small></a>
-      <a class="hb-tile t-card" href="./belote.html" data-game="Belote &amp; Coinche"><div class="hb-art"><span>🃏</span></div><b>Belote &amp; Coinche</b><small>Cartes · vs ordinateur</small></a>
-      <a class="hb-tile t-shop" href="./commerce.html" data-game="Petit Commerce"><div class="hb-art"><span>🏪</span></div><b>Petit Commerce</b><small>Gestion · boutique</small></a>
-      <a class="hb-tile t-grill" href="./teranga.html" data-game="Teranga Grill"><div class="hb-art"><span>🔥</span></div><b>Teranga Grill</b><small>Gestion · cuisine</small></a>
-      <a class="hb-tile t-puz" href="./puzzle.html" data-game="Fruits de Dakar"><div class="hb-art"><span>🍉</span></div><b>Fruits de Dakar</b><small>Puzzle · 45 niveaux</small></a>
-      <a class="hb-tile t-ludo" href="./ludo.html" data-game="Ludo"><div class="hb-art"><span>🎲</span></div><b>Ludo</b><small>Plateau · 2 à 4 joueurs</small></a>
-      <a class="hb-tile t-mind" href="#hb-mind" data-game=""><div class="hb-art"><span>🧠</span></div><b>Entraînement</b><small>Mémoire · calcul · logique</small></a>
     </div>
   </section>
 
-  <h2 class="hb-h" id="hb-mind">🧠 Entraînement mental</h2>
+  <section class="hb-sec" id="c-course" aria-label="Course">
+    <div class="hb-sh"><span class="hb-si">🏁</span><div><h2 class="hb-h">Course</h2><p>Vitesse et réflexes</p></div></div>
+    <div class="hb-grid">
+      <a class="hb-tile t-race" href="./turbo.html" data-game="Turbo Dakar"><div class="hb-art"><span>🏎️</span></div><b>Turbo Dakar</b><small>Voiture · poursuite</small></a>
+      <a class="hb-tile t-run" href="#run" data-game="Course africaine" id="hb-run"><div class="hb-art"><span>🏃</span></div><b>Course africaine</b><small>Course · à pied</small></a>
+    </div>
+  </section>
+
+  <section class="hb-sec" id="c-cartes" aria-label="Cartes et plateau">
+    <div class="hb-sh"><span class="hb-si">🃏</span><div><h2 class="hb-h">Cartes et plateau</h2><p>Entre amis ou contre l’ordinateur</p></div></div>
+    <div class="hb-grid">
+      <a class="hb-tile t-card" href="./belote.html" data-game="Belote &amp; Coinche"><div class="hb-art"><span>🃏</span></div><b>Belote &amp; Coinche</b><small>Cartes · vs ordinateur</small></a>
+      <a class="hb-tile t-ludo" href="./ludo.html" data-game="Ludo"><div class="hb-art"><span>🎲</span></div><b>Ludo</b><small>Plateau · 2 à 4 joueurs</small></a>
+    </div>
+  </section>
+
+  <section class="hb-sec" id="c-gestion" aria-label="Gestion et puzzle">
+    <div class="hb-sh"><span class="hb-si">🍽️</span><div><h2 class="hb-h">Gestion et puzzle</h2><p>Construis, organise, réfléchis</p></div></div>
+    <div class="hb-grid">
+      <a class="hb-tile t-grill" href="./restoexpress.html" data-game="Resto Express"><div class="hb-art"><span>🍽️</span></div><b>Resto Express</b><small>Restaurant · hôtel</small></a>
+      <a class="hb-tile t-puz" href="./puzzle.html" data-game="Fruits de Dakar"><div class="hb-art"><span>🍉</span></div><b>Fruits de Dakar</b><small>Puzzle · 45 niveaux</small></a>
+    </div>
+  </section>
+
+  <div class="hb-sh" id="hb-mind"><span class="hb-si">🧠</span><div><h2 class="hb-h">Entraînement mental</h2><p>Mémoire, calcul, logique, concentration, mots wolof</p></div></div>
 
   <div class="tabs" role="tablist" aria-label="Choix du jeu">
         <button id="tab-memo" class="tab on" type="button" role="tab" aria-selected="true">Mémoire</button>
@@ -292,7 +319,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <button id="tab-suite" class="tab" type="button" role="tab" aria-selected="false">Suite logique</button>
     <button id="tab-mix" class="tab" type="button" role="tab" aria-selected="false">Mots mélangés</button>
     <button id="tab-pw" class="tab" type="button" role="tab" aria-selected="false">Paires wolof</button>
-    <button id="tab-run" class="tab" type="button" role="tab" aria-selected="false">Course africaine</button>
+    <button id="tab-run" class="tab" type="button" role="tab" aria-selected="false" hidden style="display:none">Course africaine</button>
     <button id="tab-mang" class="tab" type="button" role="tab" aria-selected="false">Attrape-mangues</button>
     <button id="tab-defi" class="tab" type="button" role="tab" aria-selected="false">Défi du jour</button>
     <button id="tab-prog" class="tab" type="button" role="tab" aria-selected="false">Progrès</button>
@@ -578,6 +605,8 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
  document.querySelectorAll("[data-game]").forEach(function(a){a.addEventListener("click",function(){var n=a.getAttribute("data-game");if(n)localStorage.setItem("memo-calme-last",JSON.stringify({n:n.replace("&amp;","&"),h:a.getAttribute("href")}))})});
  var l=JSON.parse(localStorage.getItem("memo-calme-last")||"null"),el=document.getElementById("hb-last");
  if(l&&l.h&&el){el.href=l.h;document.getElementById("hb-lname").textContent=l.n;el.hidden=false}
+ var hr=document.getElementById("hb-run");if(hr)hr.addEventListener("click",function(e){e.preventDefault();var t=document.getElementById("tab-run");if(t)t.click();var g=document.getElementById("g-run");if(g)setTimeout(function(){g.scrollIntoView({behavior:"smooth"})},60)});
+ document.querySelectorAll('.hb-nav a').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.getElementById(a.getAttribute("href").slice(1));if(t)t.scrollIntoView({behavior:"smooth"})})});
  document.querySelectorAll('a[href="#hb-mind"]').forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var t=document.getElementById("hb-mind");if(t)t.scrollIntoView({behavior:"smooth"})})});
 }catch(e){}})();
 </script>
