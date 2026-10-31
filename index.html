@@ -223,6 +223,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .hb-nav::-webkit-scrollbar{display:none}
 .hb-nav a{flex:none;text-decoration:none;color:var(--fg);font-weight:600;font-size:.85rem;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);white-space:nowrap}
 .t-mj .hb-art{background:linear-gradient(135deg,#1f7a52,#0a3a27)}
+.t-crowd .hb-art{background:linear-gradient(135deg,#2f7be0,#12406e)}
 .t-run .hb-art{background:linear-gradient(135deg,#e8a21d,#b04a12)}
 .hb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .hb-tile{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(20,35,29,.07);transition:transform .15s,box-shadow .15s}
@@ -254,7 +255,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <img class="hb-logo" src="icon-192.png" alt="" width="52" height="52">
       <div class="hb-brand"><h1>Mémo Calme</h1><p class="hb-tag">Jeux gratuits, sans pub, qui marchent hors-ligne</p></div>
     </div>
-    <div class="hb-chips"><span>🎮 9 jeux</span><span>🧠 10 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
+    <div class="hb-chips"><span>🎮 10 jeux</span><span>🧠 10 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
     <p id="streak" class="streak"></p>
     <p id="flash" class="flash" role="status" hidden></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
@@ -274,7 +275,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <span class="hb-play">Jouer ▶</span>
   </a>
 
-  <nav class="hb-nav" aria-label="Catégories"><a href="#c-sport">⚽ Sport</a><a href="#c-course">🏁 Course</a><a href="#c-cartes">🃏 Cartes</a><a href="#c-gestion">🍽️ Gestion</a><a href="#hb-mind">🧠 Entraînement</a></nav>
+  <nav class="hb-nav" aria-label="Catégories"><a href="#c-sport">⚽ Sport</a><a href="#c-course">🏁 Action</a><a href="#c-cartes">🃏 Cartes</a><a href="#c-gestion">🍽️ Gestion</a><a href="#hb-mind">🧠 Entraînement</a></nav>
 
   <section class="hb-sec" id="c-sport" aria-label="Sport">
     <div class="hb-sh"><span class="hb-si">⚽</span><div><h2 class="hb-h">Sport</h2><p>Football dans les quartiers de Dakar</p></div></div>
@@ -285,10 +286,11 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   </section>
 
   <section class="hb-sec" id="c-course" aria-label="Course">
-    <div class="hb-sh"><span class="hb-si">🏁</span><div><h2 class="hb-h">Course</h2><p>Vitesse et réflexes</p></div></div>
+    <div class="hb-sh"><span class="hb-si">🏁</span><div><h2 class="hb-h">Course et action</h2><p>Vitesse, réflexes et foules</p></div></div>
     <div class="hb-grid">
       <a class="hb-tile t-race" href="./turbo.html" data-game="Turbo Dakar"><div class="hb-art"><span>🏎️</span></div><b>Turbo Dakar</b><small>Voiture · poursuite</small></a>
       <a class="hb-tile t-run" href="#run" data-game="Course africaine" id="hb-run"><div class="hb-art"><span>🏃</span></div><b>Course africaine</b><small>Course · à pied</small></a>
+      <a class="hb-tile t-crowd" href="./foule.html" data-game="Foule Dakar"><div class="hb-art"><span>👥</span></div><b>Foule Dakar</b><small>Action · portes et boss</small></a>
     </div>
   </section>
 
