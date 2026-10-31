@@ -77,16 +77,47 @@ try{var sv=JSON.parse(localStorage.getItem("memo-calme-ludo")||"null");if(sv){if
 function saveAll(){try{localStorage.setItem("memo-calme-ludo",JSON.stringify({cfg:CFG,stat:STAT}))}catch(e){}}
 var NAMES=["Awa","Modou","Aminata","Toi"],SPD=[900,520,240];
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
-/* son */
-var AC=null;function tone(f,d,v,ty,at){if(!CFG.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+(at||0);o.type=ty||"triangle";o.frequency.value=f;g.gain.setValueAtTime(v||.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
-function noise(d,f,v){if(!CFG.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(var i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);var s=AC.createBufferSource();s.buffer=b;var fl=AC.createBiquadFilter();fl.type="bandpass";fl.frequency.value=f;var g=AC.createGain();g.gain.value=v||.4;s.connect(fl);fl.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
-var SFX={roll:function(){for(var i=0;i<6;i++)setTimeout(function(){noise(.05,1800+Math.random()*1200,.35)},i*95)},step:function(){tone(520,.05,.04,"square")},hop:function(){tone(740,.06,.05,"triangle")},cap:function(){tone(300,.15,.08,"sawtooth");tone(180,.25,.08,"sawtooth",.08)},home:function(){[660,880,1100].forEach(function(f,i){tone(f,.18,.07,"triangle",i*.08)})},win:function(){[523,659,784,1047,784,1047].forEach(function(f,i){tone(f,.22,.08,"triangle",i*.13)})},six:function(){tone(880,.12,.06);tone(1175,.18,.06,"triangle",.1)}};
+/* son réaliste : synthèse physique (bois, plastique, cloche), compresseur et petite réverbération de pièce */
+var AC=null,MASTER=null,REV=null,NBUF=null;
+function buildChain(ctx){var comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=5;comp.attack.value=.003;comp.release.value=.2;var mg=ctx.createGain();mg.gain.value=2.2;mg.connect(comp);comp.connect(ctx.destination);
+ var cv2=ctx.createConvolver(),len=Math.floor(ctx.sampleRate*.45),ir=ctx.createBuffer(2,len,ctx.sampleRate);for(var ch=0;ch<2;ch++){var d=ir.getChannelData(ch);for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2)}cv2.buffer=ir;var rg=ctx.createGain();rg.gain.value=.22;cv2.connect(rg);rg.connect(mg);
+ var nb=ctx.createBuffer(1,ctx.sampleRate*1.5,ctx.sampleRate),nd=nb.getChannelData(0);for(var k=0;k<nd.length;k++)nd[k]=Math.random()*2-1;
+ MASTER=mg;REV=cv2;NBUF=nb}
+function A(){if(!CFG.snd)return null;try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();buildChain(AC)}if(AC.state==="suspended")AC.resume();return AC}catch(e){return null}}
+function env(g,t,a,d,v){g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
+function burst(t,dur,f,q,v,type,wet){var c=AC;var s=c.createBufferSource();s.buffer=NBUF;s.loop=true;var fl=c.createBiquadFilter();fl.type=type||"bandpass";fl.frequency.value=f;fl.Q.value=q||1;var g=c.createGain();env(g,t,.0015,dur,v);s.connect(fl);fl.connect(g);g.connect(MASTER);if(wet){var w=c.createGain();w.gain.value=wet;g.connect(w);w.connect(REV)}s.start(t,Math.random()*.5);s.stop(t+dur+.03)}
+function thump(t,f0,f1,dur,v,type,wet){var c=AC,o=c.createOscillator(),g=c.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);env(g,t,.001,dur,v);o.connect(g);g.connect(MASTER);if(wet){var w=c.createGain();w.gain.value=wet;g.connect(w);w.connect(REV)}o.start(t);o.stop(t+dur+.03)}
+function partial(t,f,dur,v,wet){var c=AC,o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=f;env(g,t,.004,dur,v);o.connect(g);g.connect(MASTER);if(wet){var w=c.createGain();w.gain.value=wet;g.connect(w);w.connect(REV)}o.start(t);o.stop(t+dur+.05)}
+/* un choc de dé en plastique sur la table */
+function dieHit(t,vel){burst(t,.012+vel*.01,3800+Math.random()*2600,1.6,.5*vel,"bandpass",.25);burst(t,.03,1200+Math.random()*500,.9,.35*vel,"bandpass");thump(t,210+Math.random()*60,90,.05+vel*.03,.5*vel,"sine",.1)}
+/* un pion en bois posé sur la case */
+function woodTok(t,vel,pitch){var f=pitch||(330+Math.random()*40);thump(t,f*1.15,f*.62,.07,.7*vel,"triangle",.18);burst(t,.014,1700+Math.random()*500,2.4,.5*vel,"bandpass");thump(t,f*2.1,f*1.4,.03,.18*vel,"sine")}
+function bell(t,f,v){[1,2.76,5.4,8.9].forEach(function(m,i){partial(t,f*m,1.5/(1+i*.7),v/(1+i*1.4),.4)})}
+var SFX={
+ roll:function(){var c=A();if(!c)return;var t=c.currentTime+.02,i,x=0;
+  for(i=0;i<9;i++){x+=.035+Math.random()*.04;var v=.28+Math.random()*.4;burst(t+x,.014,4200+Math.random()*3200,2,.34*v,"bandpass",.12);if(i%2)thump(t+x,520+Math.random()*180,300,.025,.16*v,"triangle")}
+  var th=t+.5,vs=[1,.62,.38,.2],ts=[0,.17,.29,.37];for(i=0;i<4;i++)dieHit(th+ts[i],vs[i]);
+  burst(th+.38,.22,900,.6,.09,"lowpass");},
+ step:function(){var c=A();if(!c)return;woodTok(c.currentTime+.005,.55,300+Math.random()*50)},
+ hop:function(){var c=A();if(!c)return;var t=c.currentTime+.005;woodTok(t,.95,330)},
+ land:function(){var c=A();if(!c)return;var t=c.currentTime+.005;woodTok(t,1,280);burst(t+.01,.05,600,.8,.15,"lowpass")},
+ cap:function(){var c=A();if(!c)return;var t=c.currentTime+.005;woodTok(t,1.15,250);woodTok(t+.045,.8,410);burst(t,.18,1400,.5,.28,"bandpass",.2);thump(t+.03,720,140,.32,.2,"sine",.25);
+  for(var i=0;i<4;i++)woodTok(t+.38+i*(.07+Math.random()*.06),.28-i*.05,380+Math.random()*120)},
+ home:function(){var c=A();if(!c)return;var t=c.currentTime+.01;bell(t,784,.22);bell(t+.14,1046,.18);bell(t+.3,1318,.16)},
+ six:function(){var c=A();if(!c)return;var t=c.currentTime+.02;partial(t,1568,.35,.12,.3);partial(t+.07,2093,.4,.09,.3)},
+ turn:function(){var c=A();if(!c)return;var t=c.currentTime+.01;partial(t,659,.25,.09,.25);partial(t+.1,880,.35,.09,.25)},
+ click:function(){var c=A();if(!c)return;burst(c.currentTime+.002,.012,3000,2,.3,"bandpass");thump(c.currentTime,420,260,.04,.2,"triangle")},
+ win:function(){var c=A();if(!c)return;var t=c.currentTime+.02,i;
+  [[523,0],[659,.16],[784,.32],[1046,.5]].forEach(function(n){var o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type="sawtooth";o.frequency.value=n[0];f.type="lowpass";f.frequency.value=2200;env(g,t+n[1],.03,.9,.12);o.connect(f);f.connect(g);g.connect(MASTER);var w=c.createGain();w.gain.value=.4;g.connect(w);w.connect(REV);o.start(t+n[1]);o.stop(t+n[1]+1);
+   var o2=c.createOscillator(),g2=c.createGain();o2.type="triangle";o2.frequency.value=n[0]*2;env(g2,t+n[1],.03,.7,.06);o2.connect(g2);g2.connect(MASTER);o2.start(t+n[1]);o2.stop(t+n[1]+.8)});
+  for(i=0;i<46;i++)burst(t+.4+Math.random()*2.4,.045,1800+Math.random()*3600,.7,.14+Math.random()*.16,"bandpass",.2);
+  burst(t+.5,2.2,2600,.4,.06,"bandpass",.3)}};
 /* canvas */
 var cv=$("cv"),cx=cv.getContext("2d"),W=0,H=0,U=0,BX=0,BY=0,DPR=1;
 function resize(){DPR=Math.min(2,window.devicePixelRatio||1);var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);var B=Math.min(W-34,H-190);U=B/15;BX=(W-B)/2;BY=Math.max(14,(H-B-170)/2)}
 addEventListener("resize",function(){if(G)resize()});
 function px(x){return BX+x*U}function py(y){return BY+y*U}
-var G=null,GO=false,DICE={v:1,rolling:false,t:0,x:0,y:0},TK=[],SEL=null,WAIT=null,MOVABLE=[],ROLLWAIT=null,msg="",FX=[],AUTO=false;
+var G=null,GO=false,DICE={v:1,rolling:false,t:0,x:0,y:0,h:0,rot:0,dx:0},TK=[],SEL=null,WAIT=null,MOVABLE=[],ROLLWAIT=null,msg="",FX=[],AUTO=false;
 function initTokens(){TK=[];for(var c=0;c<4;c++){TK[c]=[];for(var i=0;i<4;i++){var q=cellPos(c,-1,i);TK[c][i]={c:c,i:i,x:q[0],y:q[1],lift:0,fl:0}}}}
 function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.lineTo(x+w-r,y);cx.quadraticCurveTo(x+w,y,x+w,y+r);cx.lineTo(x+w,y+h-r);cx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);cx.lineTo(x+r,y+h);cx.quadraticCurveTo(x,y+h,x,y+h-r);cx.lineTo(x,y+r);cx.quadraticCurveTo(x,y,x+r,y);cx.closePath()}
 function shade(c,k){var n=parseInt(c.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;if(k<0){r*=1+k;g*=1+k;b*=1+k}else{r+=(255-r)*k;g+=(255-g)*k;b+=(255-b)*k}return"rgb("+(r|0)+","+(g|0)+","+(b|0)+")"}
@@ -132,9 +163,9 @@ function frame(ts){requestAnimationFrame(frame);if(!G||!GO)return;var t=ts/1000;
  FX=FX.filter(function(f){f.t+=.016;if(f.t>1)return false;cx.save();cx.globalAlpha=1-f.t;cx.strokeStyle=f.col;cx.lineWidth=4;cx.beginPath();cx.arc(px(f.x),py(f.y),U*(.3+f.t*1.2),0,7);cx.stroke();cx.restore();return true});
  // dé
  var dy=BY+U*15+(H-(BY+U*15))/2+4,dx=W/2,sz=Math.min(64,(H-(BY+U*15))*.5);DICE.x=dx;DICE.y=dy;DICE.r=sz*.7;
- var sh=DICE.rolling?(Math.sin(t*50)*5):0,rot=DICE.rolling?Math.sin(t*30)*.5:0;
- cx.save();var pc=CHEX[G.cur];cx.fillStyle="rgba(0,0,0,.3)";rr(dx-sz*1.6-4,dy-sz*.75,sz*3.2+8,sz*1.5,sz*.3);cx.fill();cx.strokeStyle=pc;cx.lineWidth=3;cx.stroke();cx.restore();
- drawDie(dx+sh,dy,sz,DICE.v,rot);
+ cx.save();var pc=CHEX[G.cur];var tg=cx.createLinearGradient(dx-sz*1.6,0,dx+sz*1.6,0);tg.addColorStop(0,"#0c3a2a");tg.addColorStop(.5,"#14684a");tg.addColorStop(1,"#0c3a2a");cx.fillStyle=tg;rr(dx-sz*1.6-4,dy-sz*.8,sz*3.2+8,sz*1.6,sz*.3);cx.fill();cx.strokeStyle="#6b4220";cx.lineWidth=5;cx.stroke();cx.strokeStyle=pc;cx.lineWidth=2;rr(dx-sz*1.6+1,dy-sz*.8+5,sz*3.2-2,sz*1.6-10,sz*.26);cx.stroke();cx.restore();
+ var hh=DICE.h*sz;cx.fillStyle="rgba(0,0,0,"+(.35-.2*Math.min(1,DICE.h))+")";cx.beginPath();cx.ellipse(dx+DICE.dx,dy+sz*.5,sz*(.46-.08*DICE.h),sz*.13,0,0,7);cx.fill();
+ drawDie(dx+DICE.dx,dy-hh,sz*(1+.06*DICE.h),DICE.v,DICE.rot);
  // messages
  cx.font="700 "+Math.max(12,Math.min(15,sz*.26))+"px Arial";cx.textAlign="center";cx.textBaseline="middle";cx.fillStyle="#f4efe2";cx.fillText(msg,W/2,dy+sz*.95);
  if(ROLLWAIT){var pu=.5+.5*Math.sin(t*5);cx.strokeStyle="rgba(242,193,78,"+(.4+.6*pu)+")";cx.lineWidth=4;rr(dx-sz*.62,dy-sz*.62,sz*1.24,sz*1.24,sz*.22);cx.stroke()}}
@@ -142,7 +173,7 @@ requestAnimationFrame(frame);
 /* animation */
 function tween(tk,x1,y1,ms,hop){return new Promise(function(res){var x0=tk.x,y0=tk.y,t0=performance.now();(function s(){var u=Math.min(1,(performance.now()-t0)/ms);tk.x=x0+(x1-x0)*u;tk.y=y0+(y1-y0)*u;tk.lift=hop?Math.sin(u*Math.PI)*hop:0;if(u<1)requestAnimationFrame(s);else{tk.lift=0;res()}})()})}
 async function moveToken(c,i,d){var p=G.tok[c][i],np=p<0?0:p+d,tk=TK[c][i],sp=SPD[CFG.spd];
- if(p<0){var q=cellPos(c,0,i);SFX.hop();await tween(tk,q[0],q[1],sp*.6,.7)}else{for(var k=p+1;k<=np;k++){var q2=cellPos(c,k,i);SFX.step();await tween(tk,q2[0],q2[1],Math.max(70,sp*.28),.35)}}
+ if(p<0){var q=cellPos(c,0,i);await tween(tk,q[0],q[1],sp*.6,.7);SFX.land()}else{for(var k=p+1;k<=np;k++){var q2=cellPos(c,k,i);await tween(tk,q2[0],q2[1],Math.max(70,sp*.28),.35);if(k===np)SFX.land();else SFX.step()}}
  var r=applyMove(G,c,i,d);
  // réajuste la position finale (pile au centre / empilement)
  var f=cellPos(c,np,i);tk.x=f[0];tk.y=f[1];
@@ -151,8 +182,13 @@ async function moveToken(c,i,d){var p=G.tok[c][i],np=p<0?0:p+d,tk=TK[c][i],sp=SP
  return r}
 function say(t){msg=t}
 function setTurn(){var el=$("turn"),c=G.cur;el.textContent=(c===3?"À toi de jouer":"Tour de "+NAMES[c===0?0:c===1?1:2])+" · "+CNAME[c];el.style.borderColor=CHEX[c]}
-function rollDie(){return new Promise(function(res){var v=1+Math.floor(Math.random()*6);DICE.rolling=true;SFX.roll();var t0=performance.now(),iv=setInterval(function(){DICE.v=1+Math.floor(Math.random()*6)},70);setTimeout(function(){clearInterval(iv);DICE.rolling=false;DICE.v=v;if(v===6)SFX.six();res(v)},620)})}
-function waitRoll(){return new Promise(function(res){if(AUTO){res();return}ROLLWAIT=res;say("Touche le dé pour lancer")})}
+function rollDie(){return new Promise(function(res){var v=1+Math.floor(Math.random()*6);DICE.rolling=true;SFX.roll();var t0=performance.now(),TOT=1150,lastF=0;
+ (function s(){var el=performance.now()-t0;if(el>=TOT){DICE.rolling=false;DICE.v=v;DICE.h=0;DICE.rot=0;DICE.dx=0;if(v===6)SFX.six();res(v);return}
+  if(el-lastF>75&&el<900){DICE.v=1+Math.floor(Math.random()*6);lastF=el}
+  if(el<500){DICE.h=.35+Math.abs(Math.sin(el/55))*.12;DICE.dx=Math.sin(el/38)*5;DICE.rot=Math.sin(el/46)*.55}
+  else{var u=(el-500)/650,k=0,ts=[0,.26,.45,.58,.68,1],ht=[1.15,.55,.28,.12,.05];var seg=0;for(;seg<4;seg++)if(u<ts[seg+1])break;var w=(u-ts[seg])/(ts[seg+1]-ts[seg]);DICE.h=Math.abs(Math.sin(w*Math.PI))*ht[Math.min(seg,4)]*(seg===4?0:1);DICE.dx=(1-u)*(1-u)*-38;DICE.rot=(1-u)*(1-u)*(5.2)*(seg%2?-1:1)*Math.sin(u*9+1)}
+  requestAnimationFrame(s)})()})}
+function waitRoll(){return new Promise(function(res){if(AUTO){res();return}ROLLWAIT=res;SFX.turn();say("Touche le dé pour lancer")})}
 function waitPick(moves,d){return new Promise(function(res){if(AUTO){res(aiPick(G,3,d,moves));return}MOVABLE=moves.map(function(i){return{c:3,i:i}});WAIT=res})}
 cv.addEventListener("pointerdown",function(e){if(!GO)return;e.preventDefault();var r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
  if(ROLLWAIT&&Math.hypot(x-DICE.x,y-DICE.y)<DICE.r*1.5){var f=ROLLWAIT;ROLLWAIT=null;f();return}
@@ -182,7 +218,7 @@ function chips(id,items,cur,cb){var el=$(id);el.innerHTML="";items.forEach(funct
 function drawMenu(){chips("mN",[[2,"2 joueurs"],[3,"3 joueurs"],[4,"4 joueurs"]],CFG.n,function(v){CFG.n=v;saveAll()});chips("mL",[[0,"Facile"],[1,"Normal"],[2,"Fort"]],CFG.lvl,function(v){CFG.lvl=v;saveAll()});chips("mS",[[0,"Lente"],[1,"Normale"],[2,"Rapide"]],CFG.spd,function(v){CFG.spd=v;saveAll()});$("mStat").textContent=STAT.played?"Parties : "+STAT.played+" · gagnées : "+STAT.won+" · captures : "+STAT.caps:"Bonne partie !"}
 drawMenu();
 var RULES="<h2>Règles du Ludo</h2><p>🎯 <b>But :</b> amener tes 4 pions de ta cour jusqu'au centre.</p><p>🎲 Il faut un <b>6</b> pour sortir un pion. Un 6 te fait <b>rejouer</b>. Trois 6 de suite : ton tour est annulé.</p><p>➡️ Les pions avancent dans le sens des aiguilles d'une montre, puis montent dans leur couloir de couleur.</p><p>💥 Si tu tombes sur un pion adverse, il retourne dans sa cour et tu rejoues. Les cases avec une <b>étoile</b> et les cases de départ sont sûres.</p><p>🏁 Pour entrer au centre, il faut le <b>nombre exact</b>. Arriver au centre te fait rejouer.</p><p>👆 Touche le dé pour lancer, puis touche le pion à déplacer.</p>";
-$("mGo").onclick=function(){startGame()};$("mRules").onclick=function(){modal(RULES+"<button class='btn' data-r='ok'>Fermer</button>")};
+$("mGo").onclick=function(){SFX.click();startGame()};$("mRules").onclick=function(){modal(RULES+"<button class='btn' data-r='ok'>Fermer</button>")};
 $("bMenu").onclick=async function(){var a=await modal("<h2>Pause</h2><button class='btn' data-r='go'>▶ Reprendre</button><button class='btn sec' data-r='new'>🔄 Nouvelle partie</button><button class='btn sec' data-r='menu'>🏠 Menu</button>");if(a==="new")startGame();if(a==="menu")showMenu()};
 $("bSnd").onclick=function(){CFG.snd=CFG.snd?0:1;$("bSnd").textContent=CFG.snd?"🔊":"🔇";saveAll()};
 
