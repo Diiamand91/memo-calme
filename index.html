@@ -222,6 +222,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .hb-nav{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -2px}
 .hb-nav::-webkit-scrollbar{display:none}
 .hb-nav a{flex:none;text-decoration:none;color:var(--fg);font-weight:600;font-size:.85rem;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.t-mj .hb-art{background:linear-gradient(135deg,#1f7a52,#0a3a27)}
 .t-run .hb-art{background:linear-gradient(135deg,#e8a21d,#b04a12)}
 .hb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .hb-tile{display:flex;flex-direction:column;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(20,35,29,.07);transition:transform .15s,box-shadow .15s}
@@ -253,7 +254,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <img class="hb-logo" src="icon-192.png" alt="" width="52" height="52">
       <div class="hb-brand"><h1>Mémo Calme</h1><p class="hb-tag">Jeux gratuits, sans pub, qui marchent hors-ligne</p></div>
     </div>
-    <div class="hb-chips"><span>🎮 8 jeux</span><span>🧠 10 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
+    <div class="hb-chips"><span>🎮 9 jeux</span><span>🧠 10 exercices</span><span>🚫 0 pub</span><span>🇸🇳 Fait au Sénégal</span></div>
     <p id="streak" class="streak"></p>
     <p id="flash" class="flash" role="status" hidden></p>
     <div class="profil" role="group" aria-label="Profil de jeu">
@@ -296,6 +297,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     <div class="hb-grid">
       <a class="hb-tile t-card" href="./belote.html" data-game="Belote &amp; Coinche"><div class="hb-art"><span>🃏</span></div><b>Belote &amp; Coinche</b><small>Cartes · vs ordinateur</small></a>
       <a class="hb-tile t-ludo" href="./ludo.html" data-game="Ludo"><div class="hb-art"><span>🎲</span></div><b>Ludo</b><small>Plateau · 2 à 4 joueurs</small></a>
+      <a class="hb-tile t-mj" href="./mahjong.html" data-game="Mahjong"><div class="hb-art"><span>🀄</span></div><b>Mahjong</b><small>Tuiles · 4 plateaux</small></a>
     </div>
   </section>
 
