@@ -97,6 +97,11 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 #bB{width:92px;height:92px;right:12px;bottom:46px;background:#e53935;--p:0;background-image:conic-gradient(rgba(253,216,53,.95) calc(var(--p)*1%),transparent 0)}
 #bB .in{position:absolute;inset:7px;border-radius:50%;background:#e53935;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #bC{width:66px;height:66px;right:96px;bottom:108px;background:#43a047}
+#bD{width:58px;height:58px;right:188px;bottom:30px;background:#8e24aa;font-size:11px}
+#bE{width:58px;height:58px;right:22px;bottom:148px;background:#ef6c00;font-size:11px}
+#bD i,#bE i{font-size:18px}
+#ctl.lh #bD{right:auto;left:188px}#ctl.lh #bE{right:auto;left:22px}
+#ctl.bg #bD{right:216px}#ctl.bg #bE{bottom:164px}
 #sp{position:absolute;right:92px;bottom:100px;width:78px;height:5px;border-radius:3px;background:#173325;display:none}
 #sp i{display:block;height:100%;border-radius:3px;background:#69f0ae;width:100%}
 #rad{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 58px);width:70px;height:108px;border-radius:8px;border:1px solid rgba(255,255,255,.3);z-index:4;pointer-events:none;display:none}
@@ -216,6 +221,8 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
     <div id="sp"><i></i></div>
     <button class="gb" id="bA"><i>↗</i><span id="lA">PASSE</span></button>
     <button class="gb" id="bB"><div class="in"><i>⚽</i><span id="lB">TIR</span></div></button>
+    <button class="gb" id="bD"><i>⇈</i><span id="lD">PROF.</span></button>
+    <button class="gb" id="bE"><i>⤴</i><span id="lE">CENTRE</span></button>
   </div>
 </div>
 <div id="pz"><div class="box"><div class="big">PAUSE</div><div id="pzCtl" style="text-align:left;margin-bottom:8px"></div><button class="btn pri" id="pzR" style="text-align:center">Reprendre</button><button class="btn red" id="pzQ" style="text-align:center">Quitter le match</button></div></div>
@@ -411,6 +418,45 @@ function doPass(m, p, ax, ay, lob, forAI, force) {
   var t = m.teams[p.team]; if (t.human && tgt && tgt.r !== "GK") t.ctrl = tgt.ix;
   return true;
 }
+function kickLob(m, p, tx, ty, tgt, err0) {
+  var b = m.b; tx = clamp(tx, -PW / 2 + 6, PW / 2 - 6); ty = clamp(ty, -PL / 2 + 6, PL / 2 - 6);
+  var dx = tx - p.x, dy = ty - p.y, d = hlen(dx, dy) || 1, err = (1 - p.pas) * err0 * (1 + (pressureOn(m, p) < 22 ? 0.5 : 0)), ang = Math.atan2(dy, dx) + rnd(-err, err);
+  releaseBall(m, p); var T = clamp(d / 210, 0.5, 1.25); b.vz = GRAV * T / 2; var hs = d / T; b.vx = Math.cos(ang) * hs; b.vy = Math.sin(ang) * hs; b.z = 1;
+  b.x = p.x + Math.cos(ang) * 10; b.y = p.y + Math.sin(ang) * 10; p.fx = Math.cos(ang); p.fy = Math.sin(ang);
+  m.passT = tgt || null; m.offP = tgt && isOffside(m, tgt, p) ? tgt : null; m.offT = 3.5; m.ev.push({ k: "kick" });
+  var t = m.teams[p.team]; if (t.human && tgt && tgt.r !== "GK") t.ctrl = tgt.ix; return true;
+}
+function doThrough(m, p, ax, ay) {
+  var b = m.b; if (b.own !== p) return false;
+  var t = m.teams[p.team], pick = passTargetFor(m, p, ax, ay, true), q = pick.t;
+  if (!q || (q.y - p.y) * t.dir < 6) return doPass(m, p, ax, ay, false, false);
+  var d0 = hlen(q.x - p.x, q.y - p.y), lead = clamp(26 + 0.22 * d0, 26, 70) * SK, tx = q.x + q.vx * 0.55, ty = q.y + q.vy * 0.55 + t.dir * lead;
+  tx = clamp(tx, -PW / 2 + 8, PW / 2 - 8); ty = clamp(ty, -PL / 2 + 8, PL / 2 - 8);
+  var dx = tx - p.x, dy = ty - p.y, d = hlen(dx, dy) || 1, err = (1 - p.pas) * 0.24 * (1 + (pressureOn(m, p) < 22 ? 0.5 : 0)), ang = Math.atan2(dy, dx) + rnd(-err, err), sp = clamp(1.35 * d + 120, 210, 430);
+  releaseBall(m, p); b.vx = Math.cos(ang) * sp; b.vy = Math.sin(ang) * sp; b.vz = 0; b.x = p.x + Math.cos(ang) * 10; b.y = p.y + Math.sin(ang) * 10; p.fx = Math.cos(ang); p.fy = Math.sin(ang);
+  m.passT = q; m.offP = isOffside(m, q, p) ? q : null; m.offT = 3.5; m.ev.push({ k: "kick" }); if (t.human && q.r !== "GK") t.ctrl = q.ix; return true;
+}
+function doCross(m, p) {
+  var b = m.b; if (b.own !== p) return false;
+  var t = m.teams[p.team], gy = oppY(t), bx0 = 0, by0 = gy - t.dir * 46 * SK, best = null, bd = 1e9;
+  t.players.forEach(function (q) { if (q === p || q.off || q.r === "GK") return; var d = hlen(q.x - bx0, q.y - by0) + (q.r === "DEF" ? 40 : 0); if (d < bd) { bd = d; best = q; } });
+  var tx = best ? best.x + best.vx * 0.3 : bx0, ty = best ? best.y + best.vy * 0.3 : by0;
+  if (hlen(tx - p.x, ty - p.y) < 40) { tx = bx0; ty = by0; best = null; }
+  return kickLob(m, p, tx, ty, best, 0.3);
+}
+var PRESS_T = 0;
+function doIntercept(m, t, p) {
+  var b = m.b; if (b.own || b.lastTeam === t.idx) return false;
+  var sp = hlen(b.vx, b.vy), best = null, bm = 1e9, bx = 0, by = 0;
+  if (sp < 30) { var n = nearestToBall(m, t.idx, true); if (n) { t.ctrl = n.ix; n.boost = 0.5; n.icp = { x: b.x, y: b.y, t: 1.4 }; return true; } return false; }
+  var ux = b.vx / sp, uy = b.vy / sp;
+  t.players.forEach(function (q) {
+    if (q.off || q.r === "GK") return; var rx = q.x - b.x, ry = q.y - b.y, along = rx * ux + ry * uy; if (along < 8 || along > 330) return;
+    var cx = b.x + ux * along, cy = b.y + uy * along, dq = hlen(q.x - cx, q.y - cy), tq = dq / (q.spd * 1.2), tb = along / Math.max(80, sp), mg = tq - tb;
+    if (mg < bm) { bm = mg; best = q; bx = cx; by = cy; }
+  });
+  if (!best) return false; t.ctrl = best.ix; best.boost = 0.55; best.icp = { x: bx, y: by, t: 1.6 }; return true;
+}
 function doShot(m, p, power, aimx, forAI) {
   var b = m.b; if (b.own !== p) return false;
   var t = m.teams[p.team], gy = oppY(t), d = hlen(p.x, gy - p.y);
@@ -501,7 +547,7 @@ function aiTeam(m, t, dt) {
     presser = cand[0]; presser2 = cand[1];
   }
   var chasers = !b.own ? t.players.filter(function (p) { return p.r !== "GK" && !p.off && p !== ctrlPlayer(m, t); }).sort(function (a, c) { return hlen(a.x - b.x, a.y - b.y) - hlen(c.x - b.x, c.y - b.y); }).slice(0, t.human ? 1 : 2) : [];
-  var mul = t.idx === 1 ? k.spd : 1;
+  var mul = t.idx === 1 ? k.spd : 1, PR = (t.pressNow > 0) ? 1 : t.press;
   t.players.forEach(function (p) {
     if (p === ctrlPlayer(m, t) && m.state === "play") return;
     if (p.r === "GK") { gkAI(m, t, p, dt); return; }
@@ -519,7 +565,7 @@ function aiTeam(m, t, dt) {
     if (!attPhase) { var guard = ownY(t) + t.dir * 70; if (p.r === "DEF") ty = t.dir < 0 ? Math.max(ty, b.y - t.dir * 0) : Math.min(ty, b.y); }
     var f = 0.9, act = false;
     if (m.passT === p && !b.own && b.lastTeam === t.idx) { tx = b.x + b.vx * 0.25; ty = b.y + b.vy * 0.25; f = 1; act = true; }
-    else if (carrier && (p === presser || (p === presser2 && hlen(p.x - carrier.x, p.y - carrier.y) < (t.press === 1 ? 115 : t.press === 2 ? 45 : 70) && (k.tkl > 0.9 || t.press === 1)))) {
+    else if (carrier && (p === presser || (p === presser2 && hlen(p.x - carrier.x, p.y - carrier.y) < (PR === 1 ? 115 : PR === 2 ? 45 : 70) && (k.tkl > 0.9 || PR === 1)))) {
       var gx = carrier.x * 0.85, gyy = carrier.y + (carrier.team === 0 ? -1 : 1) * 0 + (-t.dir * 6);
       tx = carrier.x + carrier.vx * 0.15; ty = carrier.y + carrier.vy * 0.15 + (p === presser2 ? 14 * -t.dir : 0); f = 1; act = true;
       var dd = hlen(p.x - carrier.x, p.y - carrier.y);
@@ -577,16 +623,25 @@ function humanControl(m, t, inp, dt) {
   var mulSp = (sprintOk ? 1.22 : 1) * (p.boost > 0 ? 1.55 : 1) * (has ? 0.95 : 1);
   if (sprintOk) p.stam = Math.max(0, p.stam - dt * 0.32 * (1.3 - 0.6 * (p.sta || 0.7))); else p.stam = Math.min(1, p.stam + dt * 0.16);
   var dx = inp.jx, dy = inp.jy, mm = Math.min(1, jm);
+  if (p.icp) { p.icp.t -= dt; if (p.icp.t <= 0 || b.own) p.icp = null; }
+  if (!has && ((inp.press && inp.press.h) || p.icp) && jm < 0.2) {
+    var car = b.own && b.own.team !== t.idx ? b.own : null, tgx = p.icp ? p.icp.x : (car || b).x, tgy = p.icp ? p.icp.y : (car || b).y, ddx = tgx - p.x, ddy = tgy - p.y, ddm = hlen(ddx, ddy);
+    if (ddm > 5) { dx = ddx / ddm; dy = ddy / ddm; jm = 1; mm = p.icp ? 1 : 0.92; }
+  }
+  t.pressNow = inp.press && inp.press.h && !has ? 0.3 : Math.max(0, (t.pressNow || 0) - dt);
   if (jm > 0.12) { var s = p.stun > 0 ? 0 : p.spd * mulSp * mm; var dvx = dx / jm * s, dvy = dy / jm * s; p.vx += (dvx - p.vx) * Math.min(1, dt * 10); p.vy += (dvy - p.vy) * Math.min(1, dt * 10); }
   else { p.vx -= p.vx * Math.min(1, dt * 8); p.vy -= p.vy * Math.min(1, dt * 8); }
   if (p.slide > 0) { p.vx = p.fx * 190; p.vy = p.fy * 190; }
   var ax = jm > 0.25 ? dx / jm : p.fx, ay = jm > 0.25 ? dy / jm : p.fy;
   if (has) {
-    if (inp.pass && inp.pass.up) { doPass(m, p, ax, ay, inp.pass.t > 0.32, false); }
+    if (inp.thr && inp.thr.down) doThrough(m, p, ax, ay);
+    else if (inp.crs && inp.crs.down) doCross(m, p);
+    else if (inp.pass && inp.pass.up) { doPass(m, p, ax, ay, inp.pass.t > 0.32, false); }
     else if (inp.shoot && inp.shoot.up) { var pw = clamp(inp.shoot.t / 0.75, 0.25, 1); doShot(m, p, pw, jm > 0.3 ? dx / jm * 0.9 : 0, false); }
     else if (inp.drib && inp.drib.down && !(p.tcd2 > 0)) doFeint(m, p, jm > 0.25 ? ((dx * -p.fy + dy * p.fx) >= 0 ? 1 : -1) : (Math.random() < 0.5 ? 1 : -1));
   } else {
     if (inp.pass && inp.pass.down) { var near = nearestToBall(m, t.idx, true, p); if (near) t.ctrl = near.ix; }
+    if (inp.crs && inp.crs.down) doIntercept(m, t, p);
     if (inp.shoot && inp.shoot.down && p.slide <= 0 && p.tcd <= 0) {
       var o = b.own && b.own.team !== t.idx ? b.own : null;
       if (o && hlen(o.x - p.x, o.y - p.y) < 24) tryTackle(m, p, 0.14);
@@ -1697,14 +1752,14 @@ function assikoTick() {
   }
 }
 /* ---- commandes ---- */
-var IN = { jx: 0, jy: 0 }, BT = { A: { h: 0, dn: 0, un: 0, t: 0 }, B: { h: 0, dn: 0, un: 0, t: 0 }, C: { h: 0, dn: 0, un: 0, t: 0 } }, KEYS = {};
+var IN = { jx: 0, jy: 0 }, BT = { A: { h: 0, dn: 0, un: 0, t: 0 }, B: { h: 0, dn: 0, un: 0, t: 0 }, C: { h: 0, dn: 0, un: 0, t: 0 }, D: { h: 0, dn: 0, un: 0, t: 0 }, E: { h: 0, dn: 0, un: 0, t: 0 } }, KEYS = {};
 function btnBind(el, k) {
   el.addEventListener("pointerdown", function (e) { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (x) { } audioInit(); var b = BT[k]; if (!b.h) { b.h = 1; b.dn = 1; b.t = 0; } el.classList.add("on"); });
   var up = function (e) { e.preventDefault(); var b = BT[k]; if (b.h) { b.h = 0; b.un = 1; } el.classList.remove("on"); };
   el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up); el.addEventListener("lostpointercapture", up);
   el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
 }
-btnBind($("bA"), "A"); btnBind($("bB"), "B"); btnBind($("bC"), "C");
+btnBind($("bA"), "A"); btnBind($("bB"), "B"); btnBind($("bC"), "C"); btnBind($("bD"), "D"); btnBind($("bE"), "E");
 var JS = { id: -1, ox: 0, oy: 0 };
 (function () {
   var jz = $("jz"), jb = $("jb"), jk = $("jk");
@@ -1728,7 +1783,7 @@ var JS = { id: -1, ox: 0, oy: 0 };
   jz.addEventListener("pointerup", end); jz.addEventListener("pointercancel", end); jz.addEventListener("lostpointercapture", end);
 })();
 function applyCtl() { var c = $("ctl"); c.classList.toggle("dp", (SV.ctl | 0) === 2); c.classList.toggle("fx", (SV.ctl | 0) === 1); c.classList.toggle("lh", !!SV.hand); c.classList.toggle("bg", !!SV.bsz); var jb = $("jb"); jb.style.left = SV.hand ? "auto" : "48px"; jb.style.right = SV.hand ? "48px" : "auto"; jb.style.top = "50%"; jb.style.marginTop = "-59px"; jb.style.opacity = (SV.ctl | 0) === 1 ? ".95" : ""; }
-var KMAP = { z: "A", j: "A", x: "B", k: "B", " ": "B", c: "C", l: "C", shift: "C" };
+var KMAP = { z: "A", j: "A", x: "B", k: "B", " ": "B", c: "C", l: "C", shift: "C", v: "D", b: "E" };
 window.addEventListener("keydown", function (e) {
   var k = e.key.toLowerCase(); if (!G.run) return; if (e.key.indexOf("Arrow") === 0 || k === " ") e.preventDefault(); KEYS[k] = 1; audioInit();
   var b = KMAP[k]; if (b && !BT[b].h) { BT[b].h = 1; BT[b].dn = 1; BT[b].t = 0; $("b" + b).classList.add("on"); }
@@ -1769,9 +1824,9 @@ function loop(ts) {
   var jy = readJoy(), inp = { jx: jy[0], jy: jy[1], sprint: !!BT.C.h, pass: null, shoot: null, drib: null };
   G.acc += dt * GSV[SV.gs | 0]; var n = 0;
   while (G.acc >= 1 / 60 && n < 4) {
-    ["A", "B", "C"].forEach(function (k) { if (BT[k].h) BT[k].t += 1 / 60; });
-    inp.pass = { down: !!BT.A.dn, up: !!BT.A.un, t: BT.A.t }; inp.shoot = { down: !!BT.B.dn, up: !!BT.B.un, t: Math.max(BT.B.t, 0.34) }; inp.drib = { down: !!BT.C.dn, up: !!BT.C.un, t: BT.C.t };
-    update(m, 1 / 60, inp); if (m.state === "play") rec(m); BT.A.dn = BT.A.un = BT.B.dn = BT.B.un = BT.C.dn = BT.C.un = 0;
+    ["A", "B", "C", "D", "E"].forEach(function (k) { if (BT[k].h) BT[k].t += 1 / 60; });
+    inp.pass = { down: !!BT.A.dn, up: !!BT.A.un, t: BT.A.t }; inp.shoot = { down: !!BT.B.dn, up: !!BT.B.un, t: Math.max(BT.B.t, 0.34) }; inp.drib = { down: !!BT.C.dn, up: !!BT.C.un, t: BT.C.t }; inp.thr = { down: !!BT.D.dn, h: !!BT.D.h }; inp.press = { h: !!BT.D.h }; inp.crs = { down: !!BT.E.dn, h: !!BT.E.h };
+    update(m, 1 / 60, inp); if (m.state === "play") rec(m); BT.A.dn = BT.A.un = BT.B.dn = BT.B.un = BT.C.dn = BT.C.un = BT.D.dn = BT.D.un = BT.E.dn = BT.E.un = 0;
     handleEv(m); G.acc -= 1 / 60; n++;
   }
   if (G.acc > .1) G.acc = 0;
@@ -1844,7 +1899,7 @@ function hud(m, inp) {
   var sc = m.score[0] + " - " + m.score[1]; if (sc !== G.lastScore) { G.lastScore = sc; $("hSc").textContent = sc; }
   var tm = m.state === "half" ? "MT" : m.state === "full" ? "FIN" : (m.golden ? "BUT EN OR " : "") + matchMinute(m) + "'" + (G.wxIco || ""); if ($("hTm").textContent !== tm) $("hTm").textContent = tm;
   var t0 = m.teams[0], cp = t0.ctrl >= 0 ? t0.players[t0.ctrl] : null, has = cp && m.b.own === cp;
-  var la = has ? "PASSE" : "CHANGER", lb = has ? "TIR" : "TACLE"; if ($("lA").textContent !== la) { $("lA").textContent = la; $("lB").textContent = lb; }
+  var la = has ? "PASSE" : "CHANGER", lb = has ? "TIR" : "TACLE", ld = has ? "PROF." : "PRESS", le = has ? "CENTRE" : "INTER."; if ($("lA").textContent !== la) { $("lA").textContent = la; $("lB").textContent = lb; $("lD").textContent = ld; $("lE").textContent = le; $("bD").firstChild.textContent = has ? "⇈" : "🛡"; $("bE").firstChild.textContent = has ? "⤴" : "✋"; }
   var pw = BT.B.h && has ? Math.min(100, BT.B.t / 0.75 * 100) : 0; $("bB").style.setProperty("--p", pw);
   var sp = $("sp"); if (cp) { sp.style.display = cp.stam < .98 ? "block" : "none"; sp.firstChild.style.width = Math.round(cp.stam * 100) + "%"; }
   if (infT > 0) { infT -= 1 / 60; if (infT <= 0) $("inf").className = ""; }
