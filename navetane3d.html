@@ -181,6 +181,7 @@ body.inm #rot{display:flex}
   <div class="lab">Tactique</div><div id="suTac"></div>
   <div class="lab">Terrain</div><div class="chips" id="suVen"></div>
   <div class="lab">Caméra</div><div class="chips" id="suCam"></div>
+  <div class="lab">Qualité graphique</div><div class="chips" id="suQ"></div><div class="note">Baisse la qualité si le jeu saccade. Le jeu la réduit aussi tout seul si besoin.</div>
   <div class="lab">Météo</div><div class="chips" id="suWx"></div>
   <div class="lab">Durée du match</div><div class="chips" id="suLen"></div>
   <div class="card" id="suTer" style="margin-top:14px"></div>
@@ -986,7 +987,7 @@ var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6", "Joueur 7"];
 function FM() { return formsOf(npOf()); }
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 5, camv: 2, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 5, camv: 2, q: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; if (s.camv !== 2) { s.camv = 2; s.cam = 5; } return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
@@ -1067,6 +1068,8 @@ function renderSetup() {
   $("suVen").innerHTML = ["🎲 Auto"].concat(VENUES.map(function (v) { return v.n; })).map(function (n, i) { return "<button class='chip" + (i === SV.ven ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = CAMN.map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suQ").innerHTML = ["⚡ Économique", "⚖️ Normale", "✨ Haute"].map(function (n, i) { return "<button class='chip" + (i === (SV.q == null ? 1 : SV.q) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
+  $("suQ").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.q = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.cam = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suFm").innerHTML = ["5 contre 5", "7 contre 7", "11 contre 11"].map(function (n, i) { return "<button class='chip" + (i === (SV.fmt | 0) ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suFm").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.fmt = +b.getAttribute("data-v"); save(); renderSetup(); }; });
@@ -1400,7 +1403,7 @@ var R = { w: 0, h: 0, oy: 0, sc: 1, dpr: 1, bg: null, night: null, theme: 0, sha
 var TEX = 300, TEY = 380, TSC = 2;
 function resize() {
   var w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
-  R.dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.round(w * R.dpr); cv.height = Math.round(h * R.dpr); R.w = w; R.h = h;
+  R.dpr = Math.min([1, 1.5, 2][SV.q == null ? 1 : SV.q], window.devicePixelRatio || 1); cv.width = Math.round(w * R.dpr); cv.height = Math.round(h * R.dpr); R.w = w; R.h = h;
   var top = ($("hud").offsetHeight || 56) + 2, bot = ($("ctl").offsetHeight || 200) * 0.5, av = Math.max(100, h - top - bot);
   R.sc = Math.min(w / (VX * 2), av / (VY * 2)); R.oy = top + av / 2;
   var tvn = h > w * 1.1 && R.camMode !== 2; if (tvn !== R.tv) R.bg = null; R.tv = tvn; R.snap = true; R.top0 = top; R.bot0 = bot;
@@ -1776,7 +1779,7 @@ function audioInit() {
   try {
     var A = window.AudioContext || window.webkitAudioContext; if (!A) return; var c = new A(); AU.ctx = c; AU.master = c.createGain(); AU.master.gain.value = SV.snd ? 0.9 : 0; AU.master.connect(c.destination);
     var nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; AU.nb = nb;
-    var s = c.createBufferSource(); s.buffer = nb; s.loop = true; var f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 520; f.Q.value = .5; var g = c.createGain(); g.gain.value = .05; s.connect(f); f.connect(g); g.connect(AU.master); s.start(); AU.amb = g;
+    var s = c.createBufferSource(); s.buffer = nb; s.loop = true; var f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 520; f.Q.value = .5; var g = c.createGain(); g.gain.value = .05; AU.ag = g; s.connect(f); f.connect(g); g.connect(AU.master); s.start(); AU.amb = g;
   } catch (e) { AU.ctx = null; }
 }
 function setSnd(on) { SV.snd = on; save(); if (AU.master) AU.master.gain.value = on ? 0.9 : 0; $("bMu").textContent = on ? "🔊" : "🔇"; }
@@ -1908,7 +1911,9 @@ function startMatch(cfg) {
 function loop(ts) {
   if (!G.run) return; requestAnimationFrame(loop);
   var m = G.m, dt = Math.min(0.05, (ts - G.last) / 1000); G.last = ts;
-  if (G.paused) return;
+  if (G.paused) { G.fe = 0.016; G.fl = 0; return; }
+  if (!G.intro && dt > 0) { G.fe = (G.fe || .016) * .96 + dt * .04; G.fl = (G.fl || 0) + (G.fe > .034 ? dt : -dt * 2); if (G.fl < 0) G.fl = 0; if (G.fl > 3 && (SV.q == null ? 1 : SV.q) > 0) { SV.q = (SV.q == null ? 1 : SV.q) - 1; save(); G.fl = 0; G.fe = .016; resize(); info("⚙️ Qualité réduite pour plus de fluidité"); } }
+  if (AU.ag && AU.ctx && m) { var bt = m.b, tn = m.state === "goal" ? 1 : Math.abs(bt.y) > PL / 2 - 130 * SK ? .7 : .25; AU.ag.gain.value += ((.04 + .09 * tn + (R.cheer > 0 ? .1 : 0)) - AU.ag.gain.value) * .05; }
   if (G.intro) { render(m, dt, { jx: 0, jy: 0 }); return; }
   var jy = readJoy(), inp = { jx: jy[0], jy: jy[1], sprint: !!BT.C.h, pass: null, shoot: null, drib: null };
   G.acc += dt * GSV[SV.gs | 0]; var n = 0;
@@ -2007,7 +2012,9 @@ function pzCtlDraw() {
   var h = "<div class='lab' style='margin-top:10px'>Tactique en direct</div>" + ch(PRESN, "press") + ch(["Largeur normale", "Large", "Serrée"], "wid") + ch(["Défense normale", "Haute", "Basse"], "dh");
   h += "<div class='lab' style='margin-top:8px'>Remplacements (" + (3 - t.subN) + " restants)</div>";
   if (t.subN < 3) { h += "<div class='note' style='margin:2px 0 6px'>Touche le joueur à sortir (le nouveau arrive frais, pleine endurance).</div><div class='chips'>" + t.players.map(function (p, i) { return "<button class='chip' data-sb='" + i + "' style='font-size:12px;padding:7px 10px" + (p.stam < .6 || p.inj ? ";border-color:#e57373" : "") + "'>" + (p.inj ? "🚑" : "") + p.num + " " + esc(p.name.split(" ")[1] || p.name) + " · " + Math.round(p.stam * 100) + "%</button>"; }).join("") + "</div>"; }
+  h += "<div class='lab' style='margin-top:8px'>Qualité graphique</div><div class='chips'>" + ["⚡ Économique", "⚖️ Normale", "✨ Haute"].map(function (n, i) { return "<button class='chip" + (i === (SV.q == null ? 1 : SV.q) ? " on" : "") + "' data-q='" + i + "'>" + n + "</button>"; }).join("") + "</div>";
   $("pzCtl").insertAdjacentHTML("beforeend", h);
+  $("pzCtl").querySelectorAll("[data-q]").forEach(function (b) { b.onclick = function () { SV.q = +b.getAttribute("data-q"); save(); resize(); pzCtlDraw(); }; });
   $("pzCtl").querySelectorAll("[data-tk]").forEach(function (b) { b.onclick = function () { t[b.getAttribute("data-tk")] = +b.getAttribute("data-v"); pzCtlDraw(); }; });
   $("pzCtl").querySelectorAll("[data-sb]").forEach(function (b) { b.onclick = function () { var i = +b.getAttribute("data-sb"), nm = t.players[i].name; if (doSub(m, t, i)) { G.subMsg = "🔄 " + nm + " ➜ " + t.players[i].name; } else G.subMsg = "Remplacement impossible maintenant"; pzCtlDraw(); }; });
 }
@@ -2611,7 +2618,7 @@ function bakeBG() {
 function showGLerr(t) { var d = document.createElement("div"); d.style.cssText = "position:absolute;left:12px;right:12px;top:80px;background:#400;color:#fff;padding:12px;border-radius:10px;font:13px/1.4 Arial;z-index:50"; d.textContent = "Erreur 3D : " + t + " — utilise la version 2D."; $("cvw").appendChild(d); }
 function resize() {
   if (!GLOK) return; var w = c3.clientWidth, h = c3.clientHeight; if (!w || !h) return;
-  R.dpr = Math.min(2, window.devicePixelRatio || 1); R.w = w; R.h = h; c3.width = ov.width = Math.round(w * R.dpr); c3.height = ov.height = Math.round(h * R.dpr); gl.viewport(0, 0, c3.width, c3.height);
+  R.dpr = Math.min([1, 1.5, 2][SV.q == null ? 1 : SV.q], window.devicePixelRatio || 1); R.w = w; R.h = h; c3.width = ov.width = Math.round(w * R.dpr); c3.height = ov.height = Math.round(h * R.dpr); gl.viewport(0, 0, c3.width, c3.height);
   R.top0 = ($("hud").offsetHeight || 56) + 2; R.bot0 = ($("ctl").offsetHeight || 200) * .5; R.tv = true; R.snap = true; var rd = $("rad"); if (rd) rd.style.display = "block"; if (R.m) bakeBG();
 }
 /* ---------- caméra ---------- */
@@ -2667,14 +2674,14 @@ function human(m, p, kit, o) {
   // short + torse
   mPush(); mT(0, 8.5, 0); mS(4.4, 2.3, 2.7); drw(MS.cube, shorts); mPop();
   mPush(); mT(0, 11.8, 0); mS(4.9, 4.7, 2.7); drw(MS.cube, shirt); mPop();
-  if (!isGK && !isRef && kit.pat) {
+  if (!isGK && !isRef && kit.pat && SV.q > 0) {
     mPush(); mT(0, 11.8, 0);
     if (kit.pat === 1) { mPush(); mT(-1.05, 0, 0); mS(.6, 4.72, 2.74); drw(MS.cube, c2); mPop(); mPush(); mT(1.05, 0, 0); mS(.6, 4.72, 2.74); drw(MS.cube, c2); mPop(); }
     else if (kit.pat === 2) { mPush(); mT(0, .2, 0); mS(4.94, 1.5, 2.74); drw(MS.cube, c2); mPop(); }
     else if (kit.pat === 3) { mPush(); mT(-1.2, 0, 0); mS(2.45, 4.72, 2.74); drw(MS.cube, c2); mPop(); }
     mPop();
   }
-  if (!isRef && p.num) { mPush(); mT(0, 12.3, -1.38); mS(3.1, 3.1, 1); var nc = lum(isGK ? kit.gk : kit.c1) > .6 ? "#111111" : "#ffffff"; drw(MS.quad, WHITE, numTex(p.num, nc), 2, 0, 1); mPop(); }
+  if (!isRef && p.num && SV.q > 0) { mPush(); mT(0, 12.3, -1.38); mS(3.1, 3.1, 1); var nc = lum(isGK ? kit.gk : kit.c1) > .6 ? "#111111" : "#ffffff"; drw(MS.quad, WHITE, numTex(p.num, nc), 2, 0, 1); mPop(); }
   // cou + tête
   mPush(); mT(0, 14.1, 0); var yb = Math.atan2((bb ? bb.x : 0) - p.x, (bb ? bb.y : 0) - p.y) - yaw; while (yb > 3.1416) yb -= 6.2832; while (yb < -3.1416) yb += 6.2832; mRY(isRef || lying ? 0 : clamp(yb, -.8, .8) * .5 - twist * .8); mRX(-lean * .6 + (hdr ? -.25 : 0)); mT(0, -14.1, 0);
   mPush(); mT(0, 14.1, 0); lim(.7, -.9, skin); mPop();
@@ -2756,7 +2763,7 @@ var PKT = null, REFP3 = { x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: 1, ph: 0, r: "REF
 function parts3(m, dt) {
   var i, q; for (i = R.parts.length - 1; i >= 0; i--) { q = R.parts[i]; q.life -= dt; if (q.life <= 0) { R.parts.splice(i, 1); continue; } if (!q.s) { q.s = 1; C3.push({ x: q.x, y: 6 + Math.random() * 8, z: q.y, vx: (q.vx || 0) * .55, vy: 38 + Math.random() * 90, vz: (q.vy || 0) * .55, life: q.life, c: hc(q.c), s: 3 + (q.w || 2) * 1.6 }); } }
   // poussière des coureurs
-  m.P.forEach(function (p) { if (p.off) return; if (hlen(p.vx, p.vy) > 88 && Math.random() < .2 && DUST.length < 90) DUST.push({ x: p.x, y: 1.5, z: p.y, vx: rnd(-6, 6), vy: rnd(6, 14), vz: rnd(-6, 6), life: .6, c: hc(R.wx.rain ? "rgba(190,210,230,1)" : (VN.dust || "rgba(200,180,120,1)")) }); });
+  m.P.forEach(function (p) { if (p.off) return; if (hlen(p.vx, p.vy) > 88 && Math.random() < .2 && DUST.length < [20, 55, 90][SV.q == null ? 1 : SV.q]) DUST.push({ x: p.x, y: 1.5, z: p.y, vx: rnd(-6, 6), vy: rnd(6, 14), vz: rnd(-6, 6), life: .6, c: hc(R.wx.rain ? "rgba(190,210,230,1)" : (VN.dust || "rgba(200,180,120,1)")) }); });
   var a = [], n = 0, ps;
   for (i = C3.length - 1; i >= 0; i--) { q = C3[i]; q.life -= dt; if (q.life <= 0) { C3.splice(i, 1); continue; } q.vy -= 70 * dt; q.vx *= .995; q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt; if (q.y < .4) { q.y = .4; q.vy = 0; q.vx *= .9; q.vz *= .9; } pv(a, q.x, q.y, q.z, 0, 1, 0, 0, 0, q.c); }
   var nc = a.length / V11; mId();
@@ -2775,7 +2782,7 @@ function overlay(m, dt, inp) {
   if (R.wx.night) { var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(2,5,24,.25)"); g.addColorStop(.3, "rgba(2,5,24,0)"); g.addColorStop(.8, "rgba(2,5,24,0)"); g.addColorStop(1, "rgba(2,5,24,.3)"); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   if (R.wx.rain) {
     c.fillStyle = "rgba(25,40,62," + (R.wx.night ? .08 : .14) + ")"; c.fillRect(0, 0, W, H);
-    if (!R.drops.length) for (var d = 0; d < 190; d++) R.drops.push({ x: Math.random(), y: Math.random(), s: .8 + Math.random() * .8 });
+    if (!R.drops.length) for (var d = 0; d < Math.round(190 * [.35, .7, 1][SV.q == null ? 1 : SV.q]); d++) R.drops.push({ x: Math.random(), y: Math.random(), s: .8 + Math.random() * .8 });
     c.strokeStyle = "rgba(205,225,255,.5)"; c.lineWidth = .9; c.beginPath();
     R.drops.forEach(function (dr) { dr.y += dt * 1.5 * dr.s; dr.x -= dt * .22 * dr.s; if (dr.y > 1) { dr.y = -.05; dr.x = Math.random() * 1.2; } if (dr.x < -.05) dr.x += 1.1; var x = dr.x * W, y = dr.y * H, l = 16 * dr.s; c.moveTo(x, y); c.lineTo(x - l * .16, y + l); }); c.stroke();
   } else if (!R.wx.night) { c.fillStyle = "rgba(255,226,140,.05)"; c.fillRect(0, 0, W, H); }
