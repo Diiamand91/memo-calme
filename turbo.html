@@ -77,7 +77,7 @@ function buildTrack(r){var th=THEMES[r.track],rnd=mulberry(777+r.track*31+r.id);
  if(th.sea)for(var j=0;j<SEGS.length;j+=14)SEGS[j].spr.push({t:"boat",o:-5-rnd()*3,v:rnd()});
  if(th.night)for(var j2=0;j2<SEGS.length;j2+=8){SEGS[j2].spr.push({t:"lamp",o:-1.35,v:0});SEGS[j2].spr.push({t:"lamp",o:1.35,v:0,f:1})}
  SEGS[2].spr.push({t:"gate",o:0,v:0});
- TR=[];for(var t=0;t<r.traffic;t++){var kd=TKINDS[Math.floor(rnd()*TKINDS.length)];TR.push({z:(6000+rnd()*(TL-9000)),off:[-.62,0,.62][Math.floor(rnd()*3)]+(rnd()-.5)*.1,sp:MAXSP*(.22+rnd()*.2),col:TCOL[Math.floor(rnd()*TCOL.length)],kind:kd[0],wf:kd[1],big:kd[2],rv:0,cd:0,pd:undefined})}
+ TR=[];for(var t=0;t<r.traffic;t++){var kd=TKINDS[Math.floor(rnd()*TKINDS.length)];TR.push({z:(6000+rnd()*(TL-9000)),off:[-.62,0,.62][Math.floor(rnd()*3)]+(rnd()-.5)*.1,sp:MAXSP*(.22+rnd()*.2),col:TCOL[Math.floor(rnd()*TCOL.length)],kind:kd[0],wf:kd[1]*.78,big:kd[2],rv:0,cd:0,pd:undefined})}
  return th}
 function stats(ci,up,dmg){var c=CARS[ci],u=up||[0,0,0,0];return{max:MAXSP*c.sp*(1+.035*u[0]),acc:MAXSP/(5.6/(c.ac*(1+.09*u[1]))),hd:c.hd*(1+.06*u[2]),nt:100*c.nt*(1+.15*u[3])}}
 function wrapD(d){d%=TL;if(d>TL/2)d-=TL;if(d<-TL/2)d+=TL;return d}
@@ -85,9 +85,9 @@ function newRace(r,ci,up){
  buildTrack(r);var s=stats(ci,up);
  PL={x:0,vx:0,st:0,sp:0,pos:0,lap:0,max:s.max,maxB:s.max,acc:s.acc,hd:s.hd,ntMax:s.nt,nt:s.nt*.35,ntOn:0,ci:ci,shake:0,hits:0,miss:0,prog:0,fin:0,coins:0,dmg:0,spin:0,spinA:0,bust:0,flash:0,bump:0};
  PART=[];RV=[];CP=[];var names=["Mamadou","Awa","Cheikh","Fatou","Ibou"],cols=["#e74c3c","#f39c12","#9b59b6","#1abc9c","#e84393"],kinds=["sedan","sport","suv","sport","sedan"],nr=r.chase?4:5;
- for(var i=0;i<nr;i++){var top=MAXSP*(r.top+(i-2)*.012+((i*37+r.id*11)%5)*.004);RV.push({z:PLAYZ+700+Math.floor(i/2)*520,off:i%2?.45:-.45,sp:0,top:top,col:cols[i],kind:kinds[i],wf:.46,nm:names[i],lap:0,prog:0,fin:0,rv:1,big:0,cd:0,tgt:0,sw:0,ag:[0,.45,.8][r.lvl]*(.6+((i*13)%5)/6)})}
+ for(var i=0;i<nr;i++){var top=MAXSP*(r.top+(i-2)*.012+((i*37+r.id*11)%5)*.004);RV.push({z:PLAYZ+700+Math.floor(i/2)*520,off:i%2?.45:-.45,sp:0,top:top,col:cols[i],kind:kinds[i],wf:.36,nm:names[i],lap:0,prog:0,fin:0,rv:1,big:0,cd:0,tgt:0,sw:0,ag:[0,.45,.8][r.lvl]*(.6+((i*13)%5)/6)})}
  RV.forEach(function(c){c.prog=c.z});
- for(var q=0;q<r.cops;q++)CP.push({z:(TL+PLAYZ-500-q*650)%TL,off:q%2?.5:-.5,sp:0,top:0,col:"#f4f4f6",kind:"police",wf:.47,nm:"",rv:2,big:0,cd:0,tgt:0,sw:0,ag:1,prog:0,fin:0});
+ for(var q=0;q<r.cops;q++)CP.push({z:(TL+PLAYZ-500-q*650)%TL,off:q%2?.5:-.5,sp:0,top:0,col:"#f4f4f6",kind:"police",wf:.37,nm:"",rv:2,big:0,cd:0,tgt:0,sw:0,ag:1,prog:0,fin:0});
  CAR_LIST=TR.concat(RV).concat(CP);
  return{r:r,t:0,state:"count",cd:3.6,over:0,place:6,time:0,busted:0}}
 function segAt(z){return SEGS[Math.floor(((z%TL)+TL)%TL/SEG)%SEGS.length]}
@@ -97,6 +97,11 @@ function smoke(x,y,n){for(var i=0;i<n;i++)PART.push({k:1,x:x+(Math.random()-.5)*
 function updCars(G,dt,racing){
  var P=PL,pz=P.pos+PLAYZ;
  CAR_LIST.forEach(function(c){var o=segAt(c.z);
+  if(c.spin>0){c.spin-=dt;c.spinA=(c.spinA||0)+dt*(Math.PI*2/1.1)*(c.spinD||1);if(c.spin<=0){c.spin=0;c.spinA=0}}
+  if(c.vk){c.off+=c.vk*dt;c.vk*=Math.max(0,1-dt*2.4);if(Math.abs(c.vk)<.04)c.vk=0}
+  if(c.hitT>0){c.hitT-=dt;if(!c.out&&Math.abs(c.off)>1.05){c.out=3;c.spin=.9;c.spinD=c.off>0?1:-1;PL.coins+=20;PL.nt=Math.min(PL.ntMax,PL.nt+15);toast("💥 Voiture éjectée ! +20 🪙");tone(120,.3,.12)}}
+  if(c.out>0){c.out-=dt;c.sp+=(0-c.sp)*Math.min(1,dt*1.6);if(c.out<=0){c.out=0;if(c.base)c.sp=Math.max(c.sp,c.base*.4)}}
+  if(!c.rv){if(c.base===undefined){c.base=c.sp;c.home=c.off}if(!c.out&&!c.vk){c.off+=(c.home-c.off)*dt*.9;c.sp+=(c.base-c.sp)*dt*.6}}
   if(c.rv){
    var cop=c.rv===2,spd,seg=o,pd=wrapD(c.z-pz);
    if(cop){spd=P.maxB*(.90+.025*G.r.lvl)*(1+Math.min(.07,G.time/700))*(1-Math.abs(seg.curve)*.02);if(pd<-4500)spd*=1.12;else if(pd<-2200)spd*=1.04;if(pd>120)spd=Math.min(spd,P.sp*.85);if(G.time<5)spd=Math.min(spd,P.sp*.95)}
@@ -108,10 +113,10 @@ function updCars(G,dt,racing){
    if(!avoid&&cop&&pd<150&&pd>-4200){var df=P.x-c.off;if(Math.abs(df)>.08)dir=df>0?.9:-.9}
    else if(!avoid&&!cop&&c.ag&&racing&&pdz<500&&pdz>-500&&Math.abs(c.off-P.x)<.9&&Math.abs(c.off-P.x)>.2&&(c.sw>0)){dir=(P.x>c.off?1:-1)*c.ag*.55}
    if(!avoid&&dir===0){var hm=c.tgt;dir=Math.abs(c.off-hm)>.08?(hm>c.off?.5:-.5):0}
-   if(racing)c.off+=dir*dt*1.8*c.sp/MAXSP;c.off=Math.max(-.85,Math.min(.85,c.off));
+   if(racing)c.off+=dir*dt*1.8*c.sp/MAXSP;var lim=(c.out>0||c.vk)?1.7:.85;if(!c.out&&!c.vk&&Math.abs(c.off)>.85)c.off+=(Math.sign(c.off)*.85-c.off)*Math.min(1,dt*1.4);else c.off=Math.max(-lim,Math.min(lim,c.off));
    if(slow)spd=Math.min(spd,c.sp*.97);if(Math.abs(c.off)>1)spd*=.5;
    c.sw-=dt;if(c.sw<=0){c.sw=3+Math.random()*4;c.tgt=(Math.random()-.5)*1.3}
-   if(!racing)spd=0;
+   if(!racing||c.out>0)spd=0;
    c.sp+=(spd-c.sp)*Math.min(1,dt*(spd>c.sp?1.1:2));
    for(var t=0;t<TR.length;t++){var tr=TR[t],dz=wrapD(tr.z-c.z);if(dz>0&&dz<260&&Math.abs(tr.off-c.off)<(.24+tr.wf*.28)&&c.cd<=0){c.sp=Math.min(c.sp,tr.sp*.6);c.cd=.8;c.off+=(c.off>tr.off?.15:-.15)}}
    if(cop&&racing){if(pd>250)c.ah=(c.ah||0)+dt;else c.ah=0;if(c.ah>1.6){c.ah=0;c.z=((pz-3000-Math.random()*1500)%TL+TL)%TL;c.sp=P.sp*.9;c.off=Math.max(-.8,Math.min(.8,P.x+(Math.random()-.5)))}}
@@ -146,13 +151,13 @@ function updPlayer(G,dt,inp){
  var np=P.pos+P.sp*dt;P.prog+=P.sp*dt;if(np>=TL){np-=TL;P.lap++}P.pos=np;
  if(P.shake>0)P.shake-=dt*1.8;if(P.dmg>55&&Math.random()<dt*14)smoke(SCRX,SCRY-30,1);
  var pz=P.pos+PLAYZ,bustUp=0;
- CAR_LIST.forEach(function(c){var dz=wrapD(c.z-pz),lat=Math.abs(P.x-c.off),w=.14+c.wf*.35;
+ CAR_LIST.forEach(function(c){var dz=wrapD(c.z-pz),lat=Math.abs(P.x-c.off),w=.1+c.wf*.3;
   if(Math.abs(dz)<240&&lat<w&&c.cd<=0&&G.state==="race"){
    var rel=P.sp-c.sp,side=lat>w*.55,dir=P.x>=c.off?1:-1;c.cd=c.rv===2?1.8:.75;P.hits++;
    if(!side&&dz>-60){ // collision par l'arrière
-    var imp=Math.max(0,rel);P.sp=Math.max(P.sp*.45,c.sp*.7);c.sp+=imp*.25;crash(P,imp+800,dir*.3,0);P.x+=dir*.08;toast(c.rv===2?"🚓 Choc avec la police !":"💥 Collision !")}
+    var imp=Math.max(0,rel),hv=c.big?1:0;if(hv){P.sp=Math.max(P.sp*.45,c.sp*.7);c.sp+=imp*.1;crash(P,imp+800,dir*.3,0)}else{P.sp=Math.max(P.sp*.68,c.sp*.92);c.sp+=imp*.5;c.hitT=2.5;c.vk=(c.off>=P.x?1:-1)*(.5+imp/MAXSP*3);if(imp>MAXSP*.2){c.spin=1.1;c.spinD=c.vk>0?1:-1;c.hitT=2.5}crash(P,(imp+800)*.4,dir*.3,0)}P.x+=dir*.06;toast(c.rv===2?"🚓 Choc avec la police !":"💥 Collision !")}
    else{ // choc latéral
-    var imp=Math.abs(rel)*.35+1200;P.sp*=.9;P.x+=dir*.16;P.vx=dir*.8;c.off-=dir*.14;c.sp*=.95;crash(P,imp,dir*.6,0);toast(c.rv===2?"🚓 Percuté !":"💢 Accrochage !")}
+    var imp=Math.abs(rel)*.35+1200;if(c.big){P.sp*=.9;P.x+=dir*.16;P.vx=dir*.8;c.off-=dir*.14;c.sp*=.95;crash(P,imp,dir*.6,0)}else{P.sp*=.96;P.x+=dir*.05;P.vx=dir*.35;c.hitT=2.5;c.vk=-dir*(2.6+Math.abs(rel)/MAXSP*3);c.sp*=.92;crash(P,imp*.45,dir*.6,0)}toast(c.rv===2?"🚓 Percuté !":"💢 Accrochage !")}
    if(c.rv===2&&dz<120){P.bust=Math.min(100,P.bust+10)}}
   if(c.pdz!==undefined&&c.pdz>0&&dz<=0&&P.sp>c.sp&&lat>=w&&lat<w+.22&&G.state==="race"&&!c.rv){P.miss++;P.nt=Math.min(P.ntMax,P.nt+10);P.coins+=8;toast("⚡ Frôlement ! +nitro");tone(900,.1,.08)}c.pdz=dz;
   if(c.rv===2&&dz<0&&dz>-900&&lat<.45)bustUp=1;else if(c.rv===2&&Math.abs(dz)<300&&lat<.7)bustUp=Math.max(bustUp,.5)});
@@ -264,11 +269,11 @@ function render(G,inp){
    if(sy>clipY&&sy-u*1.7>clipY)continue;if(sx<-u*2||sx>W+u*2)continue;
    if(sy>clipY){cx.save();cx.beginPath();cx.rect(0,0,W,clipY);cx.clip();drawSprite(sp,sx,sy,u,far);cx.restore()}else drawSprite(sp,sx,sy,u,far)}
   for(i=0;i<sg.cars.length;i++){var car=sg.cars[i],pc=(car.z%SEG)/SEG,sc=lerp(sg.p1.s.sc,sg.p2.s.sc,pc),cxp=lerp(sg.p1.s.x,sg.p2.s.x,pc)+sc*car.off*RW*W/2,cyp=lerp(sg.p1.s.y,sg.p2.s.y,pc),cu=sc*RW*W/2;if(sg.p1.c.z<=CAMD*1.2)continue;var cw=cu*car.wf;
-   var clip2=sg.clip,dop={brake:car.sp<car.top*.7&&car.rv===1};if(far<1)cx.globalAlpha=Math.max(0,far);
+   var clip2=sg.clip,dop={brake:car.sp<car.top*.7&&car.rv===1,rot:car.spin>0?car.spinA:0};if(far<1)cx.globalAlpha=Math.max(0,far);
    if(cyp>clip2){cx.save();cx.beginPath();cx.rect(0,0,W,clip2);cx.clip();drawCar(cxp,cyp,cw,car,dop);cx.restore()}else drawCar(cxp,cyp,cw,car,dop);cx.globalAlpha=1;
    if(car.rv===1&&cu>12&&cyp<=clip2){cx.fillStyle="#fff";cx.font="700 "+Math.max(9,Math.min(14,cu*.07))+"px Arial";cx.textAlign="center";cx.fillText(car.nm,cxp,cyp-cw*1.0)}}}
  // joueur
- var def=CARS[P.ci],pw=W*.31,py2=H-190,steer=(inp.r?1:0)-(inp.l?1:0);if(inp.l&&inp.r)steer=0;SCRX=W/2;SCRY=py2;
+ var def=CARS[P.ci],pw=W*.25,py2=H-190,steer=(inp.r?1:0)-(inp.l?1:0);if(inp.l&&inp.r)steer=0;SCRX=W/2;SCRY=py2;
  if(P.sp>P.max*.6||P.ntOn){cx.strokeStyle="rgba(255,255,255,"+(P.ntOn?.5:.22)+")";cx.lineWidth=2;for(var l=0;l<(P.ntOn?18:7);l++){var ax=Math.random()*W,ay=HZ+30+Math.random()*(H-HZ),dx2=(ax-W/2)*.22,dy2=(ay-HZ)*.22;cx.beginPath();cx.moveTo(ax,ay);cx.lineTo(ax+dx2,ay+dy2);cx.stroke()}}
  var bob=Math.sin(G.time*(8+P.sp/MAXSP*30))*P.sp/MAXSP*1.6;
  drawCar(W/2,py2+bob,pw,{kind:def.kind,col:def.col},{brake:inp.b||(inp.l&&inp.r),nit:P.ntOn,lean:P.st*.06,rot:P.spin>0?P.spinA:0,dmg:P.dmg});
