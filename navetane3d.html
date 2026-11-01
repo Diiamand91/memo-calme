@@ -161,6 +161,7 @@ body.inm #rot{display:flex}
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
   <button class="btn" id="bTrain">🎯 Entraînement<small>Joueurs adverses immobiles · teste tirs, passes, dribbles · pas de fin de match</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
+  <button class="btn gold" id="bShop">🛒 Boutique<small id="shopSm">Joueurs vedettes · ballons</small></button>
   <button class="btn" id="bRec">📊 Palmarès &amp; statistiques</button>
   <a class="btn gold" href="navetane.html" style="display:block;text-align:center;text-decoration:none">🎮 Revenir à la version 2D<small>Plus léger, fonctionne sur tous les téléphones</small></a>
   <button class="btn" id="bBack" style="text-align:center">← Retour à Mémo Calme</button>
@@ -211,6 +212,7 @@ body.inm #rot{display:flex}
   <button class="btn pri" id="edOk" style="text-align:center">Enregistrer</button>
 </div>
 <!-- RECORDS -->
+<div class="scr" id="shop"><div class="top"><button class="bk" data-back="home">←</button><h2>Boutique</h2></div><div id="shopB"></div></div>
 <div class="scr" id="rec"><div class="top"><button class="bk" data-back="home">←</button><h2>Palmarès</h2></div><div id="recB"></div></div>
 <!-- RESULTAT -->
 <div class="scr" id="res"><div class="logo" style="font-size:30px;margin:10px 0 6px" id="rsT">FIN DU MATCH</div><div id="rsB"></div></div>
@@ -987,7 +989,7 @@ var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6", "Joueur 7"];
 function FM() { return formsOf(npOf()); }
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 5, camv: 2, q: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 5, camv: 2, q: 1, tok: 50, own: [], eq: [], ball: 0, ownB: [0], ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
 var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; if (s.camv !== 2) { s.camv = 2; s.cam = 5; } return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
@@ -1015,8 +1017,31 @@ var scrPrev = "home", scrCur = "home";
 function show(id) { document.querySelectorAll(".scr").forEach(function (e) { e.classList.remove("on"); }); $(id).classList.add("on"); if (id !== scrCur) { scrPrev = scrCur; scrCur = id; } if (id === "home") renderHome(); }
 document.querySelectorAll("[data-back]").forEach(function (b) { b.onclick = function () { var t = b.getAttribute("data-back"); show(t === "1" ? (pickBack || "home") : t); }; });
 function selId() { return SV.sel === -1 || TEAMS[SV.sel] ? SV.sel : -1; }
+var STARS = [
+  { id: "s1", n: "Gora Éclair", r: "ATT", lv: 3, p: 150 }, { id: "s2", n: "Mbaye Velours", r: "MID", lv: 3, p: 150 }, { id: "s3", n: "Assane Rocher", r: "DEF", lv: 3, p: 150 },
+  { id: "s4", n: "Lamine Tonnerre", r: "ATT", lv: 4, p: 300 }, { id: "s5", n: "Cheikh Maestro", r: "MID", lv: 4, p: 300 }, { id: "s6", n: "Modou Muraille", r: "DEF", lv: 4, p: 300 },
+  { id: "s7", n: "Ibou Diamant", r: "ATT", lv: 5, p: 600 }, { id: "s8", n: "Pape Chef", r: "MID", lv: 5, p: 600 }];
+var BALLS = [["Classique", "#fafafa", "#202226", 0], ["Or", "#f6d55c", "#7a5a00", 100], ["Rouge", "#e53935", "#ffffff", 80], ["Nuit", "#1b1f3a", "#4fc3f7", 120]];
+function addTok(n) { SV.tok = (SV.tok | 0) + n; save(); }
+function starRecr() { var o = []; (SV.eq || []).forEach(function (id) { var x = STARS.filter(function (q) { return q.id === id; })[0]; if (x) o.push({ r: x.r, name: x.n, lv: x.lv }); }); return o; }
+function renderShop() {
+  var RN = { ATT: "Attaquant", MID: "Milieu", DEF: "Défenseur" }, h = "<div class='card' style='text-align:center'><div style='font-size:34px'>🪙</div><div style='font-size:28px;font-weight:900;color:var(--y)'>" + (SV.tok | 0) + " jetons</div><div class='note'>Gagne des jetons à chaque match : victoire +30, nul +10, défaite +5, +2 par but (max 10). Titres de coupe, de championnat et de carrière : bonus.</div><button class='btn' id='shBuy' style='text-align:center;opacity:.6'>➕ Acheter des jetons · bientôt disponible</button></div>";
+  h += "<div class='lab'>Joueurs vedettes · " + (SV.eq || []).length + " / 4 équipés</div>";
+  STARS.forEach(function (x) { var own = SV.own.indexOf(x.id) >= 0, on = SV.eq.indexOf(x.id) >= 0, can = (SV.tok | 0) >= x.p;
+    h += "<div class='card row' style='align-items:center;justify-content:space-between'><span style='flex:1'><b>" + esc(x.n) + "</b><br><small style='color:var(--mu)'>" + RN[x.r] + " · " + "★".repeat(x.lv) + "</small></span>" + (own ? "<button class='chip" + (on ? " on" : "") + "' data-eq='" + x.id + "'>" + (on ? "Équipé ✓" : "Équiper") + "</button>" : "<button class='chip" + (can ? " on" : "") + "' data-buy='" + x.id + "' " + (can ? "" : "style='opacity:.5'") + ">🪙 " + x.p + "</button>") + "</div>"; });
+  h += "<div class='note'>Un joueur vedette prend la place d'un joueur du même poste dans ton équipe et améliore ses statistiques.</div><div class='lab'>Ballons</div><div class='chips'>";
+  BALLS.forEach(function (b, i) { var own = SV.ownB.indexOf(i) >= 0; h += "<button class='chip" + (SV.ball === i ? " on" : "") + "' data-bl='" + i + "'>" + b[0] + (own ? "" : " · 🪙 " + b[3]) + "</button>"; });
+  $("shopB").innerHTML = h + "</div>";
+  $("shopB").querySelectorAll("[data-buy]").forEach(function (b) { b.onclick = function () { var x = STARS.filter(function (q) { return q.id === b.getAttribute("data-buy"); })[0]; if ((SV.tok | 0) < x.p) { info2("Pas assez de jetons"); return; } SV.tok -= x.p; SV.own.push(x.id); if (SV.eq.length < 4) SV.eq.push(x.id); save(); renderShop(); }; });
+  $("shopB").querySelectorAll("[data-eq]").forEach(function (b) { b.onclick = function () { var id = b.getAttribute("data-eq"), i = SV.eq.indexOf(id); if (i >= 0) SV.eq.splice(i, 1); else if (SV.eq.length < 4) SV.eq.push(id); else { info2("4 vedettes maximum"); return; } save(); renderShop(); }; });
+  $("shopB").querySelectorAll("[data-bl]").forEach(function (b) { b.onclick = function () { var i = +b.getAttribute("data-bl"); if (SV.ownB.indexOf(i) < 0) { if ((SV.tok | 0) < BALLS[i][3]) { info2("Pas assez de jetons"); return; } SV.tok -= BALLS[i][3]; SV.ownB.push(i); } SV.ball = i; save(); renderShop(); }; });
+  $("shBuy").onclick = function () { info2("Les achats de jetons arrivent bientôt. Pour l'instant, gagne-les en jouant !"); };
+}
+function info2(t) { alert(t); }
+$("bShop").onclick = function () { renderShop(); show("shop"); };
 function renderHome() {
   var T = teamById(selId());
+  $("shopSm").textContent = "🪙 " + (SV.tok | 0) + " jetons · joueurs vedettes · ballons";
   $("hSel").innerHTML = badge(T, 52) + "<div style='flex:1'><div style='font-weight:900;font-size:17px'>" + esc(T.n) + "</div><div style='font-size:12px;color:var(--mu)'>Ton équipe · touche pour changer</div></div>" + rate3(T);
   $("hPool").innerHTML = ZF.map(function (f, i) { return "<button class='chip" + (i === SV.pool ? " on" : "") + "' data-v='" + i + "'>" + f.n + "</button>"; }).join("");
   $("hPool").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.pool = +b.getAttribute("data-v"); save(); renderHome(); }; });
@@ -1891,7 +1916,7 @@ function readJoy() {
 var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null, cmtT: 0, m: null, cfg: null, run: false, paused: false, last: 0, acc: 0, over: 0, lastState: "", hintT: 0, lastScore: "" };
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
-  cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0, wid: SV.wid | 0, dh: SV.dh | 0, cap: SV.cap == null ? -1 : SV.cap, tkP: SV.tkP == null ? -1 : SV.tkP, tkF: SV.tkF == null ? -1 : SV.tkF }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
+  cfg.t0 = Object.assign({}, cfg.t0, { recr: (cfg.t0.recr || []).concat(starRecr()), form: SV.form | 0, press: SV.press | 0, wid: SV.wid | 0, dh: SV.dh | 0, cap: SV.cap == null ? -1 : SV.cap, tkP: SV.tkP == null ? -1 : SV.tkP, tkF: SV.tkF == null ? -1 : SV.tkF }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
   var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: npOf(), train: !!cfg.train }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
@@ -2035,9 +2060,11 @@ function endMatch() {
   cf.onEnd(r);
 }
 function showResult(r, o) {
+  if (!r._tk && !r.train) { r._tk = 1; var gt = Math.min(10, 2 * (r.sc[0] | 0)), tk = (r.win === 0 ? 30 : r.win === 2 ? 10 : 5) + gt; r.tkE = tk; addTok(tk); }
   var w = r.win, t = w === 0 ? "VICTOIRE !" : w === 1 ? "DÉFAITE" : "MATCH NUL";
   $("rsT").textContent = t; $("rsT").style.filter = w === 0 ? "" : "grayscale(.7)";
   var h = "<div class='card'><div class='vs'><div class='t'>" + badge(r.T[0], 56) + "<div>" + esc(r.T[0].n) + "</div></div><div class='sc2'>" + r.sc[0] + "-" + r.sc[1] + "</div><div class='t'>" + badge(r.T[1], 56) + "<div>" + esc(r.T[1].n) + "</div></div></div>";
+  if (r.tkE) h += "<div class='lst' style='color:var(--y);font-weight:800'>+" + r.tkE + " 🪙 jetons gagnés</div>";
   if (r.pen) h += "<div class='lst' style='color:var(--y);font-weight:800'>Tirs au but : " + r.pen[0] + " - " + r.pen[1] + "</div>";
   var gl = r.goals.map(function (g) { return "⚽ " + esc(g.by) + " " + g.min + "' <span style='opacity:.6'>(" + esc(g.team === 0 ? r.T[0].s : r.T[1].s) + ")</span>"; }).join("<br>"); if (gl) h += "<div class='lst'>" + gl + "</div>";
   var bar = function (lab, a, b, ca, cb) { var s = a + b || 1; return "<div class='bar'><div class='v'>" + a + "</div><div class='tr'><i style='width:" + a / s * 100 + "%;background:" + ca + "'></i><i style='width:" + b / s * 100 + "%;background:" + cb + "'></i></div><div class='v'>" + b + "</div></div><div style='text-align:center;font-size:11px;color:var(--mu);margin-top:-4px'>" + lab + "</div>"; };
@@ -2715,9 +2742,9 @@ function drawBall3(b, dt) {
   var z = Math.max(0, b.z), y = 1.95 + z * .8, sp = hlen(b.vx, b.vy);
   if (!S3.br) S3.br = [0, 0]; if (!b.own) { S3.br[0] += b.vy * dt / 2; S3.br[1] -= b.vx * dt / 2; }
   mPush(); mT(b.x + 1, .12, b.y + .8); mS(2.3 * (1 - Math.min(.5, z / 140)), .04, 1.9 * (1 - Math.min(.5, z / 140))); drw(MS.disc, WHITE, null, 0, 0, .38 - Math.min(.2, z / 300)); mPop();
-  mPush(); mT(b.x, y, b.y); mRZ(S3.br[1]); mRX(S3.br[0] + b.spin * .2); mPush(); mS(1.95, 1.95, 1.95); drw(MS.sph, hc("#fafafa")); mPop();
+  mPush(); mT(b.x, y, b.y); mRZ(S3.br[1]); mRX(S3.br[0] + b.spin * .2); mPush(); var bk = BALLS[SV.ball | 0] || BALLS[0]; mS(1.95, 1.95, 1.95); drw(MS.sph, hc(bk[1])); mPop();
   var pts = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [.58, .58, .58], [-.58, -.58, .58], [.58, -.58, -.58], [-.58, .58, -.58]];
-  pts.forEach(function (q) { mPush(); mT(q[0] * 1.9, q[1] * 1.9, q[2] * 1.9); mS(.74, .74, .74); drw(MS.sph, hc("#202226")); mPop(); }); mPop();
+  pts.forEach(function (q) { mPush(); mT(q[0] * 1.9, q[1] * 1.9, q[2] * 1.9); mS(.74, .74, .74); drw(MS.sph, hc((BALLS[SV.ball | 0] || BALLS[0])[2])); mPop(); }); mPop();
 }
 /* ---------- rendu ---------- */
 var SUN = [.35, .82, .45], L2 = { day: { amb: [.56, .56, .6], sunC: [.52, .5, .44], fog: [.74, .88, .98], f: .00055 }, night: { amb: [.34, .38, .56], sunC: [.46, .5, .62], fog: [.07, .1, .24], f: .0007 }, rain: { amb: [.52, .54, .58], sunC: [.3, .32, .35], fog: [.62, .67, .72], f: .0012 }, nrain: { amb: [.32, .35, .5], sunC: [.3, .33, .45], fog: [.08, .1, .2], f: .0012 } };
