@@ -159,6 +159,7 @@ body.inm #rot{display:flex}
   <button class="btn pri" id="bCar">🌟 Carrière<small>Fais grandir ton ASC saison après saison</small></button>
   <button class="btn gold" id="bCoupe">🏆 Coupe NAVETANE<small>8 équipes · élimination directe · tirs au but</small></button>
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
+  <button class="btn" id="bTrain">🎯 Entraînement<small>Joueurs adverses immobiles · teste tirs, passes, dribbles · pas de fin de match</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
   <button class="btn" id="bRec">📊 Palmarès &amp; statistiques</button>
   <a class="btn gold" href="navetane.html" style="display:block;text-align:center;text-decoration:none">🎮 Revenir à la version 2D<small>Plus léger, fonctionne sur tous les téléphones</small></a>
@@ -326,6 +327,9 @@ function mkTeam(T, idx, dir, human, np) {
     p.pos = posLabel(s); p.st = dispStats(p); p.ovr = ovrOf(p); p.spd *= SPDK;
     t.players.push(p);
   }
+  if (T.recr) { var used = {}; T.recr.forEach(function (rc) { for (var i = 1; i < t.players.length; i++) { var q = t.players[i]; if (q.r === rc.r && !used[i]) { used[i] = 1; var g = .045 * rc.lv; q.name = rc.name; q.rec = rc.lv;
+    if (rc.r === "ATT") { q.sht = Math.min(1, q.sht + g); q.drb = Math.min(1, q.drb + g); q.spd += rc.lv * 1.1; } else if (rc.r === "MID") { q.pas = Math.min(1, q.pas + g); q.drb = Math.min(1, q.drb + g * .7); q.sta = Math.min(1, q.sta + g); } else { q.def = Math.min(1, q.def + g); q.phy = Math.min(1, q.phy + g); q.spd += rc.lv * .8; }
+    q.st = dispStats(q); q.ovr = ovrOf(q); break; } } }); }
   t.wid = T.wid | 0; t.dh = T.dh | 0;
   var fld = t.players.filter(function (q) { return q.r !== "GK"; }), best = function (f) { var b = fld[0]; fld.forEach(function (q) { if (f(q) > f(b)) b = q; }); return b; };
   var pk = function (v, f) { return v >= 0 && t.players[v] && t.players[v].r !== "GK" ? t.players[v] : best(f); };
@@ -838,6 +842,7 @@ function matchStr(m) { if (m.base != null && m.clock > m.base && !m.golden && m.
 function matchMinute(m) { var base = m.half === 1 ? 0 : m.half === 2 ? 45 : 90; var frac = clamp(m.clock / m.halfLen, 0, 1); return Math.min(120, Math.floor(base + frac * (m.half >= 3 ? 15 : 45)) + (m.half >= 3 ? 0 : 0)); }
 function update(m, dt, inp) {
   m.time += dt; m.ev.length = 0; var b = m.b;
+  if (m.o.train) { m.clock = 1; m.teams[1].players.forEach(function (q) { if (q.r !== "GK") { q.stun = 9; q.vx = q.vy = 0; } }); }
   m.P.forEach(function (p) { if (p.tcd2 > 0 && false) p.tcd2 -= dt; });
   if (m.state === "kickoff") {
     m.st -= dt; stepPlayers(m, 0); ballStep(m, dt);
@@ -1120,6 +1125,10 @@ $("edS").oninput = function () { ED.s = $("edS").value.toUpperCase().slice(0, 3)
 $("edOk").onclick = function () { SV.my = ED; if (!SV.my.n.trim()) SV.my.n = "Mon ASC"; SV.sel = -1; save(); show("home"); };
 $("bEdit").onclick = openEdit;
 /* ---- palmarès ---- */
+$("bTrain").onclick = function () {
+  var A = teamById(selId()), B = Object.assign({}, teamById(oppId()));
+  startMatch({ weather: 1, t0: A, t1: B, diff: 0, halfLen: 45, knockout: false, train: true, title: "Entraînement", onEnd: function () { show("home"); }, onQuit: function () { show("home"); } });
+};
 $("bRec").onclick = function () {
   var s = SV.st, h = "<div class='card' style='text-align:center'><div style='font-size:46px'>🏆</div><div class='lst'>Coupes NAVETANE gagnées : <b style='color:var(--y)'>" + SV.tr.coupe + "</b><br>Championnats gagnés : <b style='color:var(--y)'>" + SV.tr.ligue + "</b></div></div>";
   h += "<div class='card'><div class='lab' style='margin-top:0'>Statistiques</div><table><tr><th></th><th>Matchs</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th></tr><tr><td></td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + s.gf + "</td><td>" + s.ga + "</td></tr></table></div>";
@@ -1880,7 +1889,7 @@ var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
   cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0, wid: SV.wid | 0, dh: SV.dh | 0, cap: SV.cap == null ? -1 : SV.cap, tkP: SV.tkP == null ? -1 : SV.tkP, tkF: SV.tkF == null ? -1 : SV.tkF }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
-  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: npOf() }); applyCtl();
+  var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: npOf(), train: !!cfg.train }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
   FV = false; var vi = SV.ven > 0 ? SV.ven - 1 : Math.floor(Math.random() * VENUES.length); R.ven = vi; VN = VENUES[vi]; R.camMode = SV.cam; R.tv = false; R.bg = null; R.snap = true; R.replay = false; G.rb = []; G.rp = null; $("rpl").className = ""; $("ht").className = ""; $("cmt").className = "";
@@ -1985,7 +1994,7 @@ function handleEv(m) {
 }
 function hud(m, inp) {
   var sc = m.score[0] + " - " + m.score[1]; if (sc !== G.lastScore) { G.lastScore = sc; $("hSc").textContent = sc; }
-  var tm = m.state === "half" ? "MT" : m.state === "full" ? "FIN" : (m.golden ? "BUT EN OR " : "") + matchStr(m) + "'" + (G.wxIco || ""); if ($("hTm").textContent !== tm) $("hTm").textContent = tm;
+  var tm = m.o.train ? "🎯 ENTRAÎNEMENT" : m.state === "half" ? "MT" : m.state === "full" ? "FIN" : (m.golden ? "BUT EN OR " : "") + matchStr(m) + "'" + (G.wxIco || ""); if ($("hTm").textContent !== tm) $("hTm").textContent = tm;
   var t0 = m.teams[0], cp = t0.ctrl >= 0 ? t0.players[t0.ctrl] : null, has = cp && m.b.own === cp;
   var la = has ? "PASSE" : "CHANGER", lb = has ? "TIR" : "TACLE", ld = has ? "PROF." : "PRESS", le = has ? "CENTRE" : "INTER."; if ($("lA").textContent !== la) { $("lA").textContent = la; $("lB").textContent = lb; $("lD").textContent = ld; $("lE").textContent = le; $("bD").firstChild.textContent = has ? "⇈" : "🛡"; $("bE").firstChild.textContent = has ? "⤴" : "✋"; }
   var pw = BT.B.h && has ? Math.min(100, BT.B.t / 0.75 * 100) : 0; $("bB").style.setProperty("--p", pw);
@@ -2148,7 +2157,7 @@ function carSeason(c) {
   for (var r = 0; r < 7; r++) { var fx = []; for (var i = 0; i < 4; i++) fx.push([t[i], t[7 - i]]); rounds.push(fx); t = [t[0], t[7]].concat(t.slice(1, 7)); }
   c.ids = ids; c.fx = rounds; c.round = 0; c.tab = {}; c.hist2 = []; c.out = null; ids.forEach(function (id) { c.tab[id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
 }
-function carTeam() { var c = SV.car, T = Object.assign({}, teamById(c.base)); T.a = c.st.a; T.d = c.st.d; T.v = c.st.v; T.style = c.style; return T; }
+function carTeam() { var c = SV.car, T = Object.assign({}, teamById(c.base)); T.a = c.st.a; T.d = c.st.d; T.v = c.st.v; T.style = c.style; T.recr = c.recr || []; return T; }
 function carHome() { var c = SV.car; $("bCar").querySelector("small").textContent = c ? "Saison " + c.season + " · " + DIVN[c.div] + (c.xp ? " · " + c.xp + " pts à dépenser" : "") : "Fais grandir ton ASC saison après saison"; }
 function carStart() {
   var b = selId(), T = teamById(b);
@@ -2163,6 +2172,9 @@ function renderCar() {
   h += "<div class='card'><div class='rd' style='margin:0 0 6px'>Entraînement · <b style='color:var(--y)'>" + c.xp + " pts</b></div>";
   ["a", "d", "v"].forEach(function (k) { var lv = c.st[k], cost = lv, can = c.xp >= cost && lv < 6; h += "<div class='row' style='align-items:center;justify-content:space-between;margin:5px 0'><span style='width:78px'>" + UPN[k] + "</span><span class='pips'>" + pips(lv, 6) + "</span><button class='chip" + (can ? " on" : "") + "' data-up='" + k + "' " + (can ? "" : "disabled style='opacity:.45'") + ">" + (lv >= 6 ? "MAX" : "+1 · " + cost + " pts") + "</button></div>"; });
   h += "<div class='lab' style='margin-top:8px'>Formation</div><div class='chips'>" + FM().map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-fm='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:3px 0'>" + FM()[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-pr='" + i + "'>" + n + "</button>"; }).join("") + "</div><div class='lab' style='margin-top:8px'>Style de jeu</div><div class='chips'>" + STY.map(function (n, i) { return "<button class='chip" + (i === c.style ? " on" : "") + "' data-sty='" + i + "'>" + n + "</button>"; }).join("") + "</div></div>";
+  if (!c.mk || c.mkS !== c.season) { c.mkS = c.season; c.mk = []; var rl = ["ATT", "MID", "DEF"]; for (var q = 0; q < 3; q++) { var sd = c.season * 977 + q * 131 + (c.base | 0) * 7 + 3, lv = 1 + Math.floor(hsh(sd + 1) * (c.div === 0 ? 4 : 3)); c.mk.push({ r: rl[q], lv: Math.min(4, lv), name: FIRST[Math.floor(hsh(sd) * FIRST.length)] + " " + LAST[Math.floor(hsh(sd + 2) * LAST.length)] }); } save(); }
+  var RN = { ATT: "Attaquant", MID: "Milieu", DEF: "Défenseur" };
+  h += "<div class='card'><div class='rd' style='margin:0 0 6px'>Recrutement · <span style='color:var(--mu)'>joueurs libres de la saison</span></div>" + c.mk.map(function (x, i) { var cost = x.lv + 1, can = c.xp >= cost; return "<div class='row' style='align-items:center;justify-content:space-between;margin:5px 0'><span style='flex:1'><b>" + esc(x.name) + "</b><br><small style='color:var(--mu)'>" + RN[x.r] + " · " + "★".repeat(x.lv) + "</small></span><button class='chip" + (can ? " on" : "") + "' data-rc='" + i + "' " + (can ? "" : "disabled style='opacity:.45'") + ">Recruter · " + cost + " pts</button></div>"; }).join("") + ((c.recr || []).length ? "<div class='note' style='margin-top:6px'>Dans ton équipe : " + c.recr.map(function (x) { return esc(x.name) + " " + "★".repeat(x.lv); }).join(" · ") + " (4 max, le plus faible est remplacé)</div>" : "") + "</div>";
   h += "<div class='card'><table><tr><th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Diff</th><th>Pts</th></tr>";
   order.forEach(function (id, i) { var s = c.tab[id], cl = i < 2 && c.div > 0 ? "color:#8be28b" : i > 5 && c.div < 3 ? "color:#ff8a80" : ""; h += "<tr class='" + (id === c.base ? "me" : "") + "'><td style='" + cl + "'>" + (i + 1) + "</td><td>" + (id === c.base ? esc(T.n) : nm(id)) + "</td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + (s.gf - s.ga > 0 ? "+" : "") + (s.gf - s.ga) + "</td><td><b>" + s.pts + "</b></td></tr>"; });
   h += "</table><div class='note' style='margin-top:6px'>" + (c.div > 0 ? "🟢 2 premiers : montée · " : "") + (c.div < 3 ? "🔴 2 derniers : descente" : "") + "</div></div>";
@@ -2178,6 +2190,7 @@ function renderCar() {
   h += "<button class='btn red' id='caReset' style='text-align:center;margin-top:10px'>Abandonner la carrière</button>";
   $("caB").innerHTML = h; $("caB").parentNode.scrollTop = 0;
   $("caB").querySelectorAll("[data-up]").forEach(function (b) { b.onclick = function () { var k = b.getAttribute("data-up"), cost = c.st[k]; if (c.xp >= cost && c.st[k] < 6) { c.xp -= cost; c.st[k]++; save(); renderCar(); } }; });
+  $("caB").querySelectorAll("[data-rc]").forEach(function (b) { b.onclick = function () { var i = +b.getAttribute("data-rc"), x = c.mk[i], cost = x ? x.lv + 1 : 99; if (!x || c.xp < cost) return; c.xp -= cost; c.recr = c.recr || []; c.recr.push(x); if (c.recr.length > 4) { var wi = 0; c.recr.forEach(function (y, j) { if (y.lv < c.recr[wi].lv) wi = j; }); c.recr.splice(wi, 1); } c.mk.splice(i, 1); save(); renderCar(); }; });
   $("caB").querySelectorAll("[data-fm]").forEach(function (b) { b.onclick = function () { SV.form = +b.getAttribute("data-fm"); save(); renderCar(); }; });
   $("caB").querySelectorAll("[data-pr]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-pr"); save(); renderCar(); }; });
   $("caB").querySelectorAll("[data-sty]").forEach(function (b) { b.onclick = function () { c.style = +b.getAttribute("data-sty"); save(); renderCar(); }; });
