@@ -493,9 +493,10 @@ function callFoul(m, p, o, slide) {
   var t = m.teams[p.team], q = m.teams[1 - p.team], gy = ownY(t), inBox = Math.abs(o.x) < 52 && Math.abs(o.y - gy) < 56;
   m.fouls[p.team]++; m.ev.push({ k: "foul", team: p.team, pen: inBox, by: p.name, on: o.name });
   var cp = (inBox ? 0.5 : 0.25) * (slide ? 1.4 : 0.7);
-  if (p.r !== "GK" && !p.off && ((p.cards === 1 && Math.random() < cp * 0.9) || (!p.cards && slide && Math.random() < 0.05))) { p.cards = 2; p.off = true; m.cards[p.team]++; m.reds = (m.reds || 0) + 1; m.ev.push({ k: "card", team: p.team, name: p.name, red: true }); var tt2 = m.teams[p.team]; if (tt2.human && tt2.ctrl === p.ix) tt2.ctrl = altCtrl(tt2).ix; }
-  else if (!p.cards && Math.random() < cp) { p.cards = 1; m.cards[p.team]++; m.ev.push({ k: "card", team: p.team, name: p.name }); }
+  if (p.r !== "GK" && !p.off && ((p.cards === 1 && Math.random() < cp * 0.9) || (!p.cards && slide && Math.random() < 0.05))) { p.cards = 2; p.off = true; m.cards[p.team]++; m.reds = (m.reds || 0) + 1; m.ev.push({ k: "card", team: p.team, name: p.name, red: true, x: p.x, y: p.y }); var tt2 = m.teams[p.team]; if (tt2.human && tt2.ctrl === p.ix) tt2.ctrl = altCtrl(tt2).ix; }
+  else if (!p.cards && Math.random() < cp) { p.cards = 1; m.cards[p.team]++; m.ev.push({ k: "card", team: p.team, name: p.name, x: p.x, y: p.y }); }
   p.stun = 0.3; o.stun = 0.3;
+  if (o.r !== "GK" && !o.inj && !o.off && Math.random() < (slide ? .13 : .05)) { o.inj = true; o.spd *= .68; o.stun = 2.4; m.injN = (m.injN || 0) + 1; m.ev.push({ k: "injury", team: o.team, name: o.name }); }
   if (inBox) { var oy = oppY(q); setRestart(m, "penalty", q.idx, 0, oy - q.dir * 38); }
   else setRestart(m, "freekick", q.idx, clamp(o.x, -PW / 2 + 10, PW / 2 - 10), clamp(o.y, -PL / 2 + 26, PL / 2 - 26));
 }
@@ -833,6 +834,7 @@ function goalScored(m, team) {
   var bb = m.b; bb.vx *= 0.25; bb.vy *= 0.25;
   m.conceded = 1 - team;
 }
+function matchStr(m) { if (m.base != null && m.clock > m.base && !m.golden && m.addFor === m.half) { var ex = Math.ceil((m.clock - m.base) / m.base * 45); return (m.half === 1 ? 45 : 90) + "+" + clamp(ex, 1, m.addMin || 4); } return matchMinute(m); }
 function matchMinute(m) { var base = m.half === 1 ? 0 : m.half === 2 ? 45 : 90; var frac = clamp(m.clock / m.halfLen, 0, 1); return Math.min(120, Math.floor(base + frac * (m.half >= 3 ? 15 : 45)) + (m.half >= 3 ? 0 : 0)); }
 function update(m, dt, inp) {
   m.time += dt; m.ev.length = 0; var b = m.b;
@@ -886,12 +888,16 @@ function update(m, dt, inp) {
   });
   pickups(m, dt); ballStep(m, dt); postBounce(m); referee(m);
   updateRef(m, dt);
+  if (m.state === "dead" || m.state === "half") { var ta = m.teams[1]; if (ta.subN < 3) for (var qi = 1; qi < ta.players.length; qi++) { var qq = ta.players[qi]; if (qq.inj && !qq.off && doSub(m, ta, qi)) break; } }
+  if (m.base == null) m.base = m.halfLen;
+  if (m.state === "play" && !m.golden && m.addFor !== m.half && m.clock >= m.base) { m.addFor = m.half; m.addMin = clamp(Math.round(((m.fouls[0] + m.fouls[1]) * .25 + (m.injN || 0) * 1.2 + (m.teams[0].subN + m.teams[1].subN) * .35) / (m.half === 1 ? 1.6 : 1.1)), 1, 4); m.halfLen = m.base * (1 + m.addMin / 45); m.ev.push({ k: "addtime", n: m.addMin }); }
   if (m.state === "play" && m.clock >= m.halfLen) { if (!(m.golden)) endHalf(m); else if (m.clock >= m.halfLen) { m.state = "full"; m.ended = true; } }
 }
 function endHalf(m) {
   m.ev.push({ k: "whistle3" });
+  m.halfLen = m.base || m.halfLen;
   if (m.half === 1) { m.state = "half"; m.st = 4.6; }
-  else if (m.half === 2 && m.o.knockout && m.score[0] === m.score[1]) { m.state = "half"; m.st = 2.2; m.extra = true; m.half = 2; m.golden = true; m.clock = 0; m.halfLen = 45; m.half = 3; m.half--; }
+  else if (m.half === 2 && m.o.knockout && m.score[0] === m.score[1]) { m.state = "half"; m.st = 2.2; m.extra = true; m.half = 2; m.golden = true; m.clock = 0; m.halfLen = m.base = 45; m.half = 3; m.half--; }
   else { m.state = "full"; m.ended = true; }
 }
 function updateRef(m, dt) {
@@ -1940,6 +1946,11 @@ function endIntro() { if (!G.intro) return; G.intro = false; clearTimeout(G.intr
 $("intro").addEventListener("pointerdown", function () { audioInit(); endIntro(); });
 $("cvw").addEventListener("pointerdown", function () { if (G.rp && R.replay) G.rp.el = 999; });
 function info(t) { var s = $("inf"); s.textContent = t; s.className = "show"; infT = 1.8; }
+function updCards(m) {
+  [0, 1].forEach(function (i) { var y = 0, r = 0; m.teams[i].players.forEach(function (p) { if (p.cards === 1) y++; else if (p.cards === 2) r++; }); m.cd = m.cd || [[0, 0], [0, 0]]; m.cd[i] = [y + (m.cdY ? m.cdY[i] : 0), r]; });
+  var f = function (i) { var c = m.cd[i]; return (c[0] ? " 🟨" + c[0] : "") + (c[1] ? " 🟥" + c[1] : ""); };
+  $("hT0").textContent = shortN(G.cfg.t0.n) + f(0); $("hT1").textContent = shortN(G.cfg.t1.n) + f(1);
+}
 function handleEv(m) {
   m.ev.forEach(function (e) {
     sfx(e.k === "goal" ? (e.team === 0 ? "goal" : "concede") : e.k, e);
@@ -1952,6 +1963,9 @@ function handleEv(m) {
     if (e.k === "tackle" && Math.random() < .3) say(pick(["Beau tacle !", "Le ballon est récupéré !"]));
     if (e.k === "whistle" && m.clock < 1) say("C'est parti ! Que le meilleur gagne !");
     if (e.k === "card") say(e.red ? "CARTON ROUGE pour " + e.name + " !" : "Carton jaune pour " + e.name);
+    if (e.k === "card") { R.cardShow = R.cardShow || []; R.cardShow.push({ x: e.x, y: e.y, red: !!e.red, t: 3.2 }); updCards(m); }
+    if (e.k === "injury") { say(e.name + " est au sol, il semble blessé"); info("🚑 " + e.name.toUpperCase() + " BLESSÉ"); }
+    if (e.k === "addtime") { banner("+" + e.n + " MIN", "Temps additionnel"); say(e.n + " minute" + (e.n > 1 ? "s" : "") + " de temps additionnel"); }
     if (e.k === "offside") { say("Hors-jeu de " + e.name + " !"); info("🚩 HORS-JEU"); }
     if (e.k === "card") banner(e.red ? "🟥 CARTON ROUGE" : "🟨 CARTON JAUNE", e.name);
     if (e.k === "goal") {
@@ -1971,7 +1985,7 @@ function handleEv(m) {
 }
 function hud(m, inp) {
   var sc = m.score[0] + " - " + m.score[1]; if (sc !== G.lastScore) { G.lastScore = sc; $("hSc").textContent = sc; }
-  var tm = m.state === "half" ? "MT" : m.state === "full" ? "FIN" : (m.golden ? "BUT EN OR " : "") + matchMinute(m) + "'" + (G.wxIco || ""); if ($("hTm").textContent !== tm) $("hTm").textContent = tm;
+  var tm = m.state === "half" ? "MT" : m.state === "full" ? "FIN" : (m.golden ? "BUT EN OR " : "") + matchStr(m) + "'" + (G.wxIco || ""); if ($("hTm").textContent !== tm) $("hTm").textContent = tm;
   var t0 = m.teams[0], cp = t0.ctrl >= 0 ? t0.players[t0.ctrl] : null, has = cp && m.b.own === cp;
   var la = has ? "PASSE" : "CHANGER", lb = has ? "TIR" : "TACLE", ld = has ? "PROF." : "PRESS", le = has ? "CENTRE" : "INTER."; if ($("lA").textContent !== la) { $("lA").textContent = la; $("lB").textContent = lb; $("lD").textContent = ld; $("lE").textContent = le; $("bD").firstChild.textContent = has ? "⇈" : "🛡"; $("bE").firstChild.textContent = has ? "⤴" : "✋"; }
   var pw = BT.B.h && has ? Math.min(100, BT.B.t / 0.75 * 100) : 0; $("bB").style.setProperty("--p", pw);
@@ -1983,7 +1997,7 @@ function pzCtlDraw() {
   ctlUI("pzCtl", pzCtlDraw); var m = G.m, t = m && m.teams[0]; if (!t) return; var ch = function (arr, k) { return "<div class='chips' style='margin-bottom:6px'>" + arr.map(function (n, i) { return "<button class='chip" + (i === (t[k] | 0) ? " on" : "") + "' data-tk='" + k + "' data-v='" + i + "'>" + n + "</button>"; }).join("") + "</div>"; };
   var h = "<div class='lab' style='margin-top:10px'>Tactique en direct</div>" + ch(PRESN, "press") + ch(["Largeur normale", "Large", "Serrée"], "wid") + ch(["Défense normale", "Haute", "Basse"], "dh");
   h += "<div class='lab' style='margin-top:8px'>Remplacements (" + (3 - t.subN) + " restants)</div>";
-  if (t.subN < 3) { h += "<div class='note' style='margin:2px 0 6px'>Touche le joueur à sortir (le nouveau arrive frais, pleine endurance).</div><div class='chips'>" + t.players.map(function (p, i) { return "<button class='chip' data-sb='" + i + "' style='font-size:12px;padding:7px 10px" + (p.stam < .6 ? ";border-color:#e57373" : "") + "'>" + p.num + " " + esc(p.name.split(" ")[1] || p.name) + " · " + Math.round(p.stam * 100) + "%</button>"; }).join("") + "</div>"; }
+  if (t.subN < 3) { h += "<div class='note' style='margin:2px 0 6px'>Touche le joueur à sortir (le nouveau arrive frais, pleine endurance).</div><div class='chips'>" + t.players.map(function (p, i) { return "<button class='chip' data-sb='" + i + "' style='font-size:12px;padding:7px 10px" + (p.stam < .6 || p.inj ? ";border-color:#e57373" : "") + "'>" + (p.inj ? "🚑" : "") + p.num + " " + esc(p.name.split(" ")[1] || p.name) + " · " + Math.round(p.stam * 100) + "%</button>"; }).join("") + "</div>"; }
   $("pzCtl").insertAdjacentHTML("beforeend", h);
   $("pzCtl").querySelectorAll("[data-tk]").forEach(function (b) { b.onclick = function () { t[b.getAttribute("data-tk")] = +b.getAttribute("data-v"); pzCtlDraw(); }; });
   $("pzCtl").querySelectorAll("[data-sb]").forEach(function (b) { b.onclick = function () { var i = +b.getAttribute("data-sb"), nm = t.players[i].name; if (doSub(m, t, i)) { G.subMsg = "🔄 " + nm + " ➜ " + t.players[i].name; } else G.subMsg = "Remplacement impossible maintenant"; pzCtlDraw(); }; });
@@ -2743,6 +2757,7 @@ function overlay(m, dt, inp) {
   if (cp && m.state !== "goal") {
     var pr = proj(cp.x, 0, cp.y); if (pr) { var k = Math.min(1.6, pr[2] / 4.2); c.font = "800 " + Math.round(11 * Math.max(.8, k)) + "px Arial"; c.textAlign = "center"; c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.85)"; c.fillStyle = "#fff"; c.strokeText(cp.name, pr[0], pr[1] + 18 * Math.max(.8, k)); c.fillText(cp.name, pr[0], pr[1] + 18 * Math.max(.8, k)); if (PKT) { var q = proj(PKT.x, 0, PKT.y); if (q) { c.strokeStyle = "rgba(255,255,255,.6)"; c.setLineDash([5, 5]); c.lineWidth = 1.6; c.beginPath(); c.moveTo(pr[0], pr[1]); c.lineTo(q[0], q[1]); c.stroke(); c.setLineDash([]); } } }
   }
+  if (R.cardShow && R.cardShow.length) R.cardShow = R.cardShow.filter(function (q) { q.t -= dt; if (q.t <= 0) return false; var pr = proj(q.x, 24, q.y); if (pr) { var k = Math.min(1.8, pr[2] / 4.2) * 1.3 + .5, bw = 11 * k, bh = 15 * k, bob = Math.sin(R.t * 6) * 2; c.save(); c.translate(pr[0], pr[1] - 8 - bob); c.rotate(-.12); c.fillStyle = q.red ? "#e53935" : "#fdd835"; c.strokeStyle = "#000"; c.lineWidth = 1.5; c.fillRect(-bw / 2, -bh, bw, bh); c.strokeRect(-bw / 2, -bh, bw, bh); c.restore(); } return true; });
   var W = R.w, H = R.h;
   if (R.wx.night) { var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(2,5,24,.25)"); g.addColorStop(.3, "rgba(2,5,24,0)"); g.addColorStop(.8, "rgba(2,5,24,0)"); g.addColorStop(1, "rgba(2,5,24,.3)"); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   if (R.wx.rain) {
