@@ -123,6 +123,9 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 #intro .tmc{flex:1;font-size:12.5px;line-height:1.55;color:var(--mu)}#intro .tmc b{display:block;color:#fff;font-size:15px;margin:4px 0 6px}
 #intro .vsx{font-weight:900;color:var(--y);font-size:22px;align-self:center}
 #intro .tap{margin-top:12px;font-size:12px;color:var(--mu);animation:bl 1.2s steps(2) infinite}
+#rot{position:fixed;inset:0;background:#06140d;color:#fff;z-index:99;display:none;align-items:center;justify-content:center;text-align:center;font-size:18px;line-height:1.5;padding:30px}
+body.inm #rot{display:flex}
+@media (orientation:landscape){body.inm #rot{display:none}}
 #pz{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:30;padding:10px}
 #pz.on{display:flex}
 #pz .box{width:100%;max-width:340px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -225,6 +228,7 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
     <button class="gb" id="bE"><i>⤴</i><span id="lE">CENTRE</span></button>
   </div>
 </div>
+<div id="rot"><div><div style="font-size:64px;transform:rotate(90deg)">📱</div><b>Tourne ton téléphone</b><br>Mets-le en mode paysage pour jouer comme à la télé</div></div>
 <div id="pz"><div class="box"><div class="big">PAUSE</div><div id="pzCtl" style="text-align:left;margin-bottom:8px"></div><button class="btn pri" id="pzR" style="text-align:center">Reprendre</button><button class="btn red" id="pzQ" style="text-align:center">Quitter le match</button></div></div>
 <script>
 /* ===== NAVETANE : moteur de jeu (sans écran) ===== */
@@ -971,9 +975,9 @@ var PRESN = ["Pressing normal", "Pressing haut", "Bloc bas"];
 var POSN = ["Gardien", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6", "Joueur 7"];
 function FM() { return formsOf(npOf()); }
 function fresh() {
-  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 1, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
+  return { my: { n: "Mon ASC", s: "MOI", c1: "#00a651", c2: "#fdd835", pat: 2, bd: 1, style: 0, a: 4, d: 3, v: 3, names: ["Alou", "Boy Sérère", "Natou", "Birame Jr", "Der Boy", "Pape", "Modou"] }, sel: -1, opp: -2, fmt: 1, diff: 1, gs: 1, ctl: 0, hand: 0, bsz: 0, len: 1, snd: true, wx: 0, cam: 5, camv: 2, ven: 0, form: 0, press: 0, pool: 0, hint: 0, tr: { coupe: 0, ligue: 0 }, st: { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }, tour: null, car: null };
 }
-var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; return s; } } catch (e) { } return fresh(); })();
+var SV = (function () { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.my) { var f = fresh(); for (var k in f) if (s[k] === undefined) s[k] = f[k]; if (s.camv !== 2) { s.camv = 2; s.cam = 5; } return s; } } catch (e) { } return fresh(); })();
 if (typeof SV.ven !== "number") SV.ven = 0;
 if (!SV.ver) { if (SV.pool === 4) SV.pool = 6; SV.ver = 2; }
 while (SV.my.names.length < 7) SV.my.names.push(["Pape", "Modou"][SV.my.names.length - 5] || "Joueur");
@@ -1862,6 +1866,7 @@ function readJoy() {
   var jx = IN.jx, jy = IN.jy;
   if (KEYS.arrowleft || KEYS.q || KEYS.a) jx = -1; if (KEYS.arrowright || KEYS.d) jx = 1; if (KEYS.arrowup || KEYS.w) jy = -1; if (KEYS.arrowdown || KEYS.s) jy = 1;
   if ((KEYS.arrowleft || KEYS.arrowright || KEYS.arrowup || KEYS.arrowdown || KEYS.q || KEYS.a || KEYS.d || KEYS.w || KEYS.s) && jx && jy) { jx *= .7071; jy *= .7071; }
+  if ((R.camMode | 0) === 5) return [jy, -jx];
   return [jx, jy];
 }
 /* ---- match ---- */
@@ -1874,6 +1879,7 @@ function startMatch(cfg) {
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
   FV = false; var vi = SV.ven > 0 ? SV.ven - 1 : Math.floor(Math.random() * VENUES.length); R.ven = vi; VN = VENUES[vi]; R.camMode = SV.cam; R.tv = false; R.bg = null; R.snap = true; R.replay = false; G.rb = []; G.rp = null; $("rpl").className = ""; $("ht").className = ""; $("cmt").className = "";
   G.cl = m.P.map(function (p) { return Object.assign({}, p); }); G.bc = { x: 0, y: 0, z: 0, vx: 0, vy: 0, own: null, spin: 0 }; G.rc = { x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: 1, ph: 0 }; G.m2 = { P: G.cl, b: G.bc, ref: G.rc, teams: m.teams, state: "replay", score: m.score };
+  try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(function () { }); } catch (e) { }
   G.m = m; G.cfg = cfg; G.run = true; G.paused = false; G.acc = 0; G.over = 0; G.lastState = ""; G.lastScore = "0 - 0";
   R.m = m; R.theme = VN.th >= 0 ? VN.th : ((T0.id === -1 ? (T0.n.length + T0.n.charCodeAt(0)) : T0.seed) | 0) % 4; R.parts = []; R.cheer = 0; R.shake = 0; R.flash = 0; initKits(m);
   $("hT0").textContent = shortN(T0.n); $("hT1").textContent = shortN(T1.n); $("hT0").style.color = R.kits[0].c1 === "#111111" ? "#fff" : R.kits[0].c1; $("hT1").style.color = R.kits[1].c1; $("hSc").textContent = "0 - 0"; $("hTm").textContent = "0'";
@@ -1988,7 +1994,8 @@ $("pzQ").onclick = function () { G.run = false; assikoStop(); try { if (document
 $("bMu").onclick = function () { audioInit(); setSnd(!SV.snd); };
 (function () { var fs = $("bFs"), el = document.documentElement, can = el.requestFullscreen || el.webkitRequestFullscreen; if (can && !/iPhone|iPod/.test(navigator.userAgent)) fs.style.display = "block"; fs.onclick = function () { try { if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else can.call(el); } catch (e) { } }; document.addEventListener("fullscreenchange", function () { setTimeout(function () { if (G.run) resize(); }, 200); }); })();
 document.addEventListener("visibilitychange", function () { if (document.hidden && G.run && !G.paused) togglePause(); });
-window.addEventListener("resize", function () { if (G.run) resize(); });
+setInterval(function () { document.body.classList.toggle("inm", !!G.run); }, 250);
+window.addEventListener("resize", function () { if (G.run) { resize(); if (innerHeight > innerWidth && !G.paused) togglePause(); } });
 window.addEventListener("orientationchange", function () { setTimeout(function () { if (G.run) resize(); }, 250); });
 function endMatch() {
   G.run = false; assikoStop(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { } var m = G.m, cf = G.cfg, T0 = cf.t0, T1 = cf.t1, tot = m.poss[0] + m.poss[1] || 1;
@@ -2289,7 +2296,7 @@ function runShootout(T0, T1, diff, done) {
   head(); prompt(); last = performance.now(); raf = requestAnimationFrame(loop);
 }
 /* ===== NAVETANE 3D — moteur WebGL maison (sans bibliothèque) ===== */
-CAMN = ["🎥 3D Large", "🎥 3D Proche", "⬆️ 3D Tactique", "👤 Derrière le joueur", "🎬 Dynamique"];
+CAMN = ["🎥 3D Large", "🎥 3D Proche", "⬆️ 3D Tactique", "👤 Derrière le joueur", "🎬 Dynamique", "📺 Télé (côté)"];
 var c3 = document.createElement("canvas"), ov = document.createElement("canvas"), ox = ov.getContext("2d");
 c3.id = "cv3"; ov.id = "cvo"; c3.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block"; ov.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
 $("cvw").insertBefore(c3, cv); $("cvw").insertBefore(ov, cv.nextSibling); cv.style.display = "none";
@@ -2583,13 +2590,14 @@ function resize() {
 /* ---------- caméra ---------- */
 function camUpdate(m, dt) {
   var b = m.b, mode = R.camMode | 0, ZK = SK > 1 ? 1.22 : 1, bx = clamp(b.x, -140 * SK, 140 * SK), bz = b.y, ex, ey, ez, lx, ly, lz, gc = m.state === "goal" && !R.replay && m.goals && m.goals.length, sp = 4.6;
-  if (gc) { var gz = m.goals[m.goals.length - 1].team === 0 ? -PL / 2 : PL / 2, sg = gz < 0 ? -1 : 1; ex = clamp(bx * .55, -70 * SK, 70 * SK); ey = 22; ez = gz - sg * 92; lx = ex * .3; ly = 10; lz = gz; sp = 2.6; }
+  if (mode === 5) { var cx5 = clamp(b.x, -PW * .3, PW * .3), kz = PL / 420, sd = PW / 2 + 70 * kz; ex = sd; ey = 135 * kz + 20; ez = bz + (b.vy || 0) * .18; lx = cx5 * .25; ly = 0; lz = bz + (b.vy || 0) * .3; sp = 3.4; ez = clamp(ez, -PL / 2 - 20, PL / 2 + 20); lz = clamp(lz, -PL / 2 - 10, PL / 2 + 10); ex = sd; }
+  else if (gc) { var gz = m.goals[m.goals.length - 1].team === 0 ? -PL / 2 : PL / 2, sg = gz < 0 ? -1 : 1; ex = clamp(bx * .55, -70 * SK, 70 * SK); ey = 22; ez = gz - sg * 92; lx = ex * .3; ly = 10; lz = gz; sp = 2.6; }
   else if (mode === 3) { var c0 = m.teams && m.teams[0], cpl = c0 && c0.ctrl >= 0 && c0.players ? c0.players[c0.ctrl] : null, qx = cpl ? cpl.x : b.x, qy = cpl ? cpl.y : b.y, dr = c0 && c0.dir ? c0.dir : -1; ex = qx * .85; ey = 44 * ZK; ez = qy - dr * 104 * ZK; lx = qx * .7 + b.x * .3; ly = 4; lz = qy + dr * 70; sp = 3.6; }
   else if (mode === 4) { var ng = Math.abs(b.y) > PL / 2 - 125 * SK; ex = bx * .6; ey = (ng ? 82 : 132) * ZK; ez = bz + (ng ? 128 : 178) * ZK; lx = bx * (ng ? .8 : .75); ly = 0; lz = bz - (ng ? 42 : 48); sp = 3.2; }
   else if (mode === 1) { ex = bx * .6; ey = 82 * ZK; ez = bz + 128 * ZK; lx = bx * .8; ly = 0; lz = bz - 42; }
   else if (mode === 2) { ex = bx * .6; ey = 250 * ZK; ez = bz + 82 * ZK; lx = bx * .8; ly = 0; lz = bz - 10; }
   else { ex = bx * .5; ey = 132 * ZK; ez = bz + 178 * ZK; lx = bx * .75; ly = 0; lz = bz - 48; }
-  if (!gc) { ez = clamp(ez, -330 * SK, 300 * SK); lz = clamp(lz, -250 * SK, 250 * SK); }
+  if (!gc && mode !== 5) { ez = clamp(ez, -330 * SK, 300 * SK); lz = clamp(lz, -250 * SK, 250 * SK); }
   if (!CAM.ok || R.snap) { CAM.x = ex; CAM.y = ey; CAM.z = ez; CAM.tx = lx; CAM.ty = ly; CAM.tz = lz; CAM.ok = true; R.snap = false; }
   else { var k = 1 - Math.exp(-dt * sp); CAM.x += (ex - CAM.x) * k; CAM.y += (ey - CAM.y) * k; CAM.z += (ez - CAM.z) * k; CAM.tx += (lx - CAM.tx) * k; CAM.ty += (ly - CAM.ty) * k; CAM.tz += (lz - CAM.tz) * k; }
 }
@@ -2597,6 +2605,7 @@ function proj(x, y, z) { var v = VP3, cx = v[0] * x + v[4] * y + v[8] * z + v[12
 /* ---------- joueurs ---------- */
 var BOOT = hc("#101012"), SKINCACHE = {};
 function lim(r, len, col) { mPush(); mS(r, -len, r); drw(MS.cyl, col); mPop(); }
+var PSC = .74;
 function human(m, p, kit, o) {
   var isGK = p.r === "GK", isRef = p.r === "REF", shirt = hc(isGK ? kit.gk : kit.c1), shorts = hc(isGK ? "#1d1d22" : kit.sh), sock = hc(isGK ? "#222222" : kit.sock), skin = hc(p.skin || "#8d5a3a"), c2 = hc(kit.c2 || "#fff");
   var spd = hlen(p.vx, p.vy), a = Math.min(1, spd / 72), ph = p.ph || 0, kk = p.kk > 0 ? p.kk / .3 : 0, slide = p.slide > 0, dive = isGK && p.diving > 0, lying = slide || dive, cel = o.cel;
@@ -2613,7 +2622,7 @@ function human(m, p, kit, o) {
   mPush(); mT(p.x, 0, p.y); // ombre
   mPush(); mT(1.6, .12, 1.2); mS(5.8, .05, 4); drw(MS.disc, WHITE, null, 0, 0, R.wx.night ? .22 : .32); mPop();
   if (o.ctrl) { mPush(); mT(0, .2, 0); var pu = 1 + Math.sin(R.t * 8) * .07; mS(8 * pu, 1, 8 * pu); drw(MS.ring, hc("#fdd835"), null, 0, 0, 1, .15); mPop(); }
-  mRY(yaw); mS(p.bw ? p.bw : 1, p.bh ? p.bh : 1, p.bw ? p.bw : 1); mT(0, bob + jump, 0);
+  mRY(yaw); mS((p.bw ? p.bw : 1) * PSC, (p.bh ? p.bh : 1) * PSC, (p.bw ? p.bw : 1) * PSC); mT(0, bob + jump, 0);
   p._sl = (p._sl || 0) + ((lying ? 1 : 0) - (p._sl || 0)) * (1 - Math.exp(-dts * 16)); var sl = p._sl;
   if (sl > .02) { mT(0, 2.7 * sl, 0); mRX((dive && !slide ? 1.4 : -1.4) * sl); mT(0, -8.2 * sl, 0); }
   // jambes
@@ -2669,12 +2678,12 @@ function human(m, p, kit, o) {
   mPop(); mPop();
 }
 function drawBall3(b, dt) {
-  var z = Math.max(0, b.z), y = 3.3 + z * .8, sp = hlen(b.vx, b.vy);
-  if (!S3.br) S3.br = [0, 0]; if (!b.own) { S3.br[0] += b.vy * dt / 3.3; S3.br[1] -= b.vx * dt / 3.3; }
-  mPush(); mT(b.x + 1, .12, b.y + .8); mS(3.7 * (1 - Math.min(.5, z / 140)), .04, 3 * (1 - Math.min(.5, z / 140))); drw(MS.disc, WHITE, null, 0, 0, .38 - Math.min(.2, z / 300)); mPop();
-  mPush(); mT(b.x, y, b.y); mRZ(S3.br[1]); mRX(S3.br[0] + b.spin * .2); mPush(); mS(3.35, 3.35, 3.35); drw(MS.sph, hc("#fafafa")); mPop();
+  var z = Math.max(0, b.z), y = 1.95 + z * .8, sp = hlen(b.vx, b.vy);
+  if (!S3.br) S3.br = [0, 0]; if (!b.own) { S3.br[0] += b.vy * dt / 2; S3.br[1] -= b.vx * dt / 2; }
+  mPush(); mT(b.x + 1, .12, b.y + .8); mS(2.3 * (1 - Math.min(.5, z / 140)), .04, 1.9 * (1 - Math.min(.5, z / 140))); drw(MS.disc, WHITE, null, 0, 0, .38 - Math.min(.2, z / 300)); mPop();
+  mPush(); mT(b.x, y, b.y); mRZ(S3.br[1]); mRX(S3.br[0] + b.spin * .2); mPush(); mS(1.95, 1.95, 1.95); drw(MS.sph, hc("#fafafa")); mPop();
   var pts = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [.58, .58, .58], [-.58, -.58, .58], [.58, -.58, -.58], [-.58, .58, -.58]];
-  pts.forEach(function (q) { mPush(); mT(q[0] * 3.25, q[1] * 3.25, q[2] * 3.25); mS(1.25, 1.25, 1.25); drw(MS.sph, hc("#202226")); mPop(); }); mPop();
+  pts.forEach(function (q) { mPush(); mT(q[0] * 1.9, q[1] * 1.9, q[2] * 1.9); mS(.74, .74, .74); drw(MS.sph, hc("#202226")); mPop(); }); mPop();
 }
 /* ---------- rendu ---------- */
 var SUN = [.35, .82, .45], L2 = { day: { amb: [.56, .56, .6], sunC: [.52, .5, .44], fog: [.74, .88, .98], f: .00055 }, night: { amb: [.34, .38, .56], sunC: [.46, .5, .62], fog: [.07, .1, .24], f: .0007 }, rain: { amb: [.52, .54, .58], sunC: [.3, .32, .35], fog: [.62, .67, .72], f: .0012 }, nrain: { amb: [.32, .35, .5], sunC: [.3, .33, .45], fog: [.08, .1, .2], f: .0012 } };
@@ -2682,7 +2691,7 @@ function render(m, dt, inp) {
   if (!GLOK || !S3) { if (R.m && GLOK) bakeBG(); if (!S3) return; }
   R.t += dt; R.dt = dt; if (c3.width < 10) resize();
   camUpdate(m, dt);
-  var asp = c3.width / c3.height, fov = (asp < 1 ? 53 : 44) * Math.PI / 180, yc = R.top0 + (R.h - R.top0 - R.bot0) / 2, shy = 1 - 2 * yc / R.h, shk = 0;
+  var asp = c3.width / c3.height, fov = (asp < 1 ? 53 : (R.camMode | 0) === 5 ? 31 : 44) * Math.PI / 180, yc = R.top0 + (R.h - R.top0 - R.bot0) / 2, shy = 1 - 2 * yc / R.h, shk = 0;
   var shx = 0, shy2 = 0; if (R.shake > 0) { R.shake = Math.max(0, R.shake - dt * 14); shx = rnd(-1, 1) * R.shake * .6; shy2 = rnd(-1, 1) * R.shake * .6; }
   camMat(VP3, [CAM.x + shx, CAM.y + shy2, CAM.z], [CAM.tx + shx, CAM.ty, CAM.tz], fov, asp, shy);
   var lt = R.wx.night ? (R.wx.rain ? L2.nrain : L2.night) : (R.wx.rain ? L2.rain : L2.day);
