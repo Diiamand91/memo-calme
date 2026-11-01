@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#07130d">
-<title>NAVETANE 3D – Football des quartiers</title>
+<title>TERANGA Foot</title>
 <style>
 :root{--g:#00a651;--y:#fdd835;--r:#e53935;--bg:#07130d;--card:#10241a;--card2:#173325;--tx:#f3f7f4;--mu:#9bb8a8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -146,18 +146,101 @@ body.inm #rot{display:flex}
 .sb span{float:right;color:var(--tx);font-weight:800}
 .note{font-size:12px;color:var(--mu);line-height:1.5;margin:10px 2px}
 @media (min-width:700px){.scr{padding-left:max(16px,calc(50vw - 270px));padding-right:max(16px,calc(50vw - 270px))}}
+
+#tf{--bg:#0b1020;--fg:#f2f5f8}
+
+.tfs{position:fixed;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}
+.tfs .bg{width:100%;height:100%;object-fit:cover;object-position:center;display:block;animation:tf_zoom 24s ease-in-out infinite alternate}
+@keyframes tf_zoom{from{transform:scale(1)}to{transform:scale(1.05)}}
+#tfTitle{opacity:1;visibility:visible;cursor:pointer}
+#tf.menu #tfTitle{opacity:0;visibility:hidden}
+#tf.menu #tfMenu{opacity:1;visibility:visible}
+#tfHint{position:absolute;left:0;right:0;bottom:calc(5% + env(safe-area-inset-bottom,0px));text-align:center;color:#fff;font:700 clamp(14px,2.2vw,24px)/1.2 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.8);animation:tf_pulse 1.8s ease-in-out infinite}
+@keyframes tf_pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.tfs .bg,#tfHint{animation:none}}
+#tfRot{display:none;position:fixed;inset:0;background:var(--bg);color:var(--fg);font:600 20px/1.4 system-ui,sans-serif;text-align:center;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;z-index:5}
+#tfRot svg{width:72px;height:72px;animation:tf_t 2s ease-in-out infinite}
+@keyframes tf_t{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
+@media (orientation:portrait){#tfRot{display:flex}}
+
+#tfSide{position:absolute;top:calc(2.5vh + env(safe-area-inset-top,0px));left:calc(2vw + env(safe-area-inset-left,0px));right:calc(2vw + env(safe-area-inset-right,0px));--w:min(27vw,54vh);display:flex;flex-direction:column;align-items:flex-start;pointer-events:none}
+#tfLogo{position:relative;width:var(--w);opacity:0;pointer-events:none;transform-origin:top left}
+#tfLogo img{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55)) drop-shadow(0 0 14px rgba(253,216,53,.6))}
+#tfLogo::after{content:"";position:absolute;inset:0;-webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.95) 50%,transparent 58%) 100% 0/250% 100% no-repeat}
+@keyframes tf_enter{0%{opacity:0;transform:translate(-40px,-50px) scale(.55) rotate(-8deg)}60%{opacity:1;transform:translate(0,0) scale(1.08) rotate(1.5deg)}100%{opacity:1;transform:none}}
+@keyframes tf_float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes tf_glow{0%,100%{filter:drop-shadow(0 6px 14px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(0,166,81,.8))}33%{filter:drop-shadow(0 6px 14px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(253,216,53,.85))}66%{filter:drop-shadow(0 6px 14px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(227,27,35,.8))}}
+@keyframes tf_shine{0%,50%{background-position:100% 0}100%{background-position:0% 0}}
+#tf.menu #tfLogo{animation:tf_enter 1.1s .7s cubic-bezier(.2,.9,.3,1.2) both,tf_float 5s 1.8s ease-in-out infinite}
+#tf.menu #tfLogo img{animation:tf_glow 6s 1.8s linear infinite}
+#tf.menu #tfLogo::after{animation:tf_shine 4.5s 2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){#tf.menu #tfLogo{animation:none;opacity:1}#tf.menu #tfLogo img,#tf.menu #tfLogo::after{animation:none}}
+
+#tfNav{position:relative;align-self:flex-start;max-width:100%;display:flex;align-items:stretch;gap:clamp(4px,.8vw,10px);margin-top:clamp(6px,1.6vh,16px);height:clamp(34px,7.4vh,56px);padding:0 clamp(16px,2.2vw,30px) 0 clamp(6px,1vw,14px);background:linear-gradient(90deg,rgba(8,16,36,.88),rgba(8,16,36,.72));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);transform-origin:left center;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+#tfNav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,#00a651 0 33.3%,#fdd835 33.3% 66.6%,#e31b23 66.6%)}
+.tfnb{appearance:none;-webkit-appearance:none;border:0;cursor:pointer;pointer-events:auto;position:relative;white-space:nowrap;padding:0 clamp(14px,2.6vw,40px);color:#fff;background:transparent;font:800 clamp(11px,2.5vh,20px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:background .25s ease,color .25s ease,transform .2s ease;-webkit-tap-highlight-color:transparent}
+.tfnb:hover,.tfnb:focus-visible,.tfnb.on:hover,.tfnb.on:focus-visible{background:linear-gradient(180deg,#fdd835,#f9a825);color:#10151f;outline:none}
+.tfnb:active{transform:scale(.96)}
+.tfnb.on{background:linear-gradient(180deg,#00a651,#0b7d3e)}
+@keyframes tf_barin{from{opacity:0;transform:scaleX(.15)}to{opacity:1;transform:none}}
+@keyframes tf_navin{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+#tf.menu #tfNav{animation:tf_barin .7s 1.3s cubic-bezier(.2,.9,.3,1) backwards}
+#tf.menu .tfnb{animation:tf_navin .5s calc(1.8s + var(--i)*.1s) ease-out backwards}
+@media (prefers-reduced-motion:reduce){#tf.menu #tfNav,#tf.menu .tfnb{animation:none}.tfnb{transition:none}}
+
+#tfHome{display:flex;gap:clamp(8px,1.4vw,20px);--cw:max(120px,min(32vw,calc(var(--ch)*1.7778)));pointer-events:none;transition:opacity .35s ease,transform .35s ease,visibility .35s}
+#tfHome.hide{opacity:0;visibility:hidden;transform:translateY(12px)}
+.tfc{appearance:none;-webkit-appearance:none;border:0;padding:0;margin:0;position:relative;overflow:hidden;isolation:isolate;width:var(--cw);aspect-ratio:16/9;cursor:pointer;pointer-events:auto;border-radius:6px;background:#0b1020;box-shadow:0 0 0 2px rgba(253,216,53,.85),0 10px 24px rgba(0,0,0,.55);transition:transform .25s cubic-bezier(.2,.9,.3,1.2),box-shadow .25s ease;-webkit-tap-highlight-color:transparent}
+.tfc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
+.tfc::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(4,10,24,.92))}
+.tfc::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;z-index:2;background:linear-gradient(105deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);transition:left .7s ease}
+.tfc:hover,.tfc:focus-visible{transform:translateY(-6px) scale(1.03);box-shadow:0 0 0 3px #fdd835,0 0 24px rgba(253,216,53,.55),0 14px 28px rgba(0,0,0,.6);outline:none}
+.tfc:hover img,.tfc:focus-visible img{transform:scale(1.08)}
+.tfc:hover::after,.tfc:focus-visible::after{left:120%}
+.tfc:active{transform:translateY(-2px) scale(.96)}
+.tflab{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:0 .9em .8em 1.2em;text-align:left;color:#fff;font:800 clamp(11px,calc(var(--cw)*.06),26px)/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 2px 6px rgba(0,0,0,.85)}
+.tflab::before{content:"";position:absolute;left:.45em;bottom:.8em;width:4px;height:1.1em;background:linear-gradient(180deg,#00a651 0 33%,#fdd835 33% 66%,#e31b23 66%)}
+.tfrip{position:absolute;z-index:4;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:rgba(255,255,255,.7);pointer-events:none;animation:tf_rip .65s ease-out forwards}
+@keyframes tf_rip{to{transform:scale(var(--s,20));opacity:0}}
+@keyframes tf_cardin{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:none}}
+#tf.menu .tfc{animation:tf_cardin .6s calc(2.4s + var(--i)*.15s) cubic-bezier(.2,.9,.3,1.1) backwards}
+@media (prefers-reduced-motion:reduce){#tf.menu .tfc{animation:none}.tfc,.tfc img,.tfc::after,#tfHome{transition:none}.tfrip{animation-duration:.01s}}
+
+#tfPanels{display:grid;justify-items:start;align-items:start;margin-top:clamp(10px,2.4vh,26px);--lh:calc(var(--w)*.578);--ch:calc(100vh - 5.5vh - var(--lh) - clamp(6px,1.6vh,16px) - clamp(34px,7.4vh,56px) - clamp(10px,2.4vh,26px))}
+#tfHome,#tfPlay,#tfOnline,#tfCustom{grid-area:1/1}
+#tfPlay,#tfOnline,#tfCustom{display:flex;gap:clamp(8px,1.4vw,20px);--cw:max(100px,min(calc((96vw - (var(--n,4) - 1)*clamp(8px,1.4vw,20px))/var(--n,4)),calc(var(--ch)*1.7778)));pointer-events:none;transition:opacity .35s ease,transform .35s ease,visibility .35s}
+#tfPlay.hide,#tfOnline.hide,#tfCustom.hide{opacity:0;visibility:hidden;transform:translateY(12px)}
+@keyframes tf_cardin2{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
+#tfPanels .panel-in .tfc{animation:tf_cardin2 .5s calc(var(--i)*.1s) cubic-bezier(.2,.9,.3,1.1) backwards}
+@media (prefers-reduced-motion:reduce){#tfPanels .panel-in .tfc{animation:none}#tfPlay{transition:none}}
+
+#tf{padding:0!important;overflow:hidden;background:#0b1020}
+#tf .tfc .em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,calc(var(--cw)*.2),70px);z-index:1;opacity:.9;text-shadow:0 4px 14px rgba(0,0,0,.7)}
+#tfBk{position:absolute;top:calc(2.5vh + env(safe-area-inset-top,0px));right:calc(2vw + env(safe-area-inset-right,0px));z-index:6;appearance:none;border:0;background:rgba(8,16,36,.75);color:#fff;font:700 13px system-ui;padding:9px 14px;border-radius:10px}
+#tf:not(.menu) #tfBk{display:none}
+#tfTitle img.bg,#tfMenu img.bg{position:absolute;inset:0}
+@media (orientation:portrait){#tfRot{display:flex}}
 </style>
 </head>
 <body>
 <!-- ACCUEIL -->
-<div class="scr on" id="home">
-  <div class="logo">NAVETANE</div>
+<div class="scr on" id="tf">
+<div id="tfTitle" class="tfs" role="button" tabindex="0" aria-label="Continuer vers le menu"><img class="bg" alt="Teranga Foot" src="teranga/img0.jpg"><div id="tfHint">Touchez l’écran pour continuer</div></div>
+<div id="tfMenu" class="tfs"><img class="bg" alt="Stade Abdoulaye Wade" src="teranga/img1.jpg"><button id="tfBk">← Mémo Calme</button>
+ <div id="tfSide"><div id="tfLogo"><img alt="Teranga Foot" src="teranga/img2.webp"></div>
+  <nav id="tfNav" aria-label="Menu principal"><button class="tfnb on" style="--i:0">Accueil</button><button class="tfnb" style="--i:1">Jouer</button><button class="tfnb" style="--i:2">En ligne</button><button class="tfnb" style="--i:3">Personnaliser</button></nav>
+  <div id="tfPanels"><div id="tfHome" style="--n:2"><button class="tfc" style="--i:0" data-act="quick" aria-label="Coup d’envoi"><img alt="" src="teranga/k_quick.jpg"><span class="tflab">Coup d’envoi</span></button><button class="tfc" style="--i:1" data-act="last" aria-label="Dernier mode joué"><img alt="" src="teranga/k_nav.jpg"><span class="tflab">Dernier mode joué</span></button></div><div id="tfPlay" class="hide" style="--n:5"><button class="tfc" style="--i:0" data-act="car" aria-label="Carrière"><img alt="" src="teranga/k_car.jpg"><span class="tflab">Carrière</span></button><button class="tfc" style="--i:1" data-act="nav" aria-label="Navétane"><img alt="" src="teranga/k_nav.jpg"><span class="tflab">Navétane</span></button><button class="tfc" style="--i:2" data-act="coupe" aria-label="Coupe du Sénégal"><img alt="" src="teranga/k_coupe.jpg"><span class="tflab">Coupe du Sénégal</span></button><button class="tfc" style="--i:3" data-act="quick" aria-label="Coup d’envoi"><img alt="" src="teranga/k_quick.jpg"><span class="tflab">Coup d’envoi</span></button><button class="tfc" style="--i:4" data-act="train" aria-label="Entraînement"><img alt="" src="teranga/k_train.jpg"><span class="tflab">Entraînement</span></button></div><div id="tfOnline" class="hide" style="--n:3"><button class="tfc" style="--i:0" data-act="rank" aria-label="Classement"><img alt="" src="teranga/k_online.jpg"><span class=em>🏆</span><span class="tflab">Classement</span></button><button class="tfc" style="--i:1" data-act="duel" aria-label="Défier un joueur"><img alt="" src="teranga/k_rank.jpg"><span class=em>⚔️</span><span class="tflab">Défier un joueur</span></button><button class="tfc" style="--i:2" data-act="shop" aria-label="Boutique de jetons"><img alt="" src="teranga/k_coupe.jpg"><span class=em>🪙</span><span class="tflab">Boutique de jetons</span></button></div><div id="tfCustom" class="hide" style="--n:5"><button class="tfc" style="--i:0" data-act="edit" aria-label="Mon équipe"><img alt="" src="teranga/k_custom.jpg"><span class=em>🎽</span><span class="tflab">Mon équipe</span></button><button class="tfc" style="--i:1" data-act="shop" aria-label="Boutique"><img alt="" src="teranga/k_online.jpg"><span class=em>🛒</span><span class="tflab">Boutique</span></button><button class="tfc" style="--i:2" data-act="rec" aria-label="Palmarès"><img alt="" src="teranga/k_train.jpg"><span class=em>📊</span><span class="tflab">Palmarès</span></button><button class="tfc" style="--i:3" data-act="sel" aria-label="Choisir mon ASC"><img alt="" src="teranga/k_car.jpg"><span class=em>🏟️</span><span class="tflab">Choisir mon ASC</span></button><button class="tfc" style="--i:4" data-act="full" aria-label="Tous les réglages"><img alt="" src="teranga/k_nav.jpg"><span class=em>⚙️</span><span class="tflab">Tous les réglages</span></button></div></div>
+ </div></div>
+<div id="tfRot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:72px;height:72px"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 19h2"/></svg><div>Tournez votre appareil en mode horizontal</div></div>
+</div>
+<div class="scr" id="home">
+  <div class="logo">TERANGA FOOT</div>
   <div class="tag">Le football des quartiers de Dakar</div>
   <div class="card row" id="hSel" style="cursor:pointer"></div>
   <div class="lab" style="margin-top:2px">Équipes adverses en tournoi</div><div class="chips" id="hPool" style="margin-bottom:6px"></div>
   <button class="btn pri" id="bQuick">⚽ Match rapide<small>Choisis ton ASC et ton adversaire</small></button>
   <button class="btn pri" id="bCar">🌟 Carrière<small>Fais grandir ton ASC saison après saison</small></button>
-  <button class="btn gold" id="bCoupe">🏆 Coupe NAVETANE<small>8 équipes · élimination directe · tirs au but</small></button>
+  <button class="btn gold" id="bCoupe">🏆 Coupe du Sénégal<small>8 équipes · élimination directe · tirs au but</small></button>
   <button class="btn gold" id="bLigue">🥇 Championnat des quartiers<small>6 équipes · 5 journées · le meilleur gagne</small></button>
   <button class="btn" id="bTrain">🎯 Entraînement<small>Joueurs adverses immobiles · teste tirs, passes, dribbles · pas de fin de match</small></button>
   <button class="btn" id="bEdit">🎽 Mon équipe<small>Nom, maillot, joueurs, style de jeu</small></button>
@@ -193,7 +276,7 @@ body.inm #rot{display:flex}
 <!-- TOURNOI -->
 <div class="scr" id="tour"><div class="top"><button class="bk" data-back="home">←</button><h2 id="toT">Tournoi</h2></div><div id="toB"></div></div>
 <!-- CARRIERE -->
-<div class="scr" id="car"><div class="top"><button class="bk" data-back="home">←</button><h2>Carrière · Master NAVETANE</h2></div><div id="caB"></div></div>
+<div class="scr" id="car"><div class="top"><button class="bk" data-back="home">←</button><h2>Carrière · Master TERANGA Foot</h2></div><div id="caB"></div></div>
 <!-- TIRS AU BUT -->
 <div id="pso"><div id="psh"></div><canvas id="psc"></canvas><div id="psm"></div><div id="psb"></div></div>
 <!-- EDITEUR -->
@@ -1014,7 +1097,7 @@ function cdist(a, b) { var f = function (h, i) { return parseInt(h.substr(i, 2),
 function pips(n, max, big) { var s = ""; for (var i = 1; i <= (max || 5); i++) s += "<i class='pip" + (big ? " big" : "") + (i <= n ? " f" : "") + "'></i>"; return s; }
 function rate3(T) { return "<div class='stats3'><div class='pips'>ATT " + pips(T.a) + "</div><div class='pips'>DÉF " + pips(T.d) + "</div><div class='pips'>VIT " + pips(T.v) + "</div></div>"; }
 var scrPrev = "home", scrCur = "home";
-function show(id) { document.querySelectorAll(".scr").forEach(function (e) { e.classList.remove("on"); }); $(id).classList.add("on"); if (id !== scrCur) { scrPrev = scrCur; scrCur = id; } if (id === "home") renderHome(); }
+function show(id) { if (id === "home" && !FULLH) id = "tf"; if (id === "tf" && TFSEEN) $("tf").classList.add("menu"); document.querySelectorAll(".scr").forEach(function (e) { e.classList.remove("on"); }); $(id).classList.add("on"); if (id !== scrCur) { scrPrev = scrCur; scrCur = id; } if (id === "home" || id === "tf") renderHome(); }
 document.querySelectorAll("[data-back]").forEach(function (b) { b.onclick = function () { var t = b.getAttribute("data-back"); show(t === "1" ? (pickBack || "home") : t); }; });
 function selId() { return SV.sel === -1 || TEAMS[SV.sel] ? SV.sel : -1; }
 var STARS = [
@@ -1039,6 +1122,31 @@ function renderShop() {
 }
 function info2(t) { alert(t); }
 $("bShop").onclick = function () { renderShop(); show("shop"); };
+
+/* ===== TERANGA Foot : écran d'accueil ===== */
+var FULLH = false, TFSEEN = false;
+(function () {
+  var tf = $("tf"), lg = $("tfLogo"); lg.style.setProperty("--m", 'url("' + lg.querySelector("img").getAttribute("src") + '")');
+  function go() { tf.classList.add("menu"); TFSEEN = true; }
+  $("tfTitle").addEventListener("click", go); $("tfTitle").addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  var nbs = tf.querySelectorAll(".tfnb"), panels = ["tfHome", "tfPlay", "tfOnline", "tfCustom"].map($);
+  nbs.forEach(function (b, i) { b.addEventListener("click", function () { nbs.forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); panels.forEach(function (p, j) { p.classList.toggle("hide", j !== i); p.classList.toggle("panel-in", j === i); }); }); });
+  function ripple(c, x, y) { var r = c.getBoundingClientRect(), d = document.createElement("span"); d.className = "tfrip"; d.style.left = (x - r.left) + "px"; d.style.top = (y - r.top) + "px"; d.style.setProperty("--s", (r.width * 2.4 / 20).toFixed(1)); c.appendChild(d); setTimeout(function () { d.remove(); }, 700); }
+  var A = { quick: "bQuick", car: "bCar", nav: "bLigue", coupe: "bCoupe", train: "bTrain", edit: "bEdit", shop: "bShop", rec: "bRec", sel: "hSel" };
+  tf.querySelectorAll(".tfc").forEach(function (c) {
+    c.addEventListener("pointerdown", function (e) { ripple(c, e.clientX, e.clientY); });
+    c.addEventListener("click", function () {
+      var a = c.getAttribute("data-act");
+      if (a === "last") a = SV.last || "quick";
+      if (a === "rank" || a === "duel") { alert("Le jeu en ligne arrive bientôt : classement des joueurs et défis contre l'équipe d'un autre joueur."); return; }
+      if (a === "full") { FULLH = true; show("home"); FULLH = false; return; }
+      if (["quick", "car", "nav", "coupe", "train"].indexOf(a) >= 0) { SV.last = a; save(); }
+      var el = A[a] && $(A[a]); if (el) el.click();
+    });
+  });
+  $("tfBk").onclick = function () { location.href = "./index.html"; };
+})();
+
 function renderHome() {
   var T = teamById(selId());
   $("shopSm").textContent = "🪙 " + (SV.tok | 0) + " jetons · joueurs vedettes · ballons";
@@ -1158,7 +1266,7 @@ $("bTrain").onclick = function () {
   startMatch({ weather: 1, t0: A, t1: B, diff: 0, halfLen: 45, knockout: false, train: true, title: "Entraînement", onEnd: function () { show("home"); }, onQuit: function () { show("home"); } });
 };
 $("bRec").onclick = function () {
-  var s = SV.st, h = "<div class='card' style='text-align:center'><div style='font-size:46px'>🏆</div><div class='lst'>Coupes NAVETANE gagnées : <b style='color:var(--y)'>" + SV.tr.coupe + "</b><br>Championnats gagnés : <b style='color:var(--y)'>" + SV.tr.ligue + "</b></div></div>";
+  var s = SV.st, h = "<div class='card' style='text-align:center'><div style='font-size:46px'>🏆</div><div class='lst'>Coupes du Sénégal gagnées : <b style='color:var(--y)'>" + SV.tr.coupe + "</b><br>Championnats gagnés : <b style='color:var(--y)'>" + SV.tr.ligue + "</b></div></div>";
   h += "<div class='card'><div class='lab' style='margin-top:0'>Statistiques</div><table><tr><th></th><th>Matchs</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th></tr><tr><td></td><td>" + s.p + "</td><td>" + s.w + "</td><td>" + s.d + "</td><td>" + s.l + "</td><td>" + s.gf + "</td><td>" + s.ga + "</td></tr></table></div>";
   h += "<button class='btn red' id='rcReset' style='text-align:center'>Effacer ma progression</button>";
   $("recB").innerHTML = h; $("rcReset").onclick = function () { if (confirm("Effacer les stats, trophées et tournois ? (Mon équipe est gardée)")) { SV.tr = { coupe: 0, ligue: 0 }; SV.st = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }; SV.tour = null; save(); $("bRec").onclick(); } };
@@ -1550,7 +1658,7 @@ function bakeBG() {
     // banderoles et fanions
     var sl = ["ALLEZ LES JEUNES", "SUNU QUARTIER", "NAVETANE FOREVER", "DIOM", "TERANGA", "FOOT POUR TOUS", "JAPPO"], bco = ["#c62828", "#1565c0", "#2e7d32", "#f9a825", "#6a1b9a"];
     if (!(V.deco === "sea")) banner(-70, -EY2 - 5, 84, 8.4, sl[Math.floor(r() * 7)], bco[Math.floor(r() * 5)], false);
-    banner(60, EY2 + 5, 90, 8.4, (home.n || "ASC").toUpperCase(), home.c1, false); banner(-EX2 - 5, 60, 90, 8.4, "NAVETANE", "#fdd835", true); banner(EX2 + 5, -70, 84, 8.4, (away.n || "ASC").toUpperCase(), away.c1, true);
+    banner(60, EY2 + 5, 90, 8.4, (home.n || "ASC").toUpperCase(), home.c1, false); banner(-EX2 - 5, 60, 90, 8.4, "TERANGA FOOT", "#fdd835", true); banner(EX2 + 5, -70, 84, 8.4, (away.n || "ASC").toUpperCase(), away.c1, true);
     if (V.deco === "street" || V.deco === "market" || V.deco === "houses") { bunting(-VX + 4, EY2 + 2, VX - 4, EY2 + 2); if (V.deco !== "sea") bunting(-VX + 4, -EY2 - 2, VX - 4, -EY2 - 2); }
     for (i = 0; i < 8; i++) { var s4 = i % 4, fx3 = s4 < 2 ? -VX + 14 + r() * (VX * 2 - 28) : (s4 === 2 ? -1 : 1) * (150 + r() * 14), fy3 = s4 === 0 ? VY - 12 - r() * 10 : s4 === 1 ? (V.deco === "sea" ? VY - 20 : -VY + 12 + r() * 10) : -200 + r() * 400; R.flags.push({ x: fx3, y: FV ? -fy3 : fy3, col: [["#00a651", "#fdd835", "#e53935"], [home.c1, home.c2, home.c1], [away.c1, away.c2, away.c1], ["#fff", "#e53935", "#1e88e5"]][i % 4], ph: r() * 6 }); }
   }
@@ -1565,7 +1673,7 @@ function bakeBG() {
   if (V.k === "std") {
   banner(-100, VY - 26, 86, 9, (home.n || "ASC").toUpperCase(), home.c1, false); banner(60, VY - 26, 92, 9, slog[Math.floor(r() * 8)], bcol[2 + Math.floor(r() * 5)], false);
   banner(-50, -VY + 26, 90, 9, slog[Math.floor(r() * 8)], bcol[2 + Math.floor(r() * 5)], false); banner(100, -VY + 26, 80, 9, (away.n || "ASC").toUpperCase(), away.c1, false);
-  banner(VX - 34, -120, 90, 9, slog[Math.floor(r() * 8)], bcol[2 + Math.floor(r() * 5)], true); banner(VX - 34, 100, 84, 9, "NAVETANE", "#fdd835", true);
+  banner(VX - 34, -120, 90, 9, slog[Math.floor(r() * 8)], bcol[2 + Math.floor(r() * 5)], true); banner(VX - 34, 100, 84, 9, "TERANGA FOOT", "#fdd835", true);
   banner(-VX + 34, -60, 94, 9, slog[Math.floor(r() * 8)], bcol[2 + Math.floor(r() * 5)], true); banner(-VX + 34, 130, 80, 9, (home.n || "ASC").toUpperCase(), home.c2, true);
   }
   // guirlandes de fanions
@@ -1978,7 +2086,7 @@ function showIntro(T0, T1, wxs) {
   var wl = ["", "☀️ Soleil", "🌧 Pluie", "🌙 Match de nuit", "🌙🌧 Nuit sous la pluie"][wxs], nums = nIntro()[0], np = nIntro()[1];
   var col = function (T) { var nm = (T.names || []); var L = []; for (var i = 0; i < np; i++) { var n = nm[i] || (FIRST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5)) * FIRST.length)] + " " + LAST[Math.floor(hsh(((T.seed || 7) * 31 + i * 13 + 5) + 3) * LAST.length)]); L.push(nums[i] + " · " + esc(n)); } return "<div class='tmc'>" + badge(T, 66) + "<b>" + esc(T.n) + "</b>" + L.join("<br>") + "</div>"; };
   var z = T0.z ? ZN[T0.z] : T0.id === -1 ? "Ton quartier" : "Quartier de " + T0.q;
-  $("intro").innerHTML = "<div class='tt'>NAVETANE</div><div style='color:var(--mu);font-size:13px'>📍 Terrain de " + esc(T0.q) + " · " + z + "<br>🏟 " + VN.n + " · " + wl + "</div><div class='tms'>" + col(T0) + "<div class='vsx'>VS</div>" + col(T1) + "</div><div class='tap'>Touche pour commencer</div>";
+  $("intro").innerHTML = "<div class='tt'>TERANGA FOOT</div><div style='color:var(--mu);font-size:13px'>📍 Terrain de " + esc(T0.q) + " · " + z + "<br>🏟 " + VN.n + " · " + wl + "</div><div class='tms'>" + col(T0) + "<div class='vsx'>VS</div>" + col(T1) + "</div><div class='tap'>Touche pour commencer</div>";
   $("intro").className = "on"; G.intro = true; var my = {}; G.introT = setTimeout(function () { endIntro(); }, 5200);
 }
 function endIntro() { if (!G.intro) return; G.intro = false; clearTimeout(G.introT); $("intro").className = ""; G.last = performance.now(); G.acc = 0; }
@@ -2106,7 +2214,7 @@ function newTour(type) {
 function sortTab(t) { return t.ids.slice().sort(function (a, b) { var x = t.tab[a], y = t.tab[b]; return y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf; }); }
 function renderTour() {
   var t = SV.tour, h = ""; if (!t) { show("home"); return; }
-  $("toT").textContent = t.type === "coupe" ? "Coupe NAVETANE" : "Championnat des quartiers";
+  $("toT").textContent = t.type === "coupe" ? "Coupe du Sénégal" : "Championnat des quartiers";
   if (t.type === "coupe") {
     t.hist.forEach(function (rd, ri) {
       h += "<div class='rd'>" + roundName(rd.n) + "</div>";
@@ -2180,7 +2288,7 @@ function tourResult(r, oppId) {
 $("bCoupe").onclick = function () { tourEntry("coupe"); };
 $("bLigue").onclick = function () { tourEntry("ligue"); };
 /* ===== NAVETANE : mode carrière (Master NAVETANE) ===== */
-var DIVN = ["Super Ligue NAVETANE", "Division 1", "Division 2", "Division 3 · Quartiers"];
+var DIVN = ["Super Ligue", "Division 1", "Division 2", "Division 3 · Quartiers"];
 function carRank() { var h = function (i) { return Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1; }; var ix = []; for (var i = 0; i < TEAMS.length; i++) ix.push(i); return ix.sort(function (a, b) { var A = TEAMS[a], B = TEAMS[b]; return (B.a + B.d + B.v + h(b) * .8) - (A.a + A.d + A.v + h(a) * .8); }); }
 function carOpp(base, div) {
   var rk = carRank().filter(function (i) { return i !== base; }), sz = Math.ceil(rk.length / 4), p = rk.slice(div * sz, (div + 1) * sz);
