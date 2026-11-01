@@ -123,9 +123,9 @@ tr.me td{background:#2a3d12;color:var(--y);font-weight:800}
 #intro .tmc{flex:1;font-size:12.5px;line-height:1.55;color:var(--mu)}#intro .tmc b{display:block;color:#fff;font-size:15px;margin:4px 0 6px}
 #intro .vsx{font-weight:900;color:var(--y);font-size:22px;align-self:center}
 #intro .tap{margin-top:12px;font-size:12px;color:var(--mu);animation:bl 1.2s steps(2) infinite}
-#pz{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:30;padding:24px}
+#pz{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:30;padding:10px}
 #pz.on{display:flex}
-#pz .box{width:100%;max-width:340px}
+#pz .box{width:100%;max-width:340px;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .big{font-weight:900;font-family:"Arial Black",system-ui;font-size:30px;text-align:center;margin:6px 0 14px}
 .sc2{font-weight:900;font-family:"Arial Black",system-ui;font-size:54px;text-align:center;margin:4px 0;letter-spacing:4px}
 .lst{font-size:14px;color:var(--mu);text-align:center;line-height:1.6;margin:6px 0}
@@ -285,7 +285,8 @@ function slotPos(t, s, att, kick) {
   else if (att) u += s.r === "ATT" ? 0.22 : s.r === "MID" ? 0.18 : s.r === "DEF" ? 0.13 : 0.05;
   else u -= s.r === "ATT" ? 0.1 : 0.07;
   if (t.style === 1) u += s.r === "GK" ? 0 : 0.04; else if (t.style === 2) u -= s.r === "GK" ? 0 : 0.04;
-  return { x: s.v * (PW / 2 - 28) * (t.dir < 0 ? 1 : -1), y: ownY(t) + t.dir * u * PL };
+  var wk = t.wid === 1 ? 1.2 : t.wid === 2 ? .8 : 1;
+  return { x: clamp(s.v * wk, -1, 1) * (PW / 2 - 28) * (t.dir < 0 ? 1 : -1), y: ownY(t) + t.dir * u * PL };
 }
 var NATS = [["Sénégal", "🇸🇳"], ["Mali", "🇲🇱"], ["Guinée", "🇬🇳"], ["Côte d'Ivoire", "🇨🇮"], ["Gambie", "🇬🇲"], ["Mauritanie", "🇲🇷"], ["Cap-Vert", "🇨🇻"], ["Cameroun", "🇨🇲"], ["Bénin", "🇧🇯"]];
 function posLabel(s) { if (s.r === "GK") return "Gardien"; var l = s.v < -0.4 ? " gauche" : s.v > 0.4 ? " droit" : " central"; return s.r === "DEF" ? "Défenseur" + l : s.r === "MID" ? "Milieu" + l : "Attaquant" + l; }
@@ -321,7 +322,22 @@ function mkTeam(T, idx, dir, human, np) {
     p.pos = posLabel(s); p.st = dispStats(p); p.ovr = ovrOf(p); p.spd *= SPDK;
     t.players.push(p);
   }
+  t.wid = T.wid | 0; t.dh = T.dh | 0;
+  var fld = t.players.filter(function (q) { return q.r !== "GK"; }), best = function (f) { var b = fld[0]; fld.forEach(function (q) { if (f(q) > f(b)) b = q; }); return b; };
+  var pk = function (v, f) { return v >= 0 && t.players[v] && t.players[v].r !== "GK" ? t.players[v] : best(f); };
+  t.capP = pk(T.cap === undefined ? -1 : T.cap, function (q) { return q.ovr + q.age * .2; }); t.capP.cap = true;
+  t.tkP = pk(T.tkP === undefined ? -1 : T.tkP, function (q) { return q.sht + q.pow * .3; }); t.tkF = pk(T.tkF === undefined ? -1 : T.tkF, function (q) { return q.pas * .6 + q.sht * .4; });
+  t.subN = 0;
   return t;
+}
+function penTaker(t) { var q = t.tkP; return q && !q.off && q.r !== "GK" ? q : kickTaker(t); }
+function doSub(m, t, ix) {
+  var old = t.players[ix]; if (!old || t.subN >= 3 || m.b.own === old || (m.rs && m.rs.taker === old) || old.off) return false;
+  var FORMS = formsOf(m.np), sT = Object.assign({}, t.T, { seed: (t.T.seed || 7) + 101 + t.subN * 17, names: null, form: Math.max(0, FORMS.indexOf(t.form)), cap: -1, tkP: -1, tkF: -1 }), tmp = mkTeam(sT, t.idx, t.dir, false, m.np), np = tmp.players[ix];
+  ["x", "y", "vx", "vy", "fx", "fy"].forEach(function (k) { np[k] = old[k]; }); np.num = 12 + t.subN; np.stam = 1; np.cap = false; np.think = .3;
+  t.players[ix] = np; var pi = m.P.indexOf(old); if (pi >= 0) m.P[pi] = np; if (m.b.lastP === old) m.b.lastP = np;
+  if (t.capP === old) { t.capP = np; np.cap = true; } if (t.tkP === old) t.tkP = np; if (t.tkF === old) t.tkF = np; if (m.passT && m.passT.tgt === old) m.passT.tgt = np;
+  t.subN++; m.ev.push({ k: "whistle2" }); return true;
 }
 function newMatch(T0, T1, o) {
   o = o || {};
@@ -547,6 +563,7 @@ function spaceX(m, t, y, cx0) {
 function defLine(m, t, carrier) {
   var b = m.b, adv = clamp((b.y - ownY(t)) * t.dir, 0, PL), base = 0.2 * PL + adv * 0.36;
   if (t.press === 1) base += 0.04 * PL; else if (t.press === 2) base -= 0.05 * PL;
+  if (t.dh === 1) base += 0.05 * PL; else if (t.dh === 2) base -= 0.05 * PL;
   if (carrier && (carrier.y - ownY(t)) * t.dir < 0.5 * PL) base = Math.min(base, 0.24 * PL + (carrier.y - ownY(t)) * t.dir * 0.2);
   return ownY(t) + t.dir * clamp(base, 0.17 * PL, 0.5 * PL);
 }
@@ -771,11 +788,12 @@ function setRestart(m, type, team, x, y) {
   var t = m.teams[team], tk = null, bd = 1e9;
   t.players.forEach(function (p) { if (p.off) return; if (type === "goalkick" ? p.r !== "GK" : p.r === "GK") return; var d = hlen(p.x - x, p.y - y); if (d < bd) { bd = d; tk = p; } });
   if (type === "penalty") {
-    tk = kickTaker(t); var q = m.teams[1 - team], oy = oppY(t), dd = t.dir;
+    tk = penTaker(t); var q = m.teams[1 - team], oy = oppY(t), dd = t.dir;
     t.players.forEach(function (p, i) { if (p === tk || p.r === "GK" || p.off) return; p.x = (i - t.players.length / 2) * (t.players.length > 5 ? 19 : 26); p.y = oy - dd * 76; p.vx = p.vy = 0; });
     q.players.forEach(function (p, i) { if (p.off) return; if (p.r === "GK") { p.x = 0; p.y = oy - dd * 4; p.vx = p.vy = 0; return; } p.x = (i - q.players.length / 2) * (q.players.length > 5 ? 19 : 26); p.y = oy - dd * 84; p.vx = p.vy = 0; });
     tk.x = x * 0 + 0; tk.y = y + dd * 0 - dd * 14; tk.fx = 0; tk.fy = dd;
   }
+  if (type === "freekick" && t.tkF && !t.tkF.off && t.tkF.r !== "GK") tk = t.tkF;
   m.rs.taker = tk; if (t.human) t.ctrl = tk.ix; if (type === "penalty" || type === "freekick") m.st = 1.8;
   m.ev.push({ k: "whistle2" });
 }
@@ -1024,6 +1042,13 @@ function renderSetup() {
   $("suTac").innerHTML = "<div class='chips'>" + FM().map(function (f, i) { return "<button class='chip" + (i === (SV.form | 0) ? " on" : "") + "' data-f='" + i + "'>" + f.n + "</button>"; }).join("") + "</div><div class='note' style='margin:4px 0 6px'>" + FM()[SV.form | 0].d + "</div><div class='chips'>" + PRESN.map(function (n, i) { return "<button class='chip" + (i === (SV.press | 0) ? " on" : "") + "' data-p='" + i + "'>" + n + "</button>"; }).join("") + "</div>";
   $("suTac").querySelectorAll("[data-f]").forEach(function (b) { b.onclick = function () { SV.form = +b.getAttribute("data-f"); save(); renderSetup(); }; });
   $("suTac").querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { SV.press = +b.getAttribute("data-p"); save(); renderSetup(); }; });
+  (function () {
+    var np = npOf(); applyNp(np); var pv = mkTeam(Object.assign({}, A, { form: SV.form | 0 }), 0, -1, false, np), ch = function (arr, key) { return "<div class='chips' style='margin-top:6px'>" + arr.map(function (n, i) { return "<button class='chip" + (i === (SV[key] | 0) ? " on" : "") + "' data-w='" + key + "' data-v='" + i + "'>" + n + "</button>"; }).join("") + "</div>"; };
+    var sel = function (lab, key) { var v = SV[key] == null ? -1 : SV[key]; return "<div class='lab' style='margin-top:8px'>" + lab + "</div><select data-s='" + key + "' style='width:100%;padding:11px;border-radius:12px;background:var(--card2);color:var(--tx);border:2px solid transparent;font-size:16px;font-weight:700'><option value='-1'" + (v < 0 ? " selected" : "") + ">Auto (le meilleur)</option>" + pv.players.map(function (p, i) { return p.r === "GK" ? "" : "<option value='" + i + "'" + (v === i ? " selected" : "") + ">" + p.num + " · " + esc(p.name) + " (" + p.ovr + ")</option>"; }).join("") + "</select>"; };
+    $("suTac").insertAdjacentHTML("beforeend", "<div class='lab' style='margin-top:10px'>Largeur de jeu</div>" + ch(["Normale", "Large", "Serrée"], "wid") + "<div class='lab' style='margin-top:8px'>Hauteur de la défense</div>" + ch(["Normale", "Haute", "Basse"], "dh") + sel("Capitaine 🟡", "cap") + sel("Tireur de penalty", "tkP") + sel("Tireur de coups francs", "tkF"));
+    $("suTac").querySelectorAll("[data-w]").forEach(function (b) { b.onclick = function () { SV[b.getAttribute("data-w")] = +b.getAttribute("data-v"); save(); renderSetup(); }; });
+    $("suTac").querySelectorAll("[data-s]").forEach(function (b) { b.onchange = function () { SV[b.getAttribute("data-s")] = +b.value; save(); }; });
+  })();
   $("suVen").innerHTML = ["🎲 Auto"].concat(VENUES.map(function (v) { return v.n; })).map(function (n, i) { return "<button class='chip" + (i === SV.ven ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
   $("suVen").querySelectorAll(".chip").forEach(function (b) { b.onclick = function () { SV.ven = +b.getAttribute("data-v"); save(); renderSetup(); }; });
   $("suCam").innerHTML = CAMN.map(function (n, i) { return "<button class='chip" + (i === SV.cam ? " on" : "") + "' data-v='" + i + "'>" + n + "</button>"; }).join("");
@@ -1843,7 +1868,7 @@ function readJoy() {
 var G = { intro: false, rb: [], rp: null, cl: null, bc: null, rc: null, m2: null, cmtT: 0, m: null, cfg: null, run: false, paused: false, last: 0, acc: 0, over: 0, lastState: "", hintT: 0, lastScore: "" };
 function shortN(n) { return n.length > 15 ? n.slice(0, 14) + "…" : n; }
 function startMatch(cfg) {
-  cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0 }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
+  cfg.t0 = Object.assign({}, cfg.t0, { form: SV.form | 0, press: SV.press | 0, wid: SV.wid | 0, dh: SV.dh | 0, cap: SV.cap == null ? -1 : SV.cap, tkP: SV.tkP == null ? -1 : SV.tkP, tkF: SV.tkF == null ? -1 : SV.tkF }); var T0 = cfg.t0, T1 = cfg.t1; audioInit();
   var m = newMatch(T0, T1, { diff: cfg.diff, halfLen: cfg.halfLen, knockout: !!cfg.knockout, cs: 1 / GSV[SV.gs | 0], np: npOf() }); applyCtl();
   var wxs = cfg.weather || 0; if (!wxs) { var u = Math.random(); wxs = u < .42 ? 1 : u < .66 ? 2 : u < .9 ? 3 : 4; }
   R.wx = { rain: wxs === 2 || wxs === 4, night: wxs === 3 || wxs === 4 }; R.drops = []; m.wet = R.wx.rain; G.wxIco = R.wx.night ? (R.wx.rain ? " 🌙🌧" : " 🌙") : R.wx.rain ? " 🌧" : " ☀️";
@@ -1948,7 +1973,15 @@ function hud(m, inp) {
   if (infT > 0) { infT -= 1 / 60; if (infT <= 0) $("inf").className = ""; }
   if (G.hintT > 0) { G.hintT -= 1 / 60; if (G.hintT <= 0) { $("hint").style.opacity = 0; } }
 }
-function pzCtlDraw() { ctlUI("pzCtl", pzCtlDraw); }
+function pzCtlDraw() {
+  ctlUI("pzCtl", pzCtlDraw); var m = G.m, t = m && m.teams[0]; if (!t) return; var ch = function (arr, k) { return "<div class='chips' style='margin-bottom:6px'>" + arr.map(function (n, i) { return "<button class='chip" + (i === (t[k] | 0) ? " on" : "") + "' data-tk='" + k + "' data-v='" + i + "'>" + n + "</button>"; }).join("") + "</div>"; };
+  var h = "<div class='lab' style='margin-top:10px'>Tactique en direct</div>" + ch(PRESN, "press") + ch(["Largeur normale", "Large", "Serrée"], "wid") + ch(["Défense normale", "Haute", "Basse"], "dh");
+  h += "<div class='lab' style='margin-top:8px'>Remplacements (" + (3 - t.subN) + " restants)</div>";
+  if (t.subN < 3) { h += "<div class='note' style='margin:2px 0 6px'>Touche le joueur à sortir (le nouveau arrive frais, pleine endurance).</div><div class='chips'>" + t.players.map(function (p, i) { return "<button class='chip' data-sb='" + i + "' style='font-size:12px;padding:7px 10px" + (p.stam < .6 ? ";border-color:#e57373" : "") + "'>" + p.num + " " + esc(p.name.split(" ")[1] || p.name) + " · " + Math.round(p.stam * 100) + "%</button>"; }).join("") + "</div>"; }
+  $("pzCtl").insertAdjacentHTML("beforeend", h);
+  $("pzCtl").querySelectorAll("[data-tk]").forEach(function (b) { b.onclick = function () { t[b.getAttribute("data-tk")] = +b.getAttribute("data-v"); pzCtlDraw(); }; });
+  $("pzCtl").querySelectorAll("[data-sb]").forEach(function (b) { b.onclick = function () { var i = +b.getAttribute("data-sb"), nm = t.players[i].name; if (doSub(m, t, i)) { G.subMsg = "🔄 " + nm + " ➜ " + t.players[i].name; } else G.subMsg = "Remplacement impossible maintenant"; pzCtlDraw(); }; });
+}
 function togglePause() { if (!G.run) return; G.paused = !G.paused; if (G.paused) pzCtlDraw(); $("pz").classList.toggle("on", G.paused); if (!G.paused) { G.last = performance.now(); G.acc = 0; } }
 $("bPz").onclick = togglePause; $("pzR").onclick = togglePause;
 $("pzQ").onclick = function () { G.run = false; assikoStop(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { } G.paused = false; $("pz").classList.remove("on"); var cf = G.cfg; if (cf && cf.onQuit) cf.onQuit(); else show("home"); };
@@ -2631,7 +2664,7 @@ function human(m, p, kit, o) {
     if (kk > 0 && !isGK && !cel && !lying) { ar = j === 1 ? -1 * kk : .6 * kk; zs = ss * .35; }
     if (hdr && !isGK) { ar = -1.8; zs = ss * .6; }
     if (fnt && !cel && !isGK) zs = ss * .5;
-    mPush(); mT(ss * 3.0, 13.8, 0); mRZ(zs); mRX(ar); lim(.8, 2.5, shirt); mPush(); mT(0, -2.5, 0); mRX(el); lim(.66, 2.3, skin); mPush(); mT(0, -2.35, 0); mS(isGK ? 1.05 : .62, isGK ? 1.05 : .62, isGK ? 1.05 : .62); drw(MS.sph, isGK ? glove : skin); mPop(); mPop(); mPop();
+    mPush(); mT(ss * 3.0, 13.8, 0); mRZ(zs); mRX(ar); lim(.8, 2.5, shirt); if (p.cap && j === 0) { mPush(); mT(0, -.6, 0); lim(.95, .9, hc("#ffd400")); mPop(); } mPush(); mT(0, -2.5, 0); mRX(el); lim(.66, 2.3, skin); mPush(); mT(0, -2.35, 0); mS(isGK ? 1.05 : .62, isGK ? 1.05 : .62, isGK ? 1.05 : .62); drw(MS.sph, isGK ? glove : skin); mPop(); mPop(); mPop();
   }
   mPop(); mPop();
 }
