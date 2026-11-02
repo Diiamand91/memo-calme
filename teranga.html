@@ -879,5 +879,82 @@ S.st.sh[p.t]++;kick(p,p.x+Math.cos(a)*100,p.y+Math.sin(a)*100,V);var T_=rf[1];b.
 if(Math.abs(rf[0]-PH/2)<45&&H<2.4)S.st.so[p.t]++};
 })();
 </script>
+<script>
+(function(){
+var SK='tf_shop',W={tok:150,kits:[],kit:null,stars:[]};
+try{var j=JSON.parse(localStorage.getItem(SK)||'null');if(j&&typeof j.tok==='number')W=Object.assign(W,j)}catch(e){}
+function save(){try{localStorage.setItem(SK,JSON.stringify(W))}catch(e){}}
+var KITS=[
+ {id:'k_or',n:"Lion d'Or",p:150,c:['#e6b422','#111827','uni']},
+ {id:'k_bao',n:'Baobab',p:100,c:['#14532d','#fde047','raye']},
+ {id:'k_sun',n:'Sunugal',p:200,c:['#fdd835','#00a651','cerceaux']},
+ {id:'k_nuit',n:'Nuit de Dakar',p:120,c:['#0b1020','#38bdf8','raye']},
+ {id:'k_blanc',n:'Teranga Blanc',p:80,c:['#f8fafc','#16a34a','cerceaux']},
+ {id:'k_feu',n:'Rouge Feu',p:100,c:['#b91c1c','#111827','raye']}];
+var STARS=[
+ {id:'s_ibou',n:'Ibou Diop',pos:'AT',r:90,nu:10,sk:3,hr:1,p:500},
+ {id:'s_pape',n:'Pape Thiam',pos:'MF',r:88,nu:8,sk:2,hr:2,p:400},
+ {id:'s_lam',n:'Lamine Ndiaye',pos:'AT',r:86,nu:9,sk:4,hr:0,p:300},
+ {id:'s_abd',n:'Abdou Fall',pos:'GK',r:85,nu:1,sk:3,hr:2,p:250},
+ {id:'s_che',n:'Cheikh Sarr',pos:'MF',r:84,nu:6,sk:1,hr:3,p:250},
+ {id:'s_mod',n:'Modou Gueye',pos:'DF',r:83,nu:4,sk:4,hr:4,p:200}];
+var CAP=75;
+function has(a,id){return W[a].indexOf(id)>=0}
+// ---------- UI
+var css=document.createElement('style');css.textContent='#shopb{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:6;display:none;padding:8px 14px;border-radius:999px;border:1px solid #e6c229;background:#0b3d22e6;color:#fff;font:800 15px system-ui,sans-serif}body.menu:not(.play) #shopb{display:block}'+
+'#shop{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;background:linear-gradient(180deg,#07210f,#0b1020);color:#fff;font-family:system-ui,sans-serif;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left))}'+
+'#shop .sh{display:flex;align-items:center;gap:10px;justify-content:space-between}#shop .sh b{font-size:20px}#shop .tb{display:flex;gap:6px;margin:8px 0}#shop button{font:700 14px system-ui,sans-serif;color:#fff;background:#14532d;border:1px solid #2d5a3a;border-radius:10px;padding:8px 12px}'+
+'#shop .tb button.on{background:#e6c229;color:#111;border-color:#e6c229}#shop .gr{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-content:start;padding-bottom:10px}'+
+'#shop .it{background:#0f2a1a;border:1px solid #2d5a3a;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}#shop .it small{opacity:.8}#shop .it .go2{background:#e6c229;color:#111;border-color:#e6c229}#shop .it .on2{background:#1d4ed8}#shop .ms{min-height:18px;font-size:13px;color:#fdef42;text-align:center}';
+document.head.appendChild(css);
+var pill=document.createElement('button');pill.id='shopb';document.body.appendChild(pill);
+var ov=document.createElement('div');ov.id='shop';document.body.appendChild(ov);
+var tab='k',msg='';
+function pillT(){pill.textContent='🪙 '+W.tok+' · Boutique'}
+function shirt(c){return '<div style="width:64px;height:64px;border-radius:12px;border:2px solid #fff3;background:'+(c[2]=='uni'?c[0]:c[2]=='raye'?'repeating-linear-gradient(90deg,'+c[0]+' 0 8px,'+c[1]+' 8px 16px)':'repeating-linear-gradient(0deg,'+c[0]+' 0 8px,'+c[1]+' 8px 16px)')+'"></div>'}
+function render(){
+ var h='<div class="sh"><b>BOUTIQUE TERANGA</b><span>🪙 <b>'+W.tok+'</b> jetons</span><button id="shx">✕ Fermer</button></div><div class="tb"><button data-t="k" class="'+(tab=='k'?'on':'')+'">Maillots</button><button data-t="s" class="'+(tab=='s'?'on':'')+'">Joueurs</button><button data-t="j" class="'+(tab=='j'?'on':'')+'">Jetons</button></div><div class="ms">'+msg+'</div><div class="gr">';
+ if(tab=='k'){
+  h+='<div class="it">'+shirt(['#888','#888','uni'])+'<b>Maillot du club</b><small>Gratuit</small><button data-q="none" class="'+(W.kit?'':'on2')+'">'+(W.kit?'Équiper':'Équipé')+'</button></div>';
+  KITS.forEach(function(k){var o=has('kits',k.id);h+='<div class="it">'+shirt(k.c)+'<b>'+k.n+'</b><small>'+(o?'Acheté':'🪙 '+k.p)+'</small>'+(o?'<button data-q="'+k.id+'" class="'+(W.kit==k.id?'on2':'')+'">'+(W.kit==k.id?'Équipé':'Équiper')+'</button>':'<button class="go2" data-b="k:'+k.id+'">Acheter</button>')+'</div>'});
+ }else if(tab=='s'){
+  STARS.forEach(function(s){var o=has('stars',s.id);h+='<div class="it"><div style="font-size:30px">⭐</div><b>'+s.n+'</b><small>'+s.pos+' · note '+s.r+' · N°'+s.nu+'</small><small>'+(o?'Dans votre équipe':'🪙 '+s.p)+'</small>'+(o?'':'<button class="go2" data-b="s:'+s.id+'">Acheter</button>')+'</div>'});
+ }else{
+  h+='<div class="it" style="grid-column:1/-1"><b>Gagner des jetons</b><small>Chaque match terminé rapporte des jetons : victoire 40, nul 20, défaite 10.</small></div>';
+  [['Petit pack','200 jetons'],['Pack moyen','600 jetons'],['Grand pack','1500 jetons']].forEach(function(p){h+='<div class="it"><div style="font-size:30px">🪙</div><b>'+p[0]+'</b><small>'+p[1]+'</small><button data-pay="1">Bientôt</button></div>'});
+ }
+ h+='</div>';ov.innerHTML=h;pillT();
+ ov.querySelector('#shx').onclick=function(){ov.style.display='none'};
+ ov.querySelectorAll('[data-t]').forEach(function(b){b.onclick=function(){tab=b.dataset.t;msg='';render()}});
+ ov.querySelectorAll('[data-q]').forEach(function(b){b.onclick=function(){W.kit=b.dataset.q=='none'?null:b.dataset.q;save();msg='Maillot changé.';render()}});
+ ov.querySelectorAll('[data-pay]').forEach(function(b){b.onclick=function(){msg="L'achat de jetons avec de l'argent réel n'est pas encore disponible.";render()}});
+ ov.querySelectorAll('[data-b]').forEach(function(b){b.onclick=function(){var a=b.dataset.b.split(':'),it=(a[0]=='k'?KITS:STARS).filter(function(x){return x.id==a[1]})[0];
+  if(!it)return;if(W.tok<it.p){msg='Pas assez de jetons ('+it.p+' nécessaires).';render();return}
+  W.tok-=it.p;if(a[0]=='k'){W.kits.push(it.id);W.kit=it.id}else W.stars.push(it.id);save();msg=a[0]=='k'?'Maillot acheté et équipé !':it.n+' rejoint votre équipe au prochain match.';render()}});
+}
+pill.onclick=function(){tab='k';msg='';render();ov.style.display='flex'};pillT();
+// ---------- maillot premium
+var _ks=window.kitSel;
+window.kitSel=function(t){var k=KITS.filter(function(x){return x.id==W.kit})[0];if(!k)return _ks(t);
+ var b=kits(S.ti[0]);if(t==0)return [k.c[0],k.c[1],k.c[2],b.v];
+ var c=[b.d,b.a,b.t].find(function(x){return kcd(x[0],k.c[0])>.35})||b.t;return [c[0],c[1],c[2],b.v]};
+// ---------- joueurs étoiles
+function ensure(club){try{var m=getTM(club);m.stars=m.stars||[];m.sid=m.sid||{};
+ STARS.forEach(function(s){if(!has('stars',s.id)||m.stars.indexOf(s.id)>=0)return;if(m.pos.length>=22)return;
+  var nu=s.nu;while(m.nu.indexOf(nu)>=0&&nu<99)nu++;m.pos.push(s.pos);m.rt.push(s.r);m.nm.push(s.n);m.nu.push(nu);m.sk.push(s.sk);m.hr.push(s.hr);var id=m.pos.length-1;m.stars.push(s.id);m.sid[s.id]=id});
+ var ca=fcat(m.form);m.stars.forEach(function(sid){var id=m.sid[sid];if(id==null||m.sl.indexOf(id)>=0)return;var bi=-1,br=999;
+  ca.forEach(function(c,i){if(c==m.pos[id]&&m.rt[m.sl[i]]<br){br=m.rt[m.sl[i]];bi=i}});if(bi>=0){m.rt[id]=Math.min(99,Math.max(m.rt[id],br+4));m.sl[bi]=id}});
+ sv()}catch(e){}}
+var _st=window.start;window.start=function(){try{ensure(+document.getElementById('s0').value)}catch(e){}return _st.apply(this,arguments)};var _go=document.getElementById('go');if(_go)_go.onclick=window.start;
+// ---------- éditeur : plus de 99 gratuit
+var _pl=window.pl;window.pl=function(c,id){var r=_pl.apply(this,arguments);try{var m=getTM(c);if(id==null||id>=m.pos.length)id=0;var lr=document.getElementById('lr'),st=(m.stars||[]).some(function(s){return m.sid&&m.sid[s]==id});
+ if(lr){if(st){lr.disabled=true;var lp=document.getElementById('lp');if(lp)lp.disabled=true}else{lr.max=Math.max(CAP,m.rt[id]);var o=document.getElementById('lsv'),f=o&&o.onclick;if(f)o.onclick=function(){var cap=Math.max(CAP,m.rt[id]);if(+lr.value>cap)lr.value=cap;f()}}}
+ var cr_=document.getElementById('lmsg');if(cr_&&!cr_.textContent)cr_.textContent='Note max '+CAP+' : les joueurs plus forts s’achètent dans la Boutique.'}catch(e){}return r};
+// ---------- gains de fin de match
+var _fin=window.fin;window.fin=function(){var was=S&&S.done;var r=_fin.apply(this,arguments);try{if(S&&!was&&!S.paid){S.paid=1;var d=S.sc[0]-S.sc[1],g=d>0?40:d==0?20:10;W.tok+=g;save();pillT();var es=document.getElementById('es');if(es)es.innerHTML+='<br><small>+'+g+' 🪙 jetons (total '+W.tok+')</small>'}}catch(e){}return r};
+window.TFSHOP={W:W,add:function(n){W.tok+=n;save();pillT()}};
+})();
+
+</script>
 </body>
 </html>
