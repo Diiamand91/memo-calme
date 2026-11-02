@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Teranga Foot</title>
 <style>
 :root{--bg:#0b1020;--fg:#f2f5f8;box-sizing:border-box}
@@ -105,6 +105,8 @@ body:not(.play) #top,body:not(.play) #pad{display:none!important}
 #gmback{margin-top:8px}
 
 </style>
+<style>html,body,#c,#pad,#pad div,#top,#top button,.card,.nb,#shop button,#shopb{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}#c,#pad{touch-action:none}select,input,textarea{font-size:16px!important}html{-webkit-text-size-adjust:100%}</style>
+<script>(function(){function p(e){e.preventDefault()}['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,p,{passive:false})});var lt=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-lt<350&&!/^(SELECT|INPUT|TEXTAREA)$/.test((e.target||{}).tagName||''))e.preventDefault();lt=n},{passive:false});document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault()},{passive:false});document.addEventListener('dblclick',p,{passive:false})})();</script>
 </head>
 <body>
 <div id="title" class="screen" role="button" tabindex="0" aria-label="Continuer vers le menu">
