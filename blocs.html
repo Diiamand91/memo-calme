@@ -45,13 +45,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:#7ec8ff;font-family:-a
 <div id="joy"><div id="knob"></div></div>
 <div class="ov" id="title"><h1>⛏ BLOCS TERANGA</h1><p>Construis et explore un monde infini, bloc par bloc. Ta construction est sauvegardée automatiquement.</p><p id="how"></p><button class="b" id="bCont">▶ Continuer</button><button class="b" id="bNewC">🌍 Nouveau monde créatif</button><button class="b" id="bNewS">⚔️ Nouveau monde survie</button><a class="b" href="./index.html">← Salle de jeux</a></div>
 <div id="hurt"></div><div class="ov off" id="bag"></div><div class="ov off" id="dead"><h1>💀 Tu es mort</h1><p>Les zombies t'ont eu. Tu gardes ton sac.</p><button class="b" id="bResp">Réapparaître</button></div>
-<div class="ov off" id="menu"><h1>Pause</h1><button class="b" id="bRes">▶ Reprendre</button><button class="b" id="bSave">💾 Sauvegarder</button><button class="b" id="bNew">🌍 Nouveau monde</button><a class="b" href="./index.html">← Salle de jeux</a></div>
+<div class="ov off" id="menu"><h1>Pause</h1><button class="b" id="bRes">▶ Reprendre</button><button class="b" id="bRad">👁 Distance de vue</button><button class="b" id="bSave">💾 Sauvegarder</button><button class="b" id="bNew">🌍 Nouveau monde</button><a class="b" href="./index.html">← Salle de jeux</a></div>
 <script src="./teranga/three.min.js"></script>
 <script>
 (function(){
 "use strict";
 var CS=16,CH=64,WL=20,RAD=4,KEY="blocs-teranga";
 var isTouch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+try{var rs0=+localStorage.getItem("blocs-rad");if(rs0>=2&&rs0<=5)RAD=rs0;else if(isTouch)RAD=3}catch(e){}
 /* ---------- bruit ---------- */
 var SEED=Math.floor(Math.random()*1e9);
 function hash(x,z,s){var h=(x*374761393+z*668265263+(s||0)*1442695041)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296}
@@ -203,7 +204,7 @@ function raycast(){var o=[P.x,P.y+EYE,P.z],cp=Math.cos(P.pitch),dv=[-Math.sin(P.
 /* ---------- rendu ---------- */
 var R=new THREE.WebGLRenderer({canvas:document.getElementById("c"),antialias:false});R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 function rs(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener("resize",rs);rs();
-scene.fog=new THREE.Fog(0x9fd6ff,40,RAD*CS+10);
+scene.fog=new THREE.Fog(0x9fd6ff,Math.min(40,RAD*CS*.5),RAD*CS+10);
 var sel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.005,1.005,1.005)),new THREE.LineBasicMaterial({color:0x000000}));sel.visible=false;scene.add(sel);
 var SKYD=new THREE.Color(0x7ec8ff),SKYN=new THREE.Color(0x070b22),SKYS=new THREE.Color(0xffa060),tmpC=new THREE.Color();
 function daylight(){var a=Math.sin(P.t*Math.PI*2);return Math.max(0,Math.min(1,a*1.6+.35))}
@@ -266,6 +267,9 @@ $("bBag").onclick=function(){openBag()};
 $("bMenu").onclick=function(){pauseMenu()};$("bRes").onclick=function(){$("menu").classList.add("off");running=true;lockPtr()};
 $("bSave").onclick=function(){save();hint("Sauvegardé !");$("menu").classList.add("off");running=true};
 $("bNew").onclick=function(){if(confirm("Effacer ce monde et en créer un nouveau ?")){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
+var RADN={2:"Très proche",3:"Proche",4:"Normal",5:"Loin"};
+function radTxt(){$("bRad").textContent="👁 Vue : "+RADN[RAD]+" (change)"}radTxt();
+$("bRad").onclick=function(){RAD=RAD>=5?2:RAD+1;scene.fog.near=Math.min(40,RAD*CS*.5);scene.fog.far=RAD*CS+10;try{localStorage.setItem("blocs-rad",RAD)}catch(e){}radTxt()};
 function pauseMenu(){running=false;save();$("menu").classList.remove("off");if(document.exitPointerLock)document.exitPointerLock()}
 $("bFly").onclick=function(){setFly(!P.fly)};
 /* son */
