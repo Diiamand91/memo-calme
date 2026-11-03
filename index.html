@@ -1739,7 +1739,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   var chI = 0;
   function limb(x1, y1, x2, y2, w, c) {
     var r = rctx;
-    rline(shade(c, -0.4), w, x1, y1, x2, y2);
+    rline(shade(c, -0.3), w * 0.96, x1, y1, x2, y2);
     rline(c, w * 0.78, x1 - w * 0.07, y1, x2 - w * 0.07, y2);
     rline(shade(c, 0.28), w * 0.24, x1 - w * 0.22, y1, x2 - w * 0.22, y2);
   }
@@ -1832,7 +1832,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       ecol(shade(skin, -0.1), A.hx, A.hy + 1.5, 4.6, 5);
     });
     if (ch.id === "boy") { rline("#4A3320", 2, 22, shY + 38, 27, shY + 6); rline("#6A4A2A", 1, 27, shY + 6, 33, shY - 6); }
-    drawHead(ch, -105 - bob * 0.6);
+    rctx.save(); rctx.translate(0, -105 - bob * 0.6); rctx.scale(0.88, 0.88); rctx.translate(0, 105 + bob * 0.6); drawHead(ch, -105 - bob * 0.6); rctx.restore();
   }
 
   /* ---------- Décors latéraux ---------- */
@@ -2086,7 +2086,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     }
     var hz = rctx.createLinearGradient(0, HY - 6, 0, HY + 60);
     hz.addColorStop(0, "rgba(" + th.haze + ",0.95)"); hz.addColorStop(1, "rgba(" + th.haze + ",0)");
-    rctx.fillStyle = hz; rctx.fillRect(0, HY - 6, RW, 66);
+    rctx.fillStyle = hz; rctx.fillRect(0, HY - 6, RW, 90);
   }
   function drawSide() {
     var th = curTh(), d = core ? core.dist : 0, i0 = Math.floor((d - 60) / 100), i1 = Math.ceil((d + RFAR) / 100), i, sd;
@@ -2112,7 +2112,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function drawCoin(q) {
     var s = rsc(q.z), x = xz(q.lane, q.z), y = gyz(q.z) - q.h * s * 1.2, sx = Math.max(0.2, Math.abs(Math.cos((core.t * 5) + q.z * 0.02)));
     rctx.save(); rctx.globalAlpha = Math.min(1, (RFAR - q.z) / 200); rctx.translate(x, y); rctx.scale(s * 1.25, s * 1.25);
-    rctx.fillStyle = rg(0, 0, 4, 22, [0, "rgba(255,220,100,0.45)", 1, "rgba(255,220,100,0)"]); rctx.beginPath(); rctx.arc(0, 0, 22, 0, 6.2832); rctx.fill();
+    rctx.fillStyle = rg(0, 0, 4, 22, [0, "rgba(255,220,100,0.22)", 1, "rgba(255,220,100,0)"]); rctx.beginPath(); rctx.arc(0, 0, 18, 0, 6.2832); rctx.fill();
     rctx.fillStyle = "#8A5A08"; ell(0, 0, 10.5 * sx, 10.5); rctx.fillStyle = lg(-8, -8, 8, 8, [0, "#FFE58A", 0.5, "#F2B632", 1, "#B07A12"]); ell(0, 0, 8.6 * sx, 8.6);
     rctx.strokeStyle = "rgba(120,80,0,0.55)"; rctx.lineWidth = 1.2; rctx.beginPath(); rctx.ellipse(0, 0, 5.4 * sx, 5.4, 0, 0, 6.28); rctx.stroke();
     rctx.restore();
@@ -2132,6 +2132,8 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     drawHuman(ch, ph, air, sl);
     rctx.restore();
   }
+  var GRAIN = null;
+  try { var gc = document.createElement("canvas"); gc.width = gc.height = 64; var gx = gc.getContext("2d"), gd = gx.createImageData(64, 64); for (var gi = 0; gi < gd.data.length; gi += 4) { var gv = Math.random() * 255; gd.data[gi] = gd.data[gi + 1] = gd.data[gi + 2] = gv; gd.data[gi + 3] = 255; } gx.putImageData(gd, 0, 0); GRAIN = rctx.createPattern(gc, "repeat"); } catch (eg2) { GRAIN = null; }
   function drawScene() {
     camX = core ? core.lx * 0.38 : 0;
     rctx.setTransform(dcv.width / RW, 0, 0, dcv.height / RH, 0, 0);
@@ -2162,6 +2164,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     }
     var vg = rctx.createRadialGradient(RW / 2, RH * 0.5, RH * 0.28, RW / 2, RH * 0.5, RH * 0.72);
     vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(6,4,2,0.6)"); rctx.fillStyle = vg; rctx.fillRect(0, 0, RW, RH);
+    if (GRAIN) { rctx.globalAlpha = 0.07; rctx.fillStyle = GRAIN; rctx.save(); rctx.translate(Math.floor(Math.random() * 64), Math.floor(Math.random() * 64)); rctx.fillRect(-64, -64, RW + 64, RH + 64); rctx.restore(); rctx.globalAlpha = 1; }
     try { rctx.globalCompositeOperation = "saturation"; rctx.fillStyle = "rgba(128,128,128,0.3)"; rctx.fillRect(0, 0, RW, RH); rctx.globalCompositeOperation = "multiply"; var tg = rctx.createLinearGradient(0, 0, 0, RH); tg.addColorStop(0, "rgb(205,205,215)"); tg.addColorStop(0.5, "rgb(250,246,240)"); tg.addColorStop(1, "rgb(215,205,195)"); rctx.fillStyle = tg; rctx.fillRect(0, 0, RW, RH); } catch (eg) {} rctx.globalCompositeOperation = "source-over";
     rctx.fillStyle = "rgba(" + curTh().haze + ",0.06)"; rctx.fillRect(0, 0, RW, RH);
     if (core && core.shake > 0) { rctx.fillStyle = "rgba(190,20,10," + (core.shake * 0.9) + ")"; rctx.fillRect(0, 0, RW, RH); }
@@ -2334,7 +2337,7 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   function rLoop(ts) {
     if (rState !== "run") return;
     var dt = Math.min(0.05, (ts - rLast) / 1000); rLast = ts;
-    core.step(dt); handleEvents(dt); partsStep(dt); if (lvBan) lvBan.t -= dt; drawScene(); rHud();
+    core.step(dt); handleEvents(dt); if (!core.dead && core.pz <= 0 && Math.random() < dt * 22) { var dx0 = RW / 2 + (core.lx - camX) * LW; addPart(dx0 + (Math.random() - 0.5) * 22, FOOT + 6, (Math.random() - 0.5) * 30, -14 - Math.random() * 18, 0.7, 4 + Math.random() * 4, "rgba(" + curTh().haze + ",0.28)", -6); } partsStep(dt); if (lvBan) lvBan.t -= dt; drawScene(); rHud();
     if (core.dead) { rOver(); return; }
     rRaf = requestAnimationFrame(rLoop);
   }
