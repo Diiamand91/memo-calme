@@ -46,7 +46,7 @@ h1{margin:6px 0 2px;text-align:center;font-size:32px;color:#ffc928;font-style:it
 <div class="ov" id="ov"><div class="md" id="md"></div></div>
 <script>
 /*LOGIC*/
-var SEG=200,RW=1000,CAMH=1000,FOVD=100,DRAW=110,CAMD=1/Math.tan(FOVD/2*Math.PI/180),MAXSP=12000,CURV=RW/2000,CENT=.3;
+var SEG=200,RK=1.4,RW=1000*RK,CAMH=1000,FOVD=100,DRAW=110,CAMD=1/Math.tan(FOVD/2*Math.PI/180),MAXSP=12000,CURV=.5,CENT=.3;
 var PLAYZ=CAMH*CAMD;
 var CARS=[
  {n:"Taxi de Dakar",col:"#f2c41a",kind:"taxi",sp:.80,ac:.85,hd:1.0,nt:1.0,cost:0,d:"Fiable, rapide à démarrer."},
@@ -156,12 +156,12 @@ function updCars(G,dt,racing){
    c.sw-=dt;if(c.sw<=0){c.sw=3+Math.random()*4;c.tgt=(Math.random()-.5)*1.3}
    if(!racing||c.out>0)spd=0;
    c.sp+=(spd-c.sp)*Math.min(1,dt*(spd>c.sp?1.1:2));
-   for(var t=0;t<TR.length;t++){var tr=TR[t],dz=wrapD(tr.z-c.z);if(dz>0&&dz<260&&Math.abs(tr.off-c.off)<(.24+tr.wf*.28)&&c.cd<=0){c.sp=Math.min(c.sp,tr.sp*.6);c.cd=.8;c.off+=(c.off>tr.off?.15:-.15)}}
+   for(var t=0;t<TR.length;t++){var tr=TR[t],dz=wrapD(tr.z-c.z);if(dz>0&&dz<260&&Math.abs(tr.off-c.off)<(.24+tr.wf*.28)/RK&&c.cd<=0){c.sp=Math.min(c.sp,tr.sp*.6);c.cd=.8;c.off+=(c.off>tr.off?.15:-.15)}}
    if(cop&&racing){if(pd>250)c.ah=(c.ah||0)+dt;else c.ah=0;if(c.ah>1.6){c.ah=0;c.z=((pz-3000-Math.random()*1500)%TL+TL)%TL;c.sp=P.sp*.9;c.off=Math.max(-.8,Math.min(.8,P.x+(Math.random()-.5)))}}
    c.cd-=dt}else c.cd-=dt;
   var cex=0;
   if(c.rv&&racing&&!c.out&&!(c.scT>0)){c.oc=(c.oc||0)-dt;for(var ho=0;ho<OBS.length;ho++){var hb=OBS[ho],hz=wrapD(hb.z-c.z);if(hz<-70||hz>Math.max(40,c.sp*dt+20))continue;var hl=Math.abs(c.off-hb.off);if(hb.kind==="mud"){if(hl<hb.w+.06)c.sp=Math.max(0,c.sp-MAXSP*.5*dt);continue}
-   if(hl<hb.w+.09&&c.oc<=0){c.oc=1.2;var hk=hb.kind,hp=hk==="log"?.3:hk==="tires"?.7:.5;c.sp*=hp;if(hk!=="tires"){c.spin=1.1;c.spinA=0;c.spinD=c.off>=hb.off?1:-1}c.off+=(c.off>=hb.off?.35:-.35);c.vk=(c.off>=hb.off?.5:-.5);break}}}
+   if(hl<hb.w+.065&&c.oc<=0){c.oc=1.2;var hk=hb.kind,hp=hk==="log"?.3:hk==="tires"?.7:.5;c.sp*=hp;if(hk!=="tires"){c.spin=1.1;c.spinA=0;c.spinD=c.off>=hb.off?1:-1}c.off+=(c.off>=hb.off?.35:-.35);c.vk=(c.off>=hb.off?.5:-.5);break}}}
   c.z+=c.sp*dt+cex;c.prog+=c.sp*dt+cex;if(c.z>=TL){c.z-=TL;c.lap++}
   if(c.rv===1&&!c.fin&&c.prog>=G.r.laps*TL)c.fin=G.time;
   var a=o,b=segAt(c.z);if(a!==b){var ix=a.cars.indexOf(c);if(ix>=0)a.cars.splice(ix,1);b.cars.push(c)}else if(a.cars.indexOf(c)<0)a.cars.push(c)})}
@@ -195,7 +195,7 @@ function updPlayer(G,dt,inp){
  var pz=P.pos+PLAYZ,bustUp=0;
  if(P.alt!=null){var AA=ALT[P.alt];if(pz>=AA.b*SEG||pz<AA.a*SEG-SEG*4||G.state==="fin"){exitAlt(P.alt);P.alt=null;P.scT=.5;toast("🛣️ Retour sur la route principale")}}
  else if(G.state==="race")for(var si=0;si<SC.length;si++){var sc=SC[si],sd=wrapD(sc.z-pz);if(sc.alt>=0&&sd<=0&&sd>-Math.max(160,P.sp*dt*2)&&Math.abs(P.x-sc.off)<sc.w+.06){enterAlt(sc.alt);P.alt=sc.alt;P.scT=.5;P.scN=(P.scN||0)+1;P.nt=Math.min(P.ntMax,P.nt+12);toast("🌿 SENTIER RACCOURCI ! +nitro");tone(520,.25,.1);break}}
- CAR_LIST.forEach(function(c){var dz=wrapD(c.z-pz),lat=Math.abs(P.x-c.off),w=.1+c.wf*.3;
+ CAR_LIST.forEach(function(c){var dz=wrapD(c.z-pz),lat=Math.abs(P.x-c.off),w=(.1+c.wf*.3)/RK;
   if(Math.abs(dz)<240&&lat<w&&c.cd<=0&&G.state==="race"&&!(P.scT>0)){
    var rel=P.sp-c.sp,side=lat>w*.55,dir=P.x>=c.off?1:-1;c.cd=c.rv===2?1.8:.75;P.hits++;
    if(!side&&dz>-60){ // collision par l'arrière
@@ -208,8 +208,8 @@ function updPlayer(G,dt,inp){
  OBS.forEach(function(o){var dz=wrapD(o.z-pz);
   if(o.hit&&Math.abs(dz)>3000){o.hit=0;o.sp.hit=0;return}
   if(G.state!=="race"||dz>170||dz<-170||P.scT>0)return;var lat=Math.abs(P.x-o.off);
-  if(o.kind==="mud"){if(lat<o.w+.06){P.sp=Math.max(0,P.sp-MAXSP*.55*dt);if(!o.hit){o.hit=1;toast("🟤 Boue !")}if(Math.random()<dt*20)smoke(SCRX,SCRY-10,1)}return}
-  if(o.hit||lat>=o.w+.09)return;
+  if(o.kind==="mud"){if(lat<o.w+.045){P.sp=Math.max(0,P.sp-MAXSP*.55*dt);if(!o.hit){o.hit=1;toast("🟤 Boue !")}if(Math.random()<dt*20)smoke(SCRX,SCRY-10,1)}return}
+  if(o.hit||lat>=o.w+.065)return;
   o.hit=1;o.sp.hit=1;P.hits++;var k=o.kind,imp=P.sp*.5+900,dx2=(P.x>=o.off?1:-1)*1.2;
   if(k==="barbed"){P.sp*=.62;P.flat=4;crash(P,imp*.5,dx2,0);toast("🔧 Fil barbelé ! Pneus crevés")}
   else if(k==="log"){P.sp*=.3;crash(P,imp*1.3,dx2,0);o.sp.hit=0;toast("🪵 Tronc !")}
@@ -286,7 +286,7 @@ function drawCar(x,y,w,spec,o){
  cx.restore()}
 /* ----- décors ----- */
 function drawSprite(sp,x,y,u,far){
- var t=sp.t,s=u*.012;cx.save();cx.translate(x,y);if(far<1)cx.globalAlpha=far;
+ var t=sp.t,rd=(sp.ob||t==="shortcut"||t==="gate"),s=u/RK*.012;if(!rd)u=u/RK;cx.save();cx.translate(x,y);if(far<1)cx.globalAlpha=far;
  if(NEWSPR[t]){NEWSPR[t](sp,u,s);cx.restore();return}
  if(t==="palm"){var h=135*s*(1+sp.v*.5),bend=(sp.v-.5)*30*s;cx.fillStyle=gr2(-h,0,"#9a7a48","#5d4426");cx.beginPath();cx.moveTo(-6*s,0);cx.lineTo(6*s,0);cx.quadraticCurveTo(5*s+bend*.6,-h*.5,2*s+bend,-h);cx.lineTo(-2*s+bend,-h);cx.quadraticCurveTo(-5*s+bend*.6,-h*.5,-6*s,0);cx.fill();cx.strokeStyle="rgba(0,0,0,.18)";cx.lineWidth=Math.max(1,s);for(var q=1;q<7;q++){cx.beginPath();cx.moveTo(-5*s+bend*q/10,-h*q/7);cx.lineTo(5*s+bend*q/10,-h*q/7);cx.stroke()}
   for(var i=0;i<8;i++){var a=-Math.PI/2+(i-3.5)*.5;cx.fillStyle=i%2?"#2e9d3f":"#237f33";cx.beginPath();cx.moveTo(bend,-h);cx.quadraticCurveTo(bend+Math.cos(a)*44*s,-h+Math.sin(a)*44*s-14*s,bend+Math.cos(a)*68*s,-h+Math.sin(a)*40*s+40*s);cx.quadraticCurveTo(bend+Math.cos(a)*40*s,-h+Math.sin(a)*40*s+2*s,bend,-h);cx.fill()}cx.fillStyle="#5b3d1a";cx.beginPath();cx.arc(bend-3*s,-h+4*s,4*s,0,7);cx.arc(bend+4*s,-h+5*s,4*s,0,7);cx.fill()}
@@ -386,7 +386,7 @@ function render(G,inp){
   for(i=0;i<sg.spr.length;i++){var sp=sg.spr[i],u=sg.p1.s.w,sx=sg.p1.s.x+sg.p1.s.sc*sp.o*RW*W/2,sy=sg.p1.s.y;if(n<4||u<2)continue;var clipY=sg.clip;
    if(sy>clipY&&sy-u*1.7>clipY)continue;if(sx<-u*2||sx>W+u*2)continue;
    if(sy>clipY){cx.save();cx.beginPath();cx.rect(0,0,W,clipY);cx.clip();drawSprite(sp,sx,sy,u,far);cx.restore()}else drawSprite(sp,sx,sy,u,far)}
-  for(i=0;i<sg.cars.length;i++){var car=sg.cars[i],pc=(car.z%SEG)/SEG,sc=lerp(sg.p1.s.sc,sg.p2.s.sc,pc),cxp=lerp(sg.p1.s.x,sg.p2.s.x,pc)+sc*car.off*RW*W/2,cyp=lerp(sg.p1.s.y,sg.p2.s.y,pc),cu=sc*RW*W/2;if(sg.p1.c.z<=CAMD*1.2)continue;var cw=cu*car.wf;
+  for(i=0;i<sg.cars.length;i++){var car=sg.cars[i],pc=(car.z%SEG)/SEG,sc=lerp(sg.p1.s.sc,sg.p2.s.sc,pc),cxp=lerp(sg.p1.s.x,sg.p2.s.x,pc)+sc*car.off*RW*W/2,cyp=lerp(sg.p1.s.y,sg.p2.s.y,pc),cu=sc*RW*W/2;if(sg.p1.c.z<=CAMD*1.2)continue;var cw=cu*car.wf/RK;
    var clip2=sg.clip,dop={brake:car.sp<car.top*.7&&car.rv===1,rot:car.spin>0?car.spinA:0};if(far<1)cx.globalAlpha=Math.max(0,far);
    if(cyp>clip2){cx.save();cx.beginPath();cx.rect(0,0,W,clip2);cx.clip();drawCar(cxp,cyp,cw,car,dop);cx.restore()}else drawCar(cxp,cyp,cw,car,dop);cx.globalAlpha=1;
    if(car.rv===1&&cu>12&&cyp<=clip2){cx.fillStyle="#fff";cx.font="700 "+Math.max(9,Math.min(14,cu*.07))+"px Arial";cx.textAlign="center";cx.fillText(car.nm,cxp,cyp-cw*1.0)}}}
