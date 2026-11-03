@@ -474,6 +474,7 @@ function netRecv(m){if(!m||!m.t||m.id===lbPid())return;var now=Date.now();
  if(m.t==="hi"){var p=netPeer(m.id);p.name=String(m.name||"Joueur").slice(0,16);p.car=m.car|0;p.seen=now;if(m.host){NET.race=m.race|0;p.host=1}}
  else if(m.t==="go"){if(!NET.started&&NET.on&&m.order&&m.order.indexOf(lbPid())>=0){NET.started=1;netStart(m.race|0,m.order)}}
  else if(m.t==="s"){var q=netPeer(m.id);q.seen=now;q.prog=+m.p||0;q.x=+m.x||0;q.v=+m.v||0;q.at=now;if(m.nm)q.name=String(m.nm).slice(0,16);if(m.car!==undefined)q.car=m.car|0}
+ else if(m.t==="bump"){if(m.to===lbPid()&&G&&G.net&&G.state==="race"){var P2=PL,q2=netPeer(m.id);if((q2.cd2||0)>Date.now())return;q2.cd2=Date.now()+700;var dd=+m.d>=0?1:-1;P2.x+=dd*.05;P2.vx=dd*.5;if(m.f){P2.sp=Math.min(P2.max*1.08,P2.sp+MAXSP*.03)}else P2.sp*=.97;P2.shake=Math.max(P2.shake,.3);toast("💢 Accrochage !");tone(90,.15,.1)}}
  else if(m.t==="fin"){var f=netPeer(m.id);f.fin=+m.ms||0;f.seen=now;if(m.nm)f.name=String(m.nm).slice(0,16)}
  if($("nbox")&&TABM==="net"&&!G)netRender()}
 function netJoin(code,host){NET.code=code;NET.host=host?1:0;NET.peers={};NET.started=0;NET.err=0;NET.ready=0;netRender();
@@ -504,6 +505,12 @@ function netStep(dt){if(!G||!G.net)return;var now=Date.now();
   if(stale){if(c){var o0=segAt(c.z),i0=o0.cars.indexOf(c);if(i0>=0)o0.cars.splice(i0,1);p.car2=null}return}
   if(!c){var d=CARS[p.car]||CARS[0];c=p.car2={z:0,off:0,sp:1e9,top:0,col:d.col,kind:d.kind,wf:.36,nm:p.name,rv:0,net:1,big:0,cd:0,spin:0,prog:0}}
   var dtp=Math.min(.4,(now-p.at)/1000),pr=p.prog+p.v*dtp;c.off+=(p.x-c.off)*Math.min(1,dt*10);var old=segAt(c.z);c.z=((pr+PLAYZ)%TL+TL)%TL;var nw=segAt(c.z);if(nw!==old){var ix=old.cars.indexOf(c);if(ix>=0)old.cars.splice(ix,1);nw.cars.push(c)}else if(old.cars.indexOf(c)<0)old.cars.push(c)})}
+function netCollide(dt){if(!G||!G.net||G.state!=="race")return;var P=PL,pz=P.pos+PLAYZ;
+ Object.keys(NET.peers).forEach(function(k){var p=NET.peers[k],c=p.car2;if(!c||!p.at||Date.now()-p.seen>2000)return;p.cd=(p.cd||0)-dt;if(p.cd>0)return;
+  var dz=wrapD(c.z-pz),lat=Math.abs(P.x-c.off),w=(.1+.36*.3)/RK;if(Math.abs(dz)>=240||lat>=w)return;
+  var dir=P.x>=c.off?1:-1,side=lat>w*.55,rel=P.sp-p.v;p.cd=.75;P.hits++;
+  if(!side&&dz>-60){var imp=Math.max(0,rel);P.sp=Math.max(P.sp*.68,p.v*.92);P.x+=dir*.06;crash(P,(imp+800)*.4,dir*.3,0);toast("💥 Collision !");netSend({t:"bump",id:lbPid(),to:k,d:-dir,f:1})}
+  else{P.sp*=.96;P.x+=dir*.05;P.vx=dir*.35;crash(P,(Math.abs(rel)*.35+1200)*.45,dir*.6,0);toast("💢 Accrochage !");netSend({t:"bump",id:lbPid(),to:k,d:-dir,f:0})}})}
 function netResults(host){var box=document.createElement("div");box.style.cssText="margin:10px 0;padding:10px;border-radius:12px;background:rgba(255,255,255,.06)";host.insertBefore(box,host.querySelector("button"));var me=Math.round((PL.fin-(G.t0||0))*1000);
  function upd(){var rows=[{n:lbName()||"Toi",ms:me,me:1}];Object.keys(NET.peers).forEach(function(k){var p=NET.peers[k];if(p.at&&Date.now()-p.seen<20000)rows.push({n:p.name,ms:p.fin||0})});rows.sort(function(a,b){return(a.ms||9e9)-(b.ms||9e9)});box.innerHTML="<div style='text-align:center;margin-bottom:6px'><b>🌐 Résultats de la salle</b></div><table>"+rows.map(function(r,i){return"<tr"+(r.me?" style='color:#ffc928;font-weight:800'":"")+"><td>"+(["🥇","🥈","🥉"][i]||(i+1)+"ᵉ")+"</td><td>"+esc(r.n)+"</td><td style='text-align:right'>"+(r.ms?fmtT(r.ms):"en course…")+"</td></tr>"}).join("")+"</table>"}
  upd();var iv=setInterval(function(){if(!G||!$("ov").classList.contains("on")||!box.parentNode){clearInterval(iv);return}upd()},1000)}
@@ -539,7 +546,7 @@ function bot(){var P=PL,seg=segAt(P.pos+PLAYZ),target=0;inp.l=inp.r=inp.n=inp.b=
 function loop(ts){requestAnimationFrame(loop);if(!G||paused)return;var dt=Math.min(.05,(ts-last)/1000||.016);last=ts;if(BOT)bot();
  G.time+=dt;
  if(G.state==="count"){G.cd-=dt;updCars(G,dt,false);if(Math.floor(G.cd+.6)!==Math.floor(G.cd+.6+dt)&&G.cd>0)tone(G.cd>.6?440:880,.15);if(G.cd<=.6){G.state="race";G.t0=G.time;toast("GO !");tone(880,.4,.1)}updPlayer(G,dt,inp)}
- else{updPlayer(G,dt,inp);updCars(G,dt,true);ghRec(dt);ghStep();netStep(dt);
+ else{updPlayer(G,dt,inp);updCars(G,dt,true);ghRec(dt);ghStep();netStep(dt);netCollide(dt);
   if(G.state==="race"&&PL.prog>=G.r.laps*TL){G.state="fin";PL.fin=G.time;G.finT=0;G.place=rank();tone(660,.5,.12);if(G.net)netSend({t:"fin",id:lbPid(),ms:Math.round((PL.fin-(G.t0||0))*1000),nm:lbName()})}
   if(G.state==="race"&&G.r.chase){var dn=1e9;CP.forEach(function(c){var d=wrapD(c.z-(PL.pos+PLAYZ));if(d<0&&d>-3000)dn=Math.min(dn,-d)});if(dn<3000&&Math.floor(G.time*2.2)!==Math.floor((G.time-dt)*2.2))tone(Math.floor(G.time*2.2)%2?720:960,.35,.03)}
   if(G.state==="fin"){G.finT+=dt;if(G.finT>2.4&&!G.over){G.over=1;endRace()}}}
