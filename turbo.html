@@ -131,7 +131,7 @@ function updCars(G,dt,racing){
    if(!avoid&&pdz>0&&pdz<4400&&Math.abs(c.off-P.x)<.5&&P.sp<c.sp&&!cop){dir=c.off>P.x?1:-1;avoid=1}
    if(!avoid&&cop&&pd<150&&pd>-4200){var df=P.x-c.off;if(Math.abs(df)>.08)dir=df>0?.9:-.9}
    else if(!avoid&&!cop&&c.ag&&racing&&pdz<500&&pdz>-500&&Math.abs(c.off-P.x)<.9&&Math.abs(c.off-P.x)>.2&&(c.sw>0)){dir=(P.x>c.off?1:-1)*c.ag*.55}
-   if(!avoid){for(var oq=0;oq<OBS.length;oq++){var ob=OBS[oq],od=wrapD(ob.z-c.z);if(od>0&&od<2600&&ob.kind!=="mud"&&Math.abs(c.off-ob.off)<ob.w+.2){dir=ob.gp!==undefined?(c.off>ob.gp?-1:1):(c.off>=ob.off?1:-1);avoid=1;break}}}
+   if(!avoid){for(var oq=0;oq<OBS.length;oq++){var ob=OBS[oq],od=wrapD(ob.z-c.z);if(c.ds===undefined)c.ds=Math.random();var blind=((oq*.618+c.ds*7.3)%1)<.05;if(!blind&&od>0&&od<2600&&ob.kind!=="mud"&&Math.abs(c.off-ob.off)<ob.w+.2){dir=ob.gp!==undefined?(c.off>ob.gp?-1:1):(c.off>=ob.off?1:-1);avoid=1;break}}}
    if(!avoid&&dir===0){var hm=c.tgt;dir=Math.abs(c.off-hm)>.08?(hm>c.off?.5:-.5):0}
    if(racing)c.off+=dir*dt*1.8*c.sp/MAXSP;var lim=(c.out>0||c.vk)?1.7:.85;if(!c.out&&!c.vk&&Math.abs(c.off)>.85)c.off+=(Math.sign(c.off)*.85-c.off)*Math.min(1,dt*1.4);else c.off=Math.max(-lim,Math.min(lim,c.off));
    if(slow)spd=Math.min(spd,c.sp*.97);if(Math.abs(c.off)>1)spd*=.5;
@@ -141,6 +141,8 @@ function updCars(G,dt,racing){
    for(var t=0;t<TR.length;t++){var tr=TR[t],dz=wrapD(tr.z-c.z);if(dz>0&&dz<260&&Math.abs(tr.off-c.off)<(.24+tr.wf*.28)&&c.cd<=0){c.sp=Math.min(c.sp,tr.sp*.6);c.cd=.8;c.off+=(c.off>tr.off?.15:-.15)}}
    if(cop&&racing){if(pd>250)c.ah=(c.ah||0)+dt;else c.ah=0;if(c.ah>1.6){c.ah=0;c.z=((pz-3000-Math.random()*1500)%TL+TL)%TL;c.sp=P.sp*.9;c.off=Math.max(-.8,Math.min(.8,P.x+(Math.random()-.5)))}}
    c.cd-=dt}else c.cd-=dt;
+  if(c.rv&&racing&&!c.out){c.oc=(c.oc||0)-dt;for(var ho=0;ho<OBS.length;ho++){var hb=OBS[ho],hz=wrapD(hb.z-c.z);if(hz<-70||hz>Math.max(40,c.sp*dt+20))continue;var hl=Math.abs(c.off-hb.off);if(hb.kind==="mud"){if(hl<hb.w+.06)c.sp=Math.max(0,c.sp-MAXSP*.5*dt);continue}
+   if(hl<hb.w+.09&&c.oc<=0){c.oc=1.2;var hk=hb.kind,hp=hk==="log"?.3:hk==="tires"?.7:.5;c.sp*=hp;if(hk!=="tires"){c.spin=1.1;c.spinA=0;c.spinD=c.off>=hb.off?1:-1}c.off+=(c.off>=hb.off?.35:-.35);c.vk=(c.off>=hb.off?.5:-.5);break}}}
   c.z+=c.sp*dt;c.prog+=c.sp*dt;if(c.z>=TL){c.z-=TL;c.lap++}
   if(c.rv===1&&!c.fin&&c.prog>=G.r.laps*TL)c.fin=G.time;
   var a=o,b=segAt(c.z);if(a!==b){var ix=a.cars.indexOf(c);if(ix>=0)a.cars.splice(ix,1);b.cars.push(c)}else if(a.cars.indexOf(c)<0)a.cars.push(c)})}
