@@ -86,11 +86,11 @@ function buildTrack(r){var th=THEMES[r.track],rnd=mulberry(777+r.track*31+r.id);
  if(th.night||th.lamps)for(var j2=0;j2<SEGS.length;j2+=8){SEGS[j2].spr.push({t:"lamp",o:-1.35,v:0});SEGS[j2].spr.push({t:"lamp",o:1.35,v:0,f:1})}
 if(th.bg==="jungle"||th.bg==="market"||th.bg==="port")for(var j3=1;j3<SEGS.length;j3+=2){SEGS[j3].spr.push({t:th.sc[Math.floor(rnd()*th.sc.length)],o:(j3%4<2?-1:1)*(1.3+rnd()*1.1),v:rnd()})}
  OBS=[];
- if(th.ob&&r.obs){var lv2=r.obs,gap=Math.max(30,64-lv2*10);
+ if(th.ob&&r.obs){var lv2=r.obs,easy=(th.bg==="jungle"||th.bg==="port"),gap=Math.round(Math.max(30,64-lv2*10)*(easy?1.6:1));
   for(var oi=60;oi<SEGS.length-30;oi+=gap+Math.floor(rnd()*gap*.6)){var kind=th.ob[Math.floor(rnd()*th.ob.length)];
    SEGS[oi-46].spr.push({t:"warn",o:(rnd()<.5?-1:1)*1.35,v:rnd()});
    if(kind==="barrier"||kind==="barbed"){
-    if(rnd()<.55+.1*lv2){var gp=rnd()*.9-.45,gl2=gp-.3,gr3=gp+.3;addOb(oi,kind,(-.97+gl2)/2,(gl2+.97)/2,gp);addOb(oi,kind,(gr3+.97)/2,(.97-gr3)/2,gp)}
+    if(rnd()<(easy?.3+.05*lv2:.55+.1*lv2)){var gp=rnd()*.9-.45,gl2=gp-.3,gr3=gp+.3;addOb(oi,kind,(-.97+gl2)/2,(gl2+.97)/2,gp);addOb(oi,kind,(gr3+.97)/2,(.97-gr3)/2,gp)}
     else addOb(oi,kind,(rnd()-.5)*1.0,.4+rnd()*.12)}
    else if(kind==="log")addOb(oi,"log",(rnd()-.5)*.9,.45);
    else if(kind==="mud")addOb(oi,"mud",(rnd()-.5)*1.0,.5);
