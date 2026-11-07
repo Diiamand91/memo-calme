@@ -1,6 +1,6 @@
 // Change ce numéro à chaque mise à jour du site pour que les téléphones rechargent les fichiers.
-var CACHE = "memo-calme-v97";
-var FILES = ["./", "./index.html", "./navetane.html", "./navetane3d.html", "./puzzle.html", "./belote.html", "./solitaire.html", "./turbo.html", "./blocs.html", "./restoexpress.html", "./ludo.html", "./mahjong.html", "./foule.html", "./stickman.html", "./astro.html", "./teranga/three.min.js", "./teranga/img0.jpg", "./teranga/img1.jpg", "./teranga/img2.webp", "./teranga/k_quick.jpg", "./teranga/k_car.jpg", "./teranga/k_nav.jpg", "./teranga/k_coupe.jpg", "./teranga/k_train.jpg", "./teranga/k_online.jpg", "./teranga/k_rank.jpg", "./teranga/k_custom.jpg", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+var CACHE = "memo-calme-v98";
+var FILES = ["./", "./index.html", "./navetane.html", "./navetane3d.html", "./puzzle.html", "./belote.html", "./solitaire.html", "./turbo.html", "./blocs.html", "./restoexpress.html", "./ludo.html", "./mahjong.html", "./foule.html", "./stickman.html", "./astro.html", "./moto.html", "./teranga/three.min.js", "./teranga/img0.jpg", "./teranga/img1.jpg", "./teranga/img2.webp", "./teranga/k_quick.jpg", "./teranga/k_car.jpg", "./teranga/k_nav.jpg", "./teranga/k_coupe.jpg", "./teranga/k_train.jpg", "./teranga/k_online.jpg", "./teranga/k_rank.jpg", "./teranga/k_custom.jpg", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
