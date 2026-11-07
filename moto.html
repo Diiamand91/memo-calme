@@ -278,24 +278,57 @@ function drawBike(w,col,br,glow,o){w*=1.18;var lean=o.lean||0,hang=Math.max(-1,M
  if(br){var lg=cx.createRadialGradient(0,-.67*w,0,0,-.67*w,.3*w);lg.addColorStop(0,"rgba(255,40,30,.7)");lg.addColorStop(1,"rgba(255,0,0,0)");cx.fillStyle=lg;cx.fillRect(-.3*w,-.9*w,.6*w,.5*w)}
  cx.fillStyle=br?"#ff4a3a":"#a81818";rr(-.085*w,-.69*w,.17*w,.035*w,.012*w);cx.fill();if(glow||br){cx.fillStyle="rgba(255,80,60,"+(br?.8:.3)+")";rr(-.1*w,-.7*w,.2*w,.055*w,.02*w);cx.fill()}
  cx.fillStyle="#f2f2f2";rr(-.055*w,-.545*w,.11*w,.045*w,.008*w);cx.fill();cx.fillStyle="#222";cx.fillRect(-.04*w,-.53*w,.08*w,.01*w);
- /* jambes */
- for(sd=-1;sd<=1;sd+=2){cx.save();cx.translate(sd*.19*w+hang*.35,-.58*w);cx.rotate(sd*.12);cx.fillStyle=hgr(-.08*w,.08*w,shade(suit,.8),shade(suit,1.3),shade(suit,.7));cx.beginPath();cx.ellipse(0,0,.075*w,.15*w,0,0,7);cx.fill();cx.fillStyle=col;cx.fillRect(-.012*w,-.1*w,.024*w,.2*w);cx.restore();
-  cx.fillStyle=dk;rr(sd*.19*w-.035*w+hang*.2,-.43*w,.07*w,.17*w,.025*w);cx.fill();cx.fillStyle="#555a64";cx.fillRect(sd*.19*w-.04*w+hang*.2,-.27*w,.08*w,.02*w)}
- /* buste */
- var ox=hang;cx.fillStyle=hgr(-.24*w+ox,.24*w+ox,shade(suit,.75),shade(suit,1.35),shade(suit,.7));cx.beginPath();cx.moveTo(-.14*w,-.68*w);cx.lineTo(.14*w,-.68*w);cx.quadraticCurveTo(.2*w+ox*.6,-.84*w,.25*w+ox,-1.0*w);cx.lineTo(-.25*w+ox,-1.0*w);cx.quadraticCurveTo(-.2*w+ox*.6,-.84*w,-.14*w,-.68*w);cx.closePath();cx.fill();
- cx.strokeStyle=acc;cx.lineWidth=w*.032;cx.beginPath();cx.moveTo(0,-.7*w);cx.quadraticCurveTo(ox*.5,-.85*w,ox,-1.0*w);cx.stroke();
- cx.strokeStyle=col;cx.lineWidth=w*.05;cx.beginPath();cx.moveTo(-.13*w,-.7*w);cx.quadraticCurveTo(-.17*w+ox*.5,-.85*w,-.22*w+ox,-.98*w);cx.moveTo(.13*w,-.7*w);cx.quadraticCurveTo(.17*w+ox*.5,-.85*w,.22*w+ox,-.98*w);cx.stroke();
- cx.fillStyle="rgba(255,255,255,.12)";cx.beginPath();cx.ellipse(ox,-.95*w,.11*w,.045*w,0,0,7);cx.fill();cx.strokeStyle="rgba(0,0,0,.35)";cx.lineWidth=w*.008;cx.beginPath();cx.moveTo(-.1*w+ox,-.9*w);cx.lineTo(.1*w+ox,-.9*w);cx.moveTo(-.12*w+ox*.7,-.8*w);cx.lineTo(.12*w+ox*.7,-.8*w);cx.stroke();
- /* guidon, bras, gants */
- cx.strokeStyle="#9aa0aa";cx.lineWidth=w*.022;cx.lineCap="round";cx.beginPath();cx.moveTo(-.33*w,-.78*w);cx.lineTo(.33*w,-.78*w);cx.stroke();
- for(sd=-1;sd<=1;sd+=2){cx.strokeStyle=shade(suit,1.1);cx.lineWidth=w*.085;cx.beginPath();cx.moveTo(sd*.22*w+ox,-.97*w);cx.lineTo(sd*.31*w+ox*.7,-.88*w);cx.lineTo(sd*.3*w,-.79*w);cx.stroke();cx.strokeStyle=col;cx.lineWidth=w*.03;cx.beginPath();cx.moveTo(sd*.23*w+ox,-.96*w);cx.lineTo(sd*.31*w+ox*.7,-.87*w);cx.stroke();
-  cx.fillStyle=dk;cx.beginPath();cx.ellipse(sd*.3*w,-.78*w,.05*w,.04*w,0,0,7);cx.fill();cx.fillStyle="#cfd4dc";cx.beginPath();cx.ellipse(sd*.36*w,-.86*w,.03*w,.022*w,sd*.4,0,7);cx.fill();cx.strokeStyle="#555";cx.lineWidth=w*.01;cx.beginPath();cx.moveTo(sd*.31*w,-.79*w);cx.lineTo(sd*.35*w,-.85*w);cx.stroke()}
+ /* pilote réaliste vu de dos */
+ var lth="#2a2d35",lt2="#3b3f4a",ox=hang,sd2;
+ function lg3(x0,x1,a,b,c){return hgr(x0,x1,a,b,c)}
+ /* jambes : bas de jambe + botte + cale-pied */
+ for(sd=-1;sd<=1;sd+=2){var kx=sd*.235*w+ox*.3,ky=-.55*w,fx=sd*.175*w+ox*.15;
+  cx.fillStyle=lg3(fx-.06*w,fx+.06*w,"#0c0d10","#2c2f38","#0c0d10");cx.beginPath();cx.moveTo(kx-.055*w,ky);cx.lineTo(kx+.055*w,ky);cx.lineTo(fx+.045*w,-.2*w);cx.lineTo(fx-.045*w,-.2*w);cx.closePath();cx.fill();
+  cx.fillStyle="#0b0b0e";rr(fx-.055*w,-.26*w,.11*w,.14*w,.03*w);cx.fill();cx.fillStyle=col;cx.fillRect(fx-.055*w,-.2*w,.11*w,.018*w);cx.fillStyle="#6b7079";cx.fillRect(fx-.03*w,-.12*w,.06*w,.016*w);
+  cx.fillStyle="#1c1e24";rr(fx-.07*w,-.13*w,.14*w,.035*w,.012*w);cx.fill();
+  /* cuisse + genou */
+  cx.fillStyle=lg3(sd*.04*w,sd*.3*w,lth,lt2,lth);cx.beginPath();cx.moveTo(sd*.08*w+ox*.2,-.74*w);cx.quadraticCurveTo(sd*.27*w+ox*.3,-.76*w,kx+sd*.045*w,ky-.03*w);cx.lineTo(kx-sd*.04*w,ky+.05*w);cx.quadraticCurveTo(sd*.1*w+ox*.2,-.55*w,sd*.05*w,-.6*w);cx.closePath();cx.fill();
+  cx.fillStyle=col;cx.beginPath();cx.moveTo(sd*.13*w+ox*.2,-.73*w);cx.quadraticCurveTo(sd*.27*w+ox*.3,-.75*w,kx+sd*.04*w,ky-.04*w);cx.lineTo(kx+sd*.045*w,ky+.01*w);cx.quadraticCurveTo(sd*.22*w,-.66*w,sd*.13*w+ox*.2,-.73*w);cx.fill();
+  cx.fillStyle="#d8dbe2";rr(kx+sd*.045*w-.022*w,ky-.035*w,.05*w,.07*w,.02*w);cx.fill();cx.fillStyle="rgba(0,0,0,.4)";cx.fillRect(kx+sd*.045*w-.022*w,ky,.05*w,.012*w)}
+ /* fessier / combinaison bas du dos */
+ cx.fillStyle=lg3(-.2*w,.2*w,lth,lt2,lth);cx.beginPath();cx.ellipse(ox*.25,-.72*w,.19*w,.085*w,0,0,7);cx.fill();cx.strokeStyle="rgba(0,0,0,.5)";cx.lineWidth=w*.008;cx.beginPath();cx.moveTo(0,-.64*w);cx.lineTo(ox*.2,-.77*w);cx.stroke();
+ /* dos : tronc penché, bosse aéro */
+ cx.fillStyle=lg3(-.27*w+ox,.27*w+ox,"#16181d",lt2,"#16181d");cx.beginPath();cx.moveTo(-.16*w+ox*.2,-.72*w);cx.lineTo(.16*w+ox*.2,-.72*w);cx.bezierCurveTo(.22*w+ox*.5,-.82*w,.27*w+ox*.8,-.92*w,.27*w+ox,-1.0*w);cx.lineTo(-.27*w+ox,-1.0*w);cx.bezierCurveTo(-.27*w+ox*.8,-.92*w,-.22*w+ox*.5,-.82*w,-.16*w+ox*.2,-.72*w);cx.closePath();cx.fill();
+ /* panneaux couleur latéraux */
+ cx.fillStyle=col;cx.beginPath();cx.moveTo(.15*w+ox*.2,-.73*w);cx.bezierCurveTo(.21*w+ox*.5,-.82*w,.26*w+ox*.8,-.91*w,.265*w+ox,-.99*w);cx.lineTo(.2*w+ox,-.99*w);cx.bezierCurveTo(.19*w+ox*.8,-.9*w,.14*w+ox*.5,-.82*w,.1*w+ox*.2,-.74*w);cx.fill();
+ cx.beginPath();cx.moveTo(-.15*w+ox*.2,-.73*w);cx.bezierCurveTo(-.21*w+ox*.5,-.82*w,-.26*w+ox*.8,-.91*w,-.265*w+ox,-.99*w);cx.lineTo(-.2*w+ox,-.99*w);cx.bezierCurveTo(-.19*w+ox*.8,-.9*w,-.14*w+ox*.5,-.82*w,-.1*w+ox*.2,-.74*w);cx.fill();
+ /* bosse + colonne protectrice (segments) */
+ var hu=cx.createLinearGradient(0,-1.0*w,0,-.78*w);hu.addColorStop(0,"rgba(255,255,255,.22)");hu.addColorStop(1,"rgba(255,255,255,0)");cx.fillStyle=hu;cx.beginPath();cx.ellipse(ox*.7,-.93*w,.1*w,.075*w,0,0,7);cx.fill();
+ cx.strokeStyle="rgba(0,0,0,.55)";cx.lineWidth=w*.01;cx.lineCap="round";for(i=0;i<5;i++){var yy=-.78*w-i*.045*w,xx=ox*(.2+i*.15);cx.beginPath();cx.moveTo(-.055*w+xx,yy);cx.lineTo(.055*w+xx,yy);cx.stroke()}
+ cx.strokeStyle=acc;cx.lineWidth=w*.022;cx.beginPath();cx.moveTo(ox*.2,-.73*w);cx.lineTo(ox,-1.0*w);cx.stroke();
+ /* numéro de course sur la bosse */
+ cx.fillStyle="rgba(255,255,255,.88)";cx.font="bold "+Math.round(w*.09)+"px Arial Black,Arial,sans-serif";cx.textAlign="center";cx.fillText(""+(o.num||"7"),ox*.75+.095*w,-.85*w);cx.textAlign="start";
+ /* guidon + commandes */
+ cx.strokeStyle="#8d939d";cx.lineWidth=w*.02;cx.beginPath();cx.moveTo(-.34*w,-.78*w);cx.lineTo(.34*w,-.78*w);cx.stroke();
+ /* bras : épaule → coude → poignet, coudières, gants */
+ for(sd=-1;sd<=1;sd+=2){var shx=sd*.27*w+ox,shy=-.99*w,elx=sd*.355*w+ox*.6,ely=-.9*w,wx=sd*.31*w,wy=-.8*w;
+  cx.lineCap="round";cx.strokeStyle=lt2;cx.lineWidth=w*.1;cx.beginPath();cx.moveTo(shx,shy);cx.lineTo(elx,ely);cx.stroke();
+  cx.strokeStyle=col;cx.lineWidth=w*.036;cx.beginPath();cx.moveTo(shx-sd*.01*w,shy+.005*w);cx.lineTo(elx-sd*.005*w,ely-.005*w);cx.stroke();
+  cx.strokeStyle=lth;cx.lineWidth=w*.082;cx.beginPath();cx.moveTo(elx,ely);cx.lineTo(wx,wy);cx.stroke();
+  cx.fillStyle="#d8dbe2";cx.beginPath();cx.ellipse(elx+sd*.012*w,ely,.026*w,.032*w,0,0,7);cx.fill();
+  cx.fillStyle="#16171b";cx.beginPath();cx.ellipse(wx,wy+.005*w,.05*w,.04*w,0,0,7);cx.fill();cx.fillStyle=col;cx.fillRect(wx-.045*w,wy-.028*w,.09*w,.014*w);
+  cx.fillStyle="#cfd4dc";cx.beginPath();cx.ellipse(sd*.375*w,-.865*w,.028*w,.02*w,sd*.5,0,7);cx.fill();cx.strokeStyle="#555";cx.lineWidth=w*.009;cx.beginPath();cx.moveTo(sd*.32*w,-.79*w);cx.lineTo(sd*.36*w,-.855*w);cx.stroke()}
  cx.lineCap="butt";
- /* casque */
- var hx=ox*1.3,hy=-1.13*w;cx.fillStyle=shade(suit,1.0);cx.beginPath();cx.ellipse(hx,hy+.09*w,.075*w,.05*w,0,0,7);cx.fill();
- var hg=cx.createRadialGradient(hx-.04*w,hy-.05*w,.01*w,hx,hy,.15*w);hg.addColorStop(0,"#ffffff");hg.addColorStop(.55,"#e4e7ee");hg.addColorStop(1,"#8b93a3");cx.fillStyle=hg;cx.beginPath();cx.ellipse(hx,hy,.12*w,.135*w,0,0,7);cx.fill();cx.strokeStyle="rgba(0,0,0,.4)";cx.lineWidth=w*.01;cx.stroke();
- cx.fillStyle=col;cx.beginPath();cx.moveTo(hx-.022*w,hy-.13*w);cx.lineTo(hx+.022*w,hy-.13*w);cx.lineTo(hx+.03*w,hy+.1*w);cx.lineTo(hx-.03*w,hy+.1*w);cx.fill();cx.fillStyle="#111";cx.beginPath();cx.ellipse(hx,hy+.04*w,.035*w,.02*w,0,0,7);cx.fill();
- cx.fillStyle="rgba(255,255,255,.5)";cx.beginPath();cx.ellipse(hx-.05*w,hy-.06*w,.025*w,.04*w,-.4,0,7);cx.fill()}
+ /* épaules / omoplates */
+ cx.fillStyle="rgba(255,255,255,.1)";cx.beginPath();cx.ellipse(-.15*w+ox,-.96*w,.07*w,.035*w,.3,0,7);cx.ellipse(.15*w+ox,-.96*w,.07*w,.035*w,-.3,0,7);cx.fill();
+ /* cou */
+ var hx=ox*1.35,hy=-1.15*w;cx.fillStyle="#101114";rr(hx-.075*w,hy+.07*w,.15*w,.1*w,.03*w);cx.fill();cx.fillStyle=col;cx.fillRect(hx-.075*w,hy+.15*w,.15*w,.012*w);
+ /* casque : coque arrière, spoiler, aérations, liseré */
+ var hg=cx.createRadialGradient(hx-.05*w,hy-.07*w,.01*w,hx,hy,.17*w);hg.addColorStop(0,"#ffffff");hg.addColorStop(.5,"#e6e9f0");hg.addColorStop(1,"#7f8798");
+ cx.fillStyle=hg;cx.beginPath();cx.moveTo(hx-.125*w,hy+.02*w);cx.bezierCurveTo(hx-.135*w,hy-.17*w,hx+.135*w,hy-.17*w,hx+.125*w,hy+.02*w);cx.bezierCurveTo(hx+.125*w,hy+.1*w,hx+.08*w,hy+.15*w,hx,hy+.15*w);cx.bezierCurveTo(hx-.08*w,hy+.15*w,hx-.125*w,hy+.1*w,hx-.125*w,hy+.02*w);cx.fill();
+ cx.strokeStyle="rgba(0,0,0,.4)";cx.lineWidth=w*.009;cx.stroke();
+ /* bande couleur + liseré blanc */
+ cx.fillStyle=col;cx.beginPath();cx.moveTo(hx-.04*w,hy-.15*w);cx.lineTo(hx+.04*w,hy-.15*w);cx.lineTo(hx+.05*w,hy+.14*w);cx.lineTo(hx-.05*w,hy+.14*w);cx.fill();cx.strokeStyle="#fff";cx.lineWidth=w*.01;cx.beginPath();cx.moveTo(hx-.022*w,hy-.15*w);cx.lineTo(hx-.028*w,hy+.14*w);cx.moveTo(hx+.022*w,hy-.15*w);cx.lineTo(hx+.028*w,hy+.14*w);cx.stroke();
+ /* spoiler arrière + aérations */
+ cx.fillStyle="#2a2d35";rr(hx-.05*w,hy+.07*w,.1*w,.045*w,.015*w);cx.fill();cx.fillStyle="#111";for(i=-1;i<=1;i+=2){cx.fillRect(hx+i*.085*w-.012*w,hy-.07*w,.024*w,.07*w)}
+ cx.fillStyle="rgba(255,255,255,.55)";cx.beginPath();cx.ellipse(hx-.075*w,hy-.07*w,.022*w,.045*w,-.35,0,7);cx.fill();
+ /* bords de visière visibles sur les côtés */
+ cx.fillStyle="#15161a";cx.beginPath();cx.ellipse(hx-.125*w,hy+.05*w,.012*w,.04*w,0,0,7);cx.ellipse(hx+.125*w,hy+.05*w,.012*w,.04*w,0,0,7);cx.fill()}
 function drawCar(x,y,w,spec,o){
  o=o||{};var k=spec.kind,col=spec.col,br=o.brake,glow=(br?.55:(TH&&TH.night?.28:0));cx.save();cx.translate(x,y);
  if(o.rot)cx.rotate(o.rot);else if(o.lean)cx.rotate(o.lean);
