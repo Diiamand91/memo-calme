@@ -611,7 +611,69 @@ a.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   </section>
   <p class="foot">Gratuit, sans abonnement. Ta progression reste sur cet appareil.</p>
 
-<footer class="hb-foot"><b>Mémo Calme</b><p>Gratuit pour toujours, sans publicité, sans abonnement.<br>📲 Ajoute-le à ton écran d'accueil pour jouer comme une vraie application, même sans internet.</p></footer>
+<footer class="hb-foot"><b>Mémo Calme</b><p>Gratuit pour toujours, sans publicité, sans abonnement.<br>📲 Ajoute-le à ton écran d'accueil pour jouer comme une vraie application, même sans internet.</p><button type="button" id="sv-open" class="sv-btn">💾 Sauvegarder ma progression</button></footer>
+<style>
+.sv-btn{margin-top:12px;border:0;border-radius:14px;padding:11px 18px;font:inherit;font-weight:800;background:var(--accent);color:var(--accent-fg,#fff);cursor:pointer}
+#sv-ov{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+#sv-ov.on{display:flex}
+#sv-box{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:20px;padding:18px;width:100%;max-width:420px;max-height:90vh;overflow:auto;font-size:.95rem;line-height:1.4}
+#sv-box h2{margin:0 0 6px;font-size:1.2rem}
+#sv-box p{margin:6px 0;color:var(--muted);font-size:.85rem}
+#sv-box textarea{width:100%;height:96px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:8px;font:12px/1.3 monospace;word-break:break-all;resize:none;box-sizing:border-box}
+#sv-box .r{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+#sv-box button{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-fg,#fff)}
+#sv-box button.g{background:transparent;color:var(--fg);border:1px solid var(--line)}
+#sv-box hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+#sv-msg{font-weight:800;min-height:1.2em;margin-top:4px}
+</style>
+<div id="sv-ov"><div id="sv-box">
+<h2>💾 Sauvegarde</h2>
+<p>Ta progression (pièces, voitures, niveaux, records de tous les jeux) est dans ce téléphone. Fais un code pour la garder en sécurité ou la retrouver sur un autre téléphone.</p>
+<b>1. Créer mon code</b>
+<div class="r"><button id="sv-make">Créer le code</button></div>
+<textarea id="sv-out" readonly placeholder="Ton code apparaîtra ici"></textarea>
+<div class="r"><button id="sv-copy" class="g">Copier</button><button id="sv-file" class="g">Enregistrer un fichier</button></div>
+<p>Colle ce code dans tes Notes ou envoie-le-toi par message.</p>
+<hr>
+<b>2. Restaurer</b>
+<textarea id="sv-in" placeholder="Colle ici ton code de sauvegarde"></textarea>
+<div class="r"><button id="sv-rest">Restaurer</button><button id="sv-pick" class="g">Choisir un fichier</button></div>
+<input type="file" id="sv-fi" accept=".txt,.json,text/plain" style="display:none">
+<p>⚠️ Restaurer remplace la progression actuelle par celle du code.</p>
+<div id="sv-msg"></div>
+<div class="r"><button id="sv-close" class="g">Fermer</button></div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},SKIP=/^(sb-|supabase)|backup-prev|^memo-calme-last$/;
+function msg(t,ok){var m=$("sv-msg");m.textContent=t;m.style.color=ok?"var(--accent)":"#d33"}
+function snap(){var o={};try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!SKIP.test(k))o[k]=localStorage.getItem(k)}}catch(e){}return o}
+function b64(u8){var s="",i;for(i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
+function unb64(t){var s=atob(t),u=new Uint8Array(s.length),i;for(i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
+function pipe(data,Cls,mode){var st=new Cls(mode),w=st.writable.getWriter();w.write(data);w.close();return new Response(st.readable).arrayBuffer().then(function(b){return new Uint8Array(b)})}
+function make(){var o={v:1,t:Date.now(),d:snap()},raw=new TextEncoder().encode(JSON.stringify(o));
+ if(window.CompressionStream)return pipe(raw,CompressionStream,"gzip").then(function(z){return"MC1."+b64(z)});
+ return Promise.resolve("MC0."+b64(raw))}
+function parse(code){code=(code||"").replace(/\s+/g,"");var m=/^MC([01])\.(.+)$/.exec(code);if(!m)return Promise.reject("Code invalide");
+ var u;try{u=unb64(m[2])}catch(e){return Promise.reject("Code incomplet")}
+ var p=m[1]==="1"?(window.DecompressionStream?pipe(u,DecompressionStream,"gzip"):Promise.reject("Ce navigateur ne sait pas lire ce code")):Promise.resolve(u);
+ return p.then(function(b){var o=JSON.parse(new TextDecoder().decode(b));if(!o||!o.d)throw 0;return o},function(e){throw e||"Code invalide"})}
+$("sv-open").onclick=function(){$("sv-ov").classList.add("on");msg("")};
+$("sv-close").onclick=function(){$("sv-ov").classList.remove("on")};
+$("sv-make").onclick=function(){make().then(function(c){$("sv-out").value=c;msg("Code créé ("+Object.keys(snap()).length+" éléments). Copie-le !",1)}).catch(function(){msg("Impossible de créer le code")})};
+$("sv-copy").onclick=function(){var t=$("sv-out");if(!t.value){msg("Crée d'abord le code");return}t.select();t.setSelectionRange(0,1e9);var ok=false;try{ok=document.execCommand("copy")}catch(e){}
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(function(){msg("Copié ✔",1)},function(){msg(ok?"Copié ✔":"Appuie longuement sur le code pour le copier",ok)});else msg(ok?"Copié ✔":"Appuie longuement sur le code pour le copier",ok)};
+$("sv-file").onclick=function(){var t=$("sv-out").value;if(!t){msg("Crée d'abord le code");return}var d=new Date(),n="memo-calme-sauvegarde-"+d.toISOString().slice(0,10)+".txt",b=new Blob([t],{type:"text/plain"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);msg("Fichier enregistré",1)};
+$("sv-pick").onclick=function(){$("sv-fi").click()};
+$("sv-fi").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("sv-in").value=String(r.result||"").trim();msg("Fichier lu. Appuie sur Restaurer.",1)};r.readAsText(f)};
+$("sv-rest").onclick=function(){var c=$("sv-in").value;if(!c.trim()){msg("Colle d'abord ton code");return}
+ parse(c).then(function(o){var n=Object.keys(o.d).length;if(!confirm("Restaurer "+n+" éléments de sauvegarde"+(o.t?" (du "+new Date(o.t).toLocaleDateString("fr-FR")+")":"")+" ? La progression actuelle sera remplacée."))return;
+  try{localStorage.setItem("memo-calme-backup-prev",JSON.stringify(snap()))}catch(e){}
+  for(var k in o.d){try{localStorage.setItem(k,o.d[k])}catch(e){}}
+  msg("Progression restaurée ✔ Rechargement…",1);setTimeout(function(){location.reload()},900)}).catch(function(e){msg(typeof e==="string"?e:"Code invalide ou abîmé")})};
+})();
+</script>
+
 <script>
 (function(){try{
  document.querySelectorAll("[data-game]").forEach(function(a){a.addEventListener("click",function(){var n=a.getAttribute("data-game");if(n)localStorage.setItem("memo-calme-last",JSON.stringify({n:n.replace("&amp;","&"),h:a.getAttribute("href")}))})});
