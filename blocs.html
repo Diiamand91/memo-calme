@@ -125,6 +125,31 @@ var atlas=document.createElement("canvas");atlas.width=atlas.height=128;
  tile(10,[170,70,50],.18,function(x,y,r){var row=Math.floor(y/4),off=row%2?4:0;var line=(y%4===3)||((x+off)%8===7);var k=line?.62:1+(r-.5)*.2;return"rgb("+Math.round(170*k)+","+Math.round(70*k)+","+Math.round(50*k)+")"})})();
 var tex=new THREE.CanvasTexture(atlas);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
 function tileURL(i){var c=document.createElement("canvas");c.width=c.height=16;c.getContext("2d").drawImage(atlas,(i%8)*16,Math.floor(i/8)*16,16,16,0,0,16,16);return c.toDataURL()}
+
+/* ---------- village ---------- */
+var VIL=false,CELL=44,sites={};
+function siteAt(kx,kz){var k=kx+","+kz;if(k in sites)return sites[k];var r=hash(kx,kz,SEED+777),res=null;
+ if(r<.5||(kx===0&&kz===0)){var sx=(kx===0&&kz===0)?12:kx*CELL+6+Math.floor(hash(kx,kz,SEED+778)*(CELL-20)),sz=(kx===0&&kz===0)?12:kz*CELL+6+Math.floor(hash(kx,kz,SEED+779)*(CELL-20)),hc=heightAt(sx+3,sz+3),ok=hc>WL+2,mn=hc,mx=hc;
+  [[-1,-1],[7,-1],[-1,7],[7,7],[3,-1],[3,7],[-1,3],[7,3]].forEach(function(o){var h=heightAt(sx+o[0],sz+o[1]);if(h<=WL+1)ok=false;mn=Math.min(mn,h);mx=Math.max(mx,h)});
+  if(ok&&mx-mn<=5)res={sx:sx,sz:sz,hc:hc,rot:Math.floor(hash(kx,kz,SEED+780)*4)}}
+ sites[k]=res;return res}
+var FURN=[[1,5,1,13,2],[2,5,1,33,2],[3,5,1,49,2],[4,5,1,29,2],[5,5,1,37,2],[3,5,3,22,2],[3,3,1,17,0],[2,3,1,18,3],[4,3,1,18,1],[5,2,1,45,1],[3,2,1,28,0],[1,1,1,41,3],[1,3,1,27,0],[3,3,3,26,0]];
+function rotXZ(i,j,k){for(var n=0;n<k;n++){var t=i;i=6-j;j=t}return[i,j]}
+function villageGen(cx,cz,d,hs){var x0=cx*CS,z0=cz*CS;
+ function put(wx,y,wz,id){var lx=wx-x0,lz=wz-z0;if(lx<0||lx>=CS||lz<0||lz>=CS||y<0||y>=CH)return;d[(y*CS+lz)*CS+lx]=id}
+ for(var kx=Math.floor((x0-9)/CELL);kx<=Math.floor((x0+CS+1)/CELL);kx++)for(var kz=Math.floor((z0-9)/CELL);kz<=Math.floor((z0+CS+1)/CELL);kz++){var S=siteAt(kx,kz);if(!S)continue;
+  if(S.sx+8<x0||S.sx-2>=x0+CS||S.sz+8<z0||S.sz-2>=z0+CS)continue;
+  var hc=S.hc;
+  for(var i=-1;i<=7;i++)for(var j=-1;j<=7;j++){var rw=rotXZ(i,j,S.rot),wx=S.sx+rw[0],wz=S.sz+rw[1],lx=wx-x0,lz=wz-z0;if(lx<0||lx>=CS||lz<0||lz>=CS)continue;
+   var inn=i>=0&&i<=6&&j>=0&&j<=6,h=hs[lz*CS+lx];
+   for(var y=Math.max(1,h-6);y<=hc;y++){var ii=(y*CS+lz)*CS+lx;if(y===hc||!d[ii]||d[ii]===9||y>h)d[ii]=(y===hc?1:2)}
+   for(var y2=hc+1;y2<=Math.min(CH-1,Math.max(h,hc)+10);y2++)d[(y2*CS+lz)*CS+lx]=0;
+   hs[lz*CS+lx]=inn?Math.min(255,hc+4):hc}
+  for(var i2=0;i2<=6;i2++)for(var j2=0;j2<=6;j2++){var edge=i2===0||i2===6||j2===0||j2===6,rr=rotXZ(i2,j2,S.rot),wx2=S.sx+rr[0],wz2=S.sz+rr[1];
+   put(wx2,hc,wz2,7);
+   for(var dy=1;dy<=3;dy++){var id=0;if(edge){id=8;if(j2===0&&i2===3&&dy<=2)id=0;else if(dy===2&&(((i2===0||i2===6)&&(j2===2||j2===4))||(j2===6&&(i2===2||i2===4))||(j2===0&&(i2===1||i2===5))))id=16}put(wx2,hc+dy,wz2,id)}
+   put(wx2,hc+4,wz2,7);put(wx2,hc+5,wz2,edge?8:0)}
+  FURN.forEach(function(f){var rr=rotXZ(f[0],f[1],S.rot),fam=FAM[f[3]],id=fam?fam[(f[4]+S.rot)&3]:f[3];put(S.sx+rr[0],hc+f[2],S.sz+rr[1],id)})}}
 /* ---------- monde ---------- */
 var chunks={},mods={};
 function ck(cx,cz){return cx+","+cz}
@@ -143,6 +168,7 @@ function genChunk(cx,cz){var d=new Uint8Array(CS*CS*CH),hs=new Uint8Array(CS*CS)
    else if(r>.9985&&h>WL+2&&x>4&&x<11&&z>4&&z<11){ // baobab
     for(var by=1;by<=9;by++)for(var bx=-1;bx<=1;bx++)for(var bz=-1;bz<=1;bz++){if(by>6&&(bx||bz))continue;d[((h+by)*CS+z+bz)*CS+x+bx]=5}
     for(var cx2=-4;cx2<=4;cx2++)for(var cz2=-4;cz2<=4;cz2++)if(cx2*cx2+cz2*cz2<=14){var xx=x+cx2,zz=z+cz2;if(xx<0||xx>=CS||zz<0||zz>=CS)continue;for(var cy=10;cy<=11;cy++)if(h+cy<CH&&!d[((h+cy)*CS+zz)*CS+xx])d[((h+cy)*CS+zz)*CS+xx]=6}}}}
+ if(VIL)villageGen(cx,cz,d,hs);
  var m=mods[ck(cx,cz)];if(m)for(var k in m)d[+k]=m[k];
  return {cx:cx,cz:cz,d:d,h:hs,mesh:null,wmesh:null,dirty:true}}
 function blockAt(x,y,z){if(y<0)return 3;if(y>=CH)return 0;var cx=Math.floor(x/CS),cz=Math.floor(z/CS),c=chunks[ck(cx,cz)];if(!c)return 0;return c.d[(y*CS+(z-cz*CS))*CS+(x-cx*CS)]}
@@ -271,8 +297,8 @@ var SKYD=new THREE.Color(0x7ec8ff),SKYN=new THREE.Color(0x070b22),SKYS=new THREE
 function daylight(){var a=Math.sin(P.t*Math.PI*2);return Math.max(0,Math.min(1,a*1.6+.35))}
 function sky(){var dl=daylight();tmpC.copy(SKYN).lerp(SKYD,dl);var dusk=1-Math.abs(dl-.5)*2;if(dusk>0)tmpC.lerp(SKYS,dusk*dusk*.35);scene.background=tmpC.clone();scene.fog.color.copy(tmpC);var k=.28+.72*dl;matO.color.setRGB(k,k,k*(.92+.08*dl));matW.color.setRGB(k,k,k);for(var kk in amats){amats[kk].m.color.copy(amats[kk].b).multiplyScalar(k)}}
 /* ---------- sauvegarde ---------- */
-function save(){try{localStorage.setItem(KEY,JSON.stringify({seed:SEED,mods:mods,p:[P.x,P.y,P.z,P.yaw,P.pitch],sel:P.sel,t:P.t,fly:P.fly,mode:MODE,inv:INV,hp:HP,food:FOOD,sp:SP,th:TH,sl:SL,hot:HOT}))}catch(e){}}
-function load(){try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j&&j.seed!=null){SEED=j.seed;mods=j.mods||{};P.x=j.p[0];P.y=j.p[1];P.z=j.p[2];P.yaw=j.p[3];P.pitch=j.p[4];P.sel=j.sel||0;P.t=j.t||.3;P.fly=!!j.fly;MODE=j.mode||"creatif";if(j.inv&&j.inv.length===27)INV=j.inv;HP=j.hp||20;FOOD=j.food==null?20:j.food;SP=j.sp||null;TH=j.th==null?20:j.th;SL=j.sl==null?20:j.sl;if(j.hot&&j.hot.length===8&&j.hot.every(function(x){return BL[x]&&x!==9}))HOT=j.hot;return true}}catch(e){}return false}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({seed:SEED,mods:mods,p:[P.x,P.y,P.z,P.yaw,P.pitch],sel:P.sel,t:P.t,fly:P.fly,mode:MODE,inv:INV,hp:HP,food:FOOD,sp:SP,th:TH,sl:SL,hot:HOT,vil:VIL?1:0}))}catch(e){}}
+function load(){try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j&&j.seed!=null){SEED=j.seed;mods=j.mods||{};P.x=j.p[0];P.y=j.p[1];P.z=j.p[2];P.yaw=j.p[3];P.pitch=j.p[4];P.sel=j.sel||0;P.t=j.t||.3;P.fly=!!j.fly;MODE=j.mode||"creatif";if(j.inv&&j.inv.length===27)INV=j.inv;HP=j.hp||20;FOOD=j.food==null?20:j.food;SP=j.sp||null;VIL=!!j.vil;TH=j.th==null?20:j.th;SL=j.sl==null?20:j.sl;if(j.hot&&j.hot.length===8&&j.hot.every(function(x){return BL[x]&&x!==9}))HOT=j.hot;return true}}catch(e){}return false}
 var had=load();
 if(!had){P.y=heightAt(8,8)+3;if(P.y<WL+4)P.y=WL+4;}
 /* ---------- interface ---------- */
@@ -327,7 +353,7 @@ $("how").textContent=isTouch?"Joystick à gauche pour marcher · glisse à droit
 var running=false;
 function lockPtr(){if(!isTouch)try{$("c").requestPointerLock()}catch(e){}}
 function startGame(){$("title").classList.add("off");running=true;lockPtr();ac();applyMode()}
-function newWorld(m){SEED=Math.floor(Math.random()*1e9);mods={};for(var k in chunks)dropChunk(chunks[k]);AN.forEach(function(a){scene.remove(a.g)});AN.length=0;MODE=m;HP=20;FOOD=20;TH=20;SL=20;SP=null;dead=false;for(var i=0;i<27;i++)INV[i]=null;P.fly=false;P.t=.05;P.sel=0;P.yaw=0;P.pitch=0;spawnPos();save();startGame()}
+function newWorld(m){SEED=Math.floor(Math.random()*1e9);VIL=true;sites={};mods={};for(var k in chunks)dropChunk(chunks[k]);AN.forEach(function(a){scene.remove(a.g)});AN.length=0;MODE=m;HP=20;FOOD=20;TH=20;SL=20;SP=null;dead=false;for(var i=0;i<27;i++)INV[i]=null;P.fly=false;P.t=.05;P.sel=0;P.yaw=0;P.pitch=0;spawnPos();save();startGame()}
 $("bCont").onclick=startGame;$("bNewC").onclick=function(){newWorld("creatif")};$("bNewS").onclick=function(){newWorld("survie")};if(!had)$("bCont").style.display="none";
 $("bBag").onclick=function(){openBag()};
 $("bMenu").onclick=function(){pauseMenu()};$("bRes").onclick=function(){$("menu").classList.add("off");running=true;lockPtr()};
