@@ -312,10 +312,35 @@ scene.fog=new THREE.Fog(0x9fd6ff,Math.min(40,RAD*CS*.5),RAD*CS+10);
 var sel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.005,1.005,1.005)),new THREE.LineBasicMaterial({color:0x000000}));sel.visible=false;scene.add(sel);
 var SKYD=new THREE.Color(0x7ec8ff),SKYN=new THREE.Color(0x070b22),SKYS=new THREE.Color(0xffa060),tmpC=new THREE.Color();
 function daylight(){var a=Math.sin(P.t*Math.PI*2);return Math.max(0,Math.min(1,a*1.6+.35))}
-function sky(){var dl=daylight();tmpC.copy(SKYN).lerp(SKYD,dl);var dusk=1-Math.abs(dl-.5)*2;if(dusk>0)tmpC.lerp(SKYS,dusk*dusk*.35);scene.background=tmpC.clone();scene.fog.color.copy(tmpC);var k=.28+.72*dl;matO.color.setRGB(k,k,k*(.92+.08*dl));matW.color.setRGB(k,k,k);for(var kk in amats){amats[kk].m.color.copy(amats[kk].b).multiplyScalar(k)}}
+function sky(){var dl=daylight();tmpC.copy(SKYN).lerp(SKYD,dl);var dusk=1-Math.abs(dl-.5)*2;if(dusk>0)tmpC.lerp(SKYS,dusk*dusk*.35);if(cloudI>.01){var g=.38+.25*dl;tmpC.lerp(GR.setRGB(g*.9,g,g*1.05),Math.min(1,cloudI*.65))}if(dustI>.01){var q=.25+.75*dl;tmpC.lerp(DU.setRGB(.82*q,.66*q,.42*q),dustI*.75)}if(flashT>0)tmpC.lerp(WH,Math.min(1,flashT*3.2)*.8);scene.background=tmpC.clone();scene.fog.color.copy(tmpC);var bn=Math.min(40,RAD*CS*.5),bf=RAD*CS+10;scene.fog.near=bn*(1-.45*dustI-.25*rainI);scene.fog.far=bf*(1-.5*dustI-.25*rainI);var k=(.28+.72*dl)*(1-.22*cloudI-.12*dustI);if(flashT>0)k=Math.min(1,k+flashT*2);matO.color.setRGB(k,k,k*(.92+.08*dl));matW.color.setRGB(k,k,k);for(var kk in amats){amats[kk].m.color.copy(amats[kk].b).multiplyScalar(k)}}
+/* ---------- meteo & saisons ---------- */
+var DAY=0,lastT=0,SEAS=[{n:"Hivernage",e:"🌧️",w:[["clear",.2],["cloud",.2],["rain",.4],["storm",.2]]},{n:"Harmattan",e:"🌬️",w:[["clear",.3],["dust",.7]]},{n:"Saison chaude",e:"☀️",w:[["clear",.85],["cloud",.15]]}];
+var wType="clear",wT=4,cloudI=0,rainI=0,dustI=0,rainVis=0,flashT=0,thunderT=-1,stormT=8,sheltered=false,shT=0,lastSeason=-1,rainDrinkT=0,GR=new THREE.Color(),DU=new THREE.Color(),WH=new THREE.Color(1,1,1);
+function seasonNow(){return Math.floor(DAY/3)%3}
+function pickWeather(){var S=SEAS[seasonNow()],r=Math.random(),a=0;for(var i=0;i<S.w.length;i++){a+=S.w[i][1];if(r<a)return S.w[i][0]}return"clear"}
+var RN=800,rpos=new Float32Array(RN*6),rbx=new Float32Array(RN),rby=new Float32Array(RN),rbz=new Float32Array(RN);
+for(var ri=0;ri<RN;ri++){rbx[ri]=(Math.random()-.5)*26;rby[ri]=Math.random()*16;rbz[ri]=(Math.random()-.5)*26}
+var rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute("position",new THREE.BufferAttribute(rpos,3));
+var rain=new THREE.LineSegments(rainGeo,new THREE.LineBasicMaterial({color:0xb4cdf0,transparent:true,opacity:.6,fog:false}));rain.frustumCulled=false;rain.visible=false;scene.add(rain);
+function updRain(dt){rain.visible=rainVis>.03;if(!rain.visible)return;var n=Math.floor(RN*rainVis);rainGeo.setDrawRange(0,n*2);
+ for(var i=0;i<n;i++){rby[i]-=24*dt;if(rby[i]<0)rby[i]+=16;var o=i*6;rpos[o]=rbx[i];rpos[o+1]=rby[i];rpos[o+2]=rbz[i];rpos[o+3]=rbx[i]+.05;rpos[o+4]=rby[i]+.55;rpos[o+5]=rbz[i]}
+ rainGeo.attributes.position.needsUpdate=true;rain.position.set(P.x,P.y-1,P.z)}
+function isSheltered(){var x=Math.floor(P.x),z=Math.floor(P.z),y=Math.floor(P.y+EYE)+1;for(var i=0;i<14;i++){var b=blockAt(x,y+i,z);if(b>0&&b!==9)return true}return false}
+function updWeather(dt){
+ if(lastT-P.t>.5)DAY++;lastT=P.t;
+ wT-=dt;if(wT<=0){wType=pickWeather();wT=50+Math.random()*80}
+ var tc=wType==="cloud"?.55:wType==="rain"?.85:wType==="storm"?1:wType==="dust"?.3:0,tr=(wType==="rain"||wType==="storm")?1:0,td=wType==="dust"?1:0,f=Math.min(1,dt*.3);
+ cloudI+=(tc-cloudI)*f;rainI+=(tr-rainI)*f;dustI+=(td-dustI)*f;
+ shT-=dt;if(shT<=0){shT=.4;sheltered=isSheltered()}
+ rainVis+=((sheltered?0:rainI)-rainVis)*Math.min(1,dt*3);
+ if(wType==="storm"&&rainI>.6){stormT-=dt;if(stormT<=0){stormT=7+Math.random()*14;flashT=.28;thunderT=.5+Math.random()}}
+ if(flashT>0)flashT-=dt;if(thunderT>0){thunderT-=dt;if(thunderT<=0){snd(48,.7);setTimeout(function(){snd(62,.5)},180)}}
+ var sn=seasonNow();if(sn!==lastSeason){if(lastSeason>=0)hint(SEAS[sn].e+" "+SEAS[sn].n+" commence");lastSeason=sn;wT=Math.min(wT,3)}
+ updRain(dt)}
+function wEmoji(){return wType==="storm"?"⛈️":wType==="rain"?"🌧️":wType==="dust"?"🌫️":wType==="cloud"?"☁️":""}
 /* ---------- sauvegarde ---------- */
-function save(){try{localStorage.setItem(KEY,JSON.stringify({seed:SEED,mods:mods,p:SIT?SIT.stand.concat([P.yaw,P.pitch]):[P.x,P.y,P.z,P.yaw,P.pitch],sel:P.sel,t:P.t,fly:P.fly,mode:MODE,inv:INV,hp:HP,food:FOOD,sp:SP,th:TH,sl:SL,hot:HOT,vil:VIL?1:0}))}catch(e){}}
-function load(){try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j&&j.seed!=null){SEED=j.seed;mods=j.mods||{};P.x=j.p[0];P.y=j.p[1];P.z=j.p[2];P.yaw=j.p[3];P.pitch=j.p[4];P.sel=j.sel||0;P.t=j.t||.3;P.fly=!!j.fly;MODE=j.mode||"creatif";if(j.inv&&j.inv.length===27)INV=j.inv;HP=j.hp||20;FOOD=j.food==null?20:j.food;SP=j.sp||null;VIL=!!j.vil;TH=j.th==null?20:j.th;SL=j.sl==null?20:j.sl;if(j.hot&&j.hot.length===8&&j.hot.every(function(x){return BL[x]&&x!==9}))HOT=j.hot;return true}}catch(e){}return false}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({seed:SEED,mods:mods,p:SIT?SIT.stand.concat([P.yaw,P.pitch]):[P.x,P.y,P.z,P.yaw,P.pitch],sel:P.sel,t:P.t,fly:P.fly,mode:MODE,inv:INV,hp:HP,food:FOOD,sp:SP,th:TH,sl:SL,hot:HOT,vil:VIL?1:0,day:DAY}))}catch(e){}}
+function load(){try{var j=JSON.parse(localStorage.getItem(KEY)||"null");if(j&&j.seed!=null){SEED=j.seed;mods=j.mods||{};P.x=j.p[0];P.y=j.p[1];P.z=j.p[2];P.yaw=j.p[3];P.pitch=j.p[4];P.sel=j.sel||0;P.t=j.t||.3;P.fly=!!j.fly;MODE=j.mode||"creatif";if(j.inv&&j.inv.length===27)INV=j.inv;HP=j.hp||20;FOOD=j.food==null?20:j.food;SP=j.sp||null;VIL=!!j.vil;DAY=j.day||0;TH=j.th==null?20:j.th;SL=j.sl==null?20:j.sl;if(j.hot&&j.hot.length===8&&j.hot.every(function(x){return BL[x]&&x!==9}))HOT=j.hot;return true}}catch(e){}return false}
 var had=load();
 if(!had){P.y=heightAt(8,8)+3;if(P.y<WL+4)P.y=WL+4;}
 /* ---------- interface ---------- */
@@ -370,7 +395,7 @@ $("how").textContent=isTouch?"Joystick à gauche pour marcher · glisse à droit
 var running=false;
 function lockPtr(){if(!isTouch)try{$("c").requestPointerLock()}catch(e){}}
 function startGame(){$("title").classList.add("off");running=true;lockPtr();ac();applyMode()}
-function newWorld(m){SIT=null;EYE=1.62;SEED=Math.floor(Math.random()*1e9);VIL=true;sites={};mods={};for(var k in chunks)dropChunk(chunks[k]);AN.forEach(function(a){scene.remove(a.g)});AN.length=0;MODE=m;HP=20;FOOD=20;TH=20;SL=20;SP=null;dead=false;for(var i=0;i<27;i++)INV[i]=null;P.fly=false;P.t=.05;P.sel=0;P.yaw=0;P.pitch=0;spawnPos();save();startGame()}
+function newWorld(m){DAY=0;lastSeason=-1;wType="clear";wT=4;SIT=null;EYE=1.62;SEED=Math.floor(Math.random()*1e9);VIL=true;sites={};mods={};for(var k in chunks)dropChunk(chunks[k]);AN.forEach(function(a){scene.remove(a.g)});AN.length=0;MODE=m;HP=20;FOOD=20;TH=20;SL=20;SP=null;dead=false;for(var i=0;i<27;i++)INV[i]=null;P.fly=false;P.t=.05;P.sel=0;P.yaw=0;P.pitch=0;spawnPos();save();startGame()}
 $("bCont").onclick=startGame;$("bNewC").onclick=function(){newWorld("creatif")};$("bNewS").onclick=function(){newWorld("survie")};if(!had)$("bCont").style.display="none";
 $("bBag").onclick=function(){openBag()};
 $("bMenu").onclick=function(){pauseMenu()};$("bRes").onclick=function(){$("menu").classList.add("off");running=true;lockPtr()};
@@ -441,23 +466,24 @@ addEventListener("pagehide",save);document.addEventListener("visibilitychange",f
 var last=performance.now(),svT=0,fps=60,spT=2;
 function loop(now){requestAnimationFrame(loop);var dt=Math.min(.05,(now-last)/1000);last=now;
  if(running){if(!isTouch){inp.mx=(keys.KeyD?1:0)-(keys.KeyA||keys.KeyQ?1:0);inp.mz=(keys.KeyS?1:0)-(keys.KeyW||keys.KeyZ?1:0);inp.jump=keys.Space?1:0;inp.down=(keys.ShiftLeft||keys.ShiftRight)?1:0}
-  if(SIT){if(inp.jump||Math.abs(inp.mx)+Math.abs(inp.mz)>.3||blockAt(SIT.p[0],SIT.p[1],SIT.p[2])!==SIT.b)standUp()}else physics(dt);P.t=(P.t+dt/420)%1;
+  if(SIT){if(inp.jump||Math.abs(inp.mx)+Math.abs(inp.mz)>.3||blockAt(SIT.p[0],SIT.p[1],SIT.p[2])!==SIT.b)standUp()}else physics(dt);P.t=(P.t+dt/420)%1;updWeather(dt);
   cool-=dt;atkCool-=dt;hurtT+=dt;
   if(MODE==="survie"){if(inp.brk)mineTick(dt);else{prog=0;mineKey="";$("mbar").style.display="none"}
    if(cool<=0&&inp.plc){doPlace();cool=.3}
-   coolT-=dt;if(coolT<=0){coolT=1.5;cooled=nearCool()}napT-=dt;var cf=cooled?.5:1;thT+=dt*cf;slT+=dt*cf;if(thT>30){thT=0;if(TH>0){TH--;renderThirst();if(TH===6)hint('💧 Tu as soif : bois de l\'eau')}}if(slT>40){slT=0;if(SL>0){SL--;renderSleep();if(SL===5)hint('😴 Tu as sommeil : cherche un lit')}}if(TH<=0){thirstT+=dt;if(thirstT>5){thirstT=0;if(HP>2)hurt(1)}}
+   coolT-=dt;if(coolT<=0){coolT=1.5;cooled=nearCool()}napT-=dt;var cf=cooled?.5:1;var heat=(seasonNow()===2&&daylight()>.5&&!sheltered)?1.4:1,cold=(seasonNow()===1&&daylight()<.4&&!sheltered)?1.4:1;thT+=dt*cf*heat;slT+=dt*cf*cold;if(!sheltered&&rainI>.5&&TH<20){rainDrinkT+=dt;if(rainDrinkT>5){rainDrinkT=0;TH++;renderThirst();hint("🌧️ Tu bois la pluie")}}if(thT>30){thT=0;if(TH>0){TH--;renderThirst();if(TH===6)hint('💧 Tu as soif : bois de l\'eau')}}if(slT>40){slT=0;if(SL>0){SL--;renderSleep();if(SL===5)hint('😴 Tu as sommeil : cherche un lit')}}if(TH<=0){thirstT+=dt;if(thirstT>5){thirstT=0;if(HP>2)hurt(1)}}
    regenT+=dt;foodT+=dt;if(foodT>45){foodT=0;if(FOOD>0){FOOD--;renderFood()}}if(HP<20&&hurtT>6&&FOOD>=14&&TH>=8&&regenT>3){HP++;regenT=0;renderHearts()}if(FOOD<=0){starveT+=dt;if(starveT>6){starveT=0;if(HP>2)hurt(1)}}}
   else if(cool<=0){if(inp.brk){doBreak();cool=.22}else if(inp.plc){doPlace();cool=.25}}
   svT+=dt;if(svT>12){svT=0;save()}}
  updateChunks(running||!chunks[ck(0,0)]?3:6);
  if(running){spT-=dt;if(spT<=0){spT=1.2;trySpawn()}updAnimals(dt)}
  for(var fk in chunks){var fg=chunks[fk].fg;if(fg)for(var fi=0;fi<fg.children.length;fi++)fg.children[fi].rotation.y+=dt*9}
+ if(!running)lastT=P.t;
  fps+=(1/Math.max(dt,.001)-fps)*.05;
  cam.position.set(P.x,P.y+EYE,P.z);cam.rotation.set(P.pitch,P.yaw,0);sky();
  var h=running?raycast():null;if(h){sel.visible=true;sel.position.set(h.p[0]+.5,h.p[1]+.5,h.p[2]+.5)}else sel.visible=false;
- $("info").textContent=Math.round(P.x)+" "+Math.round(P.y)+" "+Math.round(P.z)+"  ·  "+(daylight()>.35?"☀️":"🌙")+(MODE==="survie"?"  ·  SURVIE"+(cooled?" ❄️":""):"");
+ $("info").textContent=Math.round(P.x)+" "+Math.round(P.y)+" "+Math.round(P.z)+"  ·  "+(daylight()>.35?"☀️":"🌙")+"  ·  "+SEAS[seasonNow()].e+" "+SEAS[seasonNow()].n+" "+wEmoji()+(MODE==="survie"?"  ·  SURVIE"+(cooled?" ❄️":""):"");
  R.render(scene,cam)}
 requestAnimationFrame(loop);
-window.__B={openChest:openChest,toggleDoor:toggleDoor,killDoor:killDoor,P:P,chunks:chunks,mods:mods,setBlock:setBlock,blockAt:blockAt,raycast:raycast,doPlace:doPlace,doBreak:doBreak,physics:physics,inp:inp,getRunning:function(){return running},getFood:function(){return FOOD},getSP:function(){return SP},takeItem:takeItem,doPlace:doPlace,setTime:function(v){P.t=v},getT:function(){return P.t},setMode:function(m){MODE=m;applyMode()},INV:INV,giveItem:giveItem,hurt:hurt,getHP:function(){return HP},newWorld:newWorld,mineTick:mineTick,breakBlock:breakBlock,spawnZombie:spawnZombie,RECIPES:RECIPES,countItem:countItem,renderBag:renderBag,isDead:function(){return dead},startGame:startGame,AN:function(){return AN},hitAnimal:hitAnimal,updateChunks:updateChunks,heightAt:heightAt};
+window.__B={setWeather:function(t){wType=t;wT=9999},setDay:function(n){DAY=n},getW:function(){return{wType:wType,cloudI:cloudI,rainI:rainI,dustI:dustI,rainVis:rainVis,sheltered:sheltered,DAY:DAY}},openChest:openChest,toggleDoor:toggleDoor,killDoor:killDoor,P:P,chunks:chunks,mods:mods,setBlock:setBlock,blockAt:blockAt,raycast:raycast,doPlace:doPlace,doBreak:doBreak,physics:physics,inp:inp,getRunning:function(){return running},getFood:function(){return FOOD},getSP:function(){return SP},takeItem:takeItem,doPlace:doPlace,setTime:function(v){P.t=v},getT:function(){return P.t},setMode:function(m){MODE=m;applyMode()},INV:INV,giveItem:giveItem,hurt:hurt,getHP:function(){return HP},newWorld:newWorld,mineTick:mineTick,breakBlock:breakBlock,spawnZombie:spawnZombie,RECIPES:RECIPES,countItem:countItem,renderBag:renderBag,isDead:function(){return dead},startGame:startGame,AN:function(){return AN},hitAnimal:hitAnimal,updateChunks:updateChunks,heightAt:heightAt};
 })();
 </script></body></html>
