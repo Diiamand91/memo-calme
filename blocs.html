@@ -145,12 +145,21 @@ var tex=new THREE.CanvasTexture(atlas);tex.magFilter=tex.minFilter=THREE.Nearest
 function tileURL(i){var c=document.createElement("canvas");c.width=c.height=16;c.getContext("2d").drawImage(atlas,(i%8)*16,Math.floor(i/8)*16,16,16,0,0,16,16);return c.toDataURL()}
 
 /* ---------- village ---------- */
-var VIL=false,CELL=44,sites={};
-function siteAt(kx,kz){var k=kx+","+kz;if(k in sites)return sites[k];var r=hash(kx,kz,SEED+777),res=null;
- if(r<.5||(kx===0&&kz===0)){var sx=(kx===0&&kz===0)?12:kx*CELL+6+Math.floor(hash(kx,kz,SEED+778)*(CELL-20)),sz=(kx===0&&kz===0)?12:kz*CELL+6+Math.floor(hash(kx,kz,SEED+779)*(CELL-20)),hc=heightAt(sx+3,sz+3),ok=hc>WL+2,mn=hc,mx=hc;
+var VIL=false,CELL=20,sites={};
+function zoneVillage(zx,zz){return(zx===0&&zz===0)||hash(zx,zz,SEED+760)<.3}
+function siteAt(kx,kz){var k=kx+","+kz;if(k in sites)return sites[k];var res=null,zx=Math.floor(kx/4),zz=Math.floor(kz/4),vil=zoneVillage(zx,zz),ty=null,a=kx-zx*4,b=kz-zz*4;
+ if(!(kx===0&&kz===0)){
+  if(vil){if(hash(kx,kz,SEED+777)>=.12){var cc=[[1,1],[2,1],[2,2],[1,2]],ci=-1;for(var q=0;q<4;q++)if(cc[q][0]===a&&cc[q][1]===b)ci=q;
+    if(ci>=0){var m=Math.floor(hash(zx,zz,SEED+791)*4);ty=ci===m?"marche":ci===(m+2)%4?"puits":(hash(kx,kz,SEED+781)<.6?"house":"case")}
+    else{var ol=[];for(var u=0;u<4;u++)for(var w=0;w<4;w++)if(!(u>=1&&u<=2&&w>=1&&w<=2))ol.push(u*4+w);var mi=ol[Math.floor(hash(zx,zz,SEED+792)*ol.length)];ty=(a*4+b)===mi?"mosquee":(hash(kx,kz,SEED+781)<.65?"house":"case")}}}
+  else if(hash(kx,kz,SEED+777)<.04){var t2=hash(kx,kz,SEED+781);ty=t2<.5?"house":t2<.8?"case":"puits"}}
+ if(ty){var sx=kx*CELL+3,sz=kz*CELL+3,hc=heightAt(sx+3,sz+3),ok=hc>WL+2,mn=hc,mx=hc;
   [[-1,-1],[7,-1],[-1,7],[7,7],[3,-1],[3,7],[-1,3],[7,3]].forEach(function(o){var h=heightAt(sx+o[0],sz+o[1]);if(h<=WL+1)ok=false;mn=Math.min(mn,h);mx=Math.max(mx,h)});
-  var tr=hash(kx,kz,SEED+781),ty=(kx===0&&kz===0)?"house":(tr<.45?"house":tr<.65?"case":tr<.8?"marche":tr<.9?"puits":"mosquee");if(ok&&mx-mn<=5)res={sx:sx,sz:sz,hc:hc,type:ty,rot:Math.floor(hash(kx,kz,SEED+780)*4)}}
+  if(ok&&mx-mn<=5)res={sx:sx,sz:sz,hc:hc,type:ty,rot:Math.floor(hash(kx,kz,SEED+780)*4)}}
  sites[k]=res;return res}
+function pathGen(cx,cz,d,hs){var x0=cx*CS,z0=cz*CS;for(var lz=0;lz<CS;lz++)for(var lx=0;lx<CS;lx++){var wx=x0+lx,wz=z0+lz;if(!zoneVillage(Math.floor(wx/80),Math.floor(wz/80)))continue;
+  var ox=((wx%20)+20)%20,oz=((wz%20)+20)%20;if(!((ox>=12&&ox<=15)||(oz>=12&&oz<=15)))continue;
+  var y=hs[lz*CS+lx];if(y<=WL+1)continue;var ii=(y*CS+lz)*CS+lx;if(d[ii]===1||d[ii]===2){d[ii]=4;for(var yy=y+1;yy<=Math.min(CH-1,y+12);yy++){var j2=(yy*CS+lz)*CS+lx;if(d[j2]!==0&&d[j2]!==9)d[j2]=0}}}}
 var FURN=[[1,5,1,13,2],[2,5,1,33,2],[3,5,1,49,2],[4,5,1,29,2],[5,5,1,37,2],[3,5,3,22,2],[3,3,1,17,0],[2,3,1,18,3],[4,3,1,18,1],[5,2,1,45,1],[3,2,1,28,0],[1,1,1,41,3],[1,3,1,27,0],[3,3,3,26,0],[5,1,1,65,1]];
 function rotXZ(i,j,k){for(var n=0;n<k;n++){var t=i;i=6-j;j=t}return[i,j]}
 function sCase(){var L=[];for(var i=0;i<7;i++)for(var j=0;j<7;j++){var dx=i-3,dz=j-3,d=Math.sqrt(dx*dx+dz*dz);if(d<=3.3){L.push([i,j,0,7]);if(d>=2.3)for(var dy=1;dy<=3;dy++){var id=4;if(i===3&&j===0&&dy<=2)id=57;else if(dy===2&&((i===0&&j===3)||(i===6&&j===3)||(i===3&&j===6)))id=16;L.push([i,j,dy,id,0])}}
@@ -206,7 +215,7 @@ function genChunk(cx,cz){var d=new Uint8Array(CS*CS*CH),hs=new Uint8Array(CS*CS)
     for(var by=1;by<=10;by++){var r2=by<=3?5:(by<=8?2:1);for(var bx=-2;bx<=2;bx++)for(var bz=-2;bz<=2;bz++)if(bx*bx+bz*bz<=r2)BP(bx,by,bz,5)}
     [[1,0],[-1,0],[0,1],[0,-1]].forEach(function(v){for(var t=2;t<=3;t++)BP(v[0]*t,10,v[1]*t,5);BP(v[0]*3,11,v[1]*3,5);var cx3=v[0]*3,cz3=v[1]*3;for(var lx=-2;lx<=2;lx++)for(var lz=-2;lz<=2;lz++)for(var ly=0;ly<=2;ly++)if(lx*lx+lz*lz+ly*ly*2<=5)BP(cx3+lx,11+ly,cz3+lz,6,1)});
     for(var lx2=-3;lx2<=3;lx2++)for(var lz2=-3;lz2<=3;lz2++)for(var ly2=0;ly2<=2;ly2++)if(lx2*lx2+lz2*lz2+ly2*ly2*3<=9)BP(lx2,11+ly2,lz2,6,1)}}}
- if(VIL)villageGen(cx,cz,d,hs);
+ if(VIL){pathGen(cx,cz,d,hs);villageGen(cx,cz,d,hs)}
  var m=mods[ck(cx,cz)];if(m)for(var k in m)d[+k]=m[k];
  return {cx:cx,cz:cz,d:d,h:hs,mesh:null,wmesh:null,dirty:true}}
 function blockAt(x,y,z){if(y<0)return 3;if(y>=CH)return 0;var cx=Math.floor(x/CS),cz=Math.floor(z/CS),c=chunks[ck(cx,cz)];if(!c)return 0;return c.d[(y*CS+(z-cz*CS))*CS+(x-cx*CS)]}
@@ -414,7 +423,7 @@ function renderShop(){var b=$("bag");b.innerHTML='<h1 style="font-size:24px">ðŸ§
  $("bClose").onclick=closeBag}
 var mSeen={};
 function ensureMarchands(){if(!VIL)return;var kx0=Math.floor(P.x/CELL),kz0=Math.floor(P.z/CELL);
- for(var kx=kx0-2;kx<=kx0+2;kx++)for(var kz=kz0-2;kz<=kz0+2;kz++){var S=siteAt(kx,kz);if(!S||S.type!=="marche")continue;var key=kx+","+kz,rr=rotXZ(3,1,S.rot),x=S.sx+rr[0]+.5,z=S.sz+rr[1]+.5;
+ for(var kx=kx0-3;kx<=kx0+3;kx++)for(var kz=kz0-3;kz<=kz0+3;kz++){var S=siteAt(kx,kz);if(!S||S.type!=="marche")continue;var key=kx+","+kz,rr=rotXZ(3,1,S.rot),x=S.sx+rr[0]+.5,z=S.sz+rr[1]+.5;
   if(Math.hypot(x-P.x,z-P.z)>55||!getChunk(Math.floor(x/CS),Math.floor(z/CS)))continue;
   if(AN.some(function(a){return a.npc&&a.site===key}))continue;
   var a=mkAnimal("marchand");a.site=key;a.x=x;a.y=S.hc+1;a.z=z;AN.push(a)}
